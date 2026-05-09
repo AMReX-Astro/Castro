@@ -17,7 +17,10 @@ USE_SHOCK_VAR = TRUE
 
 USE_MODEL_PARSER = TRUE
 
-USE_SIMPLIFIED_SDC=TRUE
+USE_SIMPLIFIED_SDC = TRUE
+
+# for the networks we tend to use, we can still use Jac caching on GPUs
+USE_JACOBIAN_CACHING = TRUE
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/EOS
 EOS_DIR     := helmholtz

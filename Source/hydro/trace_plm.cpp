@@ -145,9 +145,17 @@ Castro::trace_plm(const Box& bx, const int idir,
         flat *= hydro::flatten(i, j, k, q_arr, QPTOT);
 
         if (radiation::flatten_pp_threshold > 0.0) {
-            if ( q_arr(i-1,j,k,QU) + q_arr(i,j-1,k,QV) + q_arr(i,j,k-1,QW) >
-                 q_arr(i+1,j,k,QU) + q_arr(i,j+1,k,QV) + q_arr(i,j,k+1,QW) ) {
-
+            Real vel_sum_m = q_arr(i-1,j,k,QU);
+            Real vel_sum_p = q_arr(i+1,j,k,QU);
+#if AMREX_SPACEDIM >= 2
+            vel_sum_m += q_arr(i,j-1,k,QV);
+            vel_sum_p += q_arr(i,j+1,k,QV);
+#endif
+#if AMREX_SPACEDIM == 3
+            vel_sum_m += q_arr(i,j,k-1,QW);
+            vel_sum_p += q_arr(i,j,k+1,QW);
+#endif
+            if (vel_sum_m > vel_sum_p) {
                 if (q_arr(i,j,k,QPRES) < radiation::flatten_pp_threshold * q_arr(i,j,k,QPTOT)) {
                     flat = 0.0;
                 }

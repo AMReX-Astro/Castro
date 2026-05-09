@@ -6,34 +6,39 @@
 #ifdef NEW_NETWORK_IMPLEMENTATION
 #include <rhs.H>
 #endif
-#include <Castro_react_util.H>
+#include <sdc_react_util.H>
 #include <sdc_newton_solve.H>
-#include <vode_rhs_true_sdc.H>
+#include <sdc_vode_solve.H>
+#include <sdc_powell_solve.H>
 #endif
 
-// solvers
-constexpr int NEWTON_SOLVE = 1;
-constexpr int VODE_SOLVE = 2;
-constexpr int HYBRID_SOLVE = 3;
+namespace sdc_solvers {
+    enum solver : std::uint8_t {
+        newton = 1,
+        vode = 2,
+        vode_and_newton = 3,
+        hybrid_powell = 4
+    };
+}
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
 normalize_species_sdc(const int i, const int j, const int k,
                       Array4<Real> const& u) {
 
-    GpuArray<Real, NumSpec> xn;
+    GpuArray<Real, NumSpec> rho_xn;
 
-    Real xn_sum = 0.0_rt;
+    Real rho_xn_sum = 0.0_rt;
 
     for (int n = 0; n < NumSpec; ++n) {
-        xn[n] = u(i,j,k,UFS+n);
-        xn[n] = amrex::max(network_rp::small_x * u(i,j,k,URHO), amrex::min(u(i,j,k,URHO), xn[n]));
-        xn_sum += xn[n];
+        rho_xn[n] = u(i,j,k,UFS+n);
+        rho_xn[n] = amrex::Clamp(rho_xn[n], network_rp::small_x * u(i,j,k,URHO), u(i,j,k,URHO));
+        rho_xn_sum += rho_xn[n];
     }
 
     for (int n = 0; n < NumSpec; ++n) {
-        xn[n] *= u(i,j,k,URHO) / xn_sum;
-        u(i,j,k,UFS+n) = xn[n];
+        rho_xn[n] *= u(i,j,k,URHO) / rho_xn_sum;
+        u(i,j,k,UFS+n) = rho_xn[n];
     }
 }
 
@@ -52,21 +57,21 @@ sdc_solve(const Real dt_m,
     int ierr;
     Real err_out;
 
-    if (sdc_solver == NEWTON_SOLVE) {
+    if (sdc_solver == sdc_solvers::newton) {
         // We are going to assume we already have a good guess
         // for the solve in U_new and just pass the solve onto
         // the main Newton solve
-        sdc_newton_subdivide(dt_m, U_old, U_new, C, sdc_iteration, err_out, ierr);
+        newton::sdc_newton_subdivide(dt_m, U_old, U_new, C, sdc_iteration, err_out, ierr);
 
         // failing?
-        if (ierr != newton::NEWTON_SUCCESS) {
-            Abort("Newton subcycling failed in sdc_solve");
+        if (ierr != newton_status::success) {
+            amrex::Abort("Newton subcycling failed in sdc_solve");
         }
-    } else if (sdc_solver == VODE_SOLVE) {
+    } else if (sdc_solver == sdc_solvers::vode) {
         // Use VODE to do the solution
         sdc_vode_solve(dt_m, U_old, U_new, C, sdc_iteration);
 
-    } else if (sdc_solver == HYBRID_SOLVE) {
+    } else if (sdc_solver == sdc_solvers::vode_and_newton) {
         // If it is the first iteration, we will use VODE to
         // predict the solution. Otherwise, we will use Newton.
         if (sdc_iteration == 0) {
@@ -75,12 +80,18 @@ sdc_solve(const Real dt_m,
 
         // Now U_new is the update that VODE predicts, so we
         // will use that as the initial guess to the Newton solve
-        sdc_newton_subdivide(dt_m, U_old, U_new, C, sdc_iteration, err_out, ierr);
+        newton::sdc_newton_subdivide(dt_m, U_old, U_new, C, sdc_iteration, err_out, ierr);
 
         // Failing?
-        if (ierr != newton::NEWTON_SUCCESS) {
-            Abort("Newton failure in sdc_solve");
+        if (ierr != newton_status::success) {
+            amrex::Abort("Newton failure in sdc_solve");
         }
+
+    } else if (sdc_solver == sdc_solvers::hybrid_powell) {
+        powell::sdc_powell_solve(dt_m, U_old, U_new, C, sdc_iteration);
+
+    } else {
+        amrex::Abort("invalid sdc_solver value");
     }
 }
 
@@ -122,6 +133,8 @@ sdc_update_o2(const int i, const int j, const int k,
               const Real dt_m,
               const int sdc_iteration, const int m_start) {
     // update k_m to k_n via advection -- this is a second-order accurate update
+
+    amrex::ignore_unused(m_start);
 
     // Here, dt_m is the timestep between time-nodes m and m+1
 

@@ -1,6 +1,8 @@
 #ifndef CASTRO_UTIL_H
 #define CASTRO_UTIL_H
 
+#include <numbers>
+
 #include <AMReX_Geometry.H>
 #include <network_properties.H>
 #include <state_indices.H>
@@ -217,7 +219,7 @@ Real volume(const int& i, const int& j, const int& k,
         Real rl = geomdata.ProbLo()[0] + static_cast<Real>(i) * dx[0];
         Real rr = rl + dx[0];
 
-        vol = std::abs(M_PI * dx[0] * (rr + rl));
+        vol = std::abs(std::numbers::pi * dx[0] * (rr + rl));
 
    } else {
 
@@ -226,7 +228,7 @@ Real volume(const int& i, const int& j, const int& k,
         Real rl = geomdata.ProbLo()[0] + static_cast<Real>(i) * dx[0];
         Real rr = rl + dx[0];
 
-        vol = std::abs((4.0_rt / 3.0_rt) * M_PI * dx[0] * (rl * rl + rl * rr + rr * rr));
+        vol = std::abs((4.0_rt / 3.0_rt) * std::numbers::pi * dx[0] * (rl * rl + rl * rr + rr * rr));
 
     }
 
@@ -247,13 +249,13 @@ Real volume(const int& i, const int& j, const int& k,
         Real r_l = geomdata.ProbLo()[0] + static_cast<Real>(i) * dx[0];
         Real r_r = geomdata.ProbLo()[0] + static_cast<Real>(i+1) * dx[0];
 
-        vol = std::abs(M_PI * (r_l + r_r) * dx[0] * dx[1]);
+        vol = std::abs(std::numbers::pi * (r_l + r_r) * dx[0] * dx[1]);
 
     } else {
 
         // Spherical
 
-        constexpr Real twoThirdsPi = 2.0_rt * M_PI / 3.0_rt;
+        constexpr Real twoThirdsPi = 2.0_rt * std::numbers::pi / 3.0_rt;
 
         Real r_l = geomdata.ProbLo()[0] + static_cast<Real>(i) * dx[0];
         Real r_r = geomdata.ProbLo()[0] + static_cast<Real>(i+1) * dx[0];
@@ -306,7 +308,7 @@ Real area(const int& i, const int& j, const int& k,
 
         Real r = geomdata.ProbLo()[0] + static_cast<Real>(i) * dx[0];
 
-        a = std::abs(2.0_rt * M_PI * r);
+        a = std::abs(2.0_rt * std::numbers::pi * r);
 
     } else {
 
@@ -314,7 +316,7 @@ Real area(const int& i, const int& j, const int& k,
 
         Real r = geomdata.ProbLo()[0] + static_cast<Real>(i) * dx[0];
 
-        a = std::abs(4.0_rt * M_PI * r * r);
+        a = std::abs(4.0_rt * std::numbers::pi * r * r);
 
     }
 
@@ -339,11 +341,11 @@ Real area(const int& i, const int& j, const int& k,
 
         if (idir == 0) {
             Real r = geomdata.ProbLo()[0] + static_cast<Real>(i) * dx[0];
-            a = std::abs(2.0_rt * M_PI * r * dx[1]);
+            a = std::abs(2.0_rt * std::numbers::pi * r * dx[1]);
         }
         else {
             Real r = geomdata.ProbLo()[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
-            a = std::abs(2.0_rt * M_PI * r * dx[0]);
+            a = std::abs(2.0_rt * std::numbers::pi * r * dx[0]);
         }
 
     } else {
@@ -355,13 +357,13 @@ Real area(const int& i, const int& j, const int& k,
             Real theta_l = geomdata.ProbLo()[1] + static_cast<Real>(j) * dx[1];
             Real theta_r = geomdata.ProbLo()[1] + static_cast<Real>(j+1) * dx[1];
 
-            a = std::abs(2.0_rt * M_PI * r * r * (std::cos(theta_l) - std::cos(theta_r)));
+            a = std::abs(2.0_rt * std::numbers::pi * r * r * (std::cos(theta_l) - std::cos(theta_r)));
         }
         else {
             Real r = geomdata.ProbLo()[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
             Real theta = geomdata.ProbLo()[1] + static_cast<Real>(j) * dx[1];
 
-            a = std::abs(2.0_rt * M_PI * std::sin(theta) * r * dx[0]);
+            a = std::abs(2.0_rt * std::numbers::pi * std::sin(theta) * r * dx[0]);
         }
 
     }

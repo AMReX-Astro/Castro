@@ -314,23 +314,23 @@ Castro::restart (Amr&     papa,
 #ifdef GRAVITY
     if (do_grav && level == 0) {
        BL_ASSERT(gravity == nullptr);
-       gravity = new Gravity(parent,parent->finestLevel(),&phys_bc, URHO);
+       gravity = std::make_unique<Gravity>(parent, parent->finestLevel(), &phys_bc, URHO);
     }
 #endif
 
 #ifdef DIFFUSION
     if (level == 0) {
-       BL_ASSERT(diffusion == 0);
-       diffusion = new Diffusion(parent,&phys_bc);
+       BL_ASSERT(diffusion == nullptr);
+       diffusion = std::make_unique<Diffusion>(parent, &phys_bc);
     }
 #endif
 
 #ifdef RADIATION
     if (do_radiation) {
-      if (radiation == 0) {
+      if (radiation == nullptr) {
         // radiation is a static object, only alloc if not already there
         int rad_restart = 1; // disables quasi-steady initialization
-        radiation = new Radiation(parent, this, rad_restart);
+        radiation = std::make_unique<Radiation>(parent, this, rad_restart);
       }
       radiation->regrid(level, grids, dmap);
       radiation->restart(level, grids, dmap, parent->theRestartFile(), is);
@@ -701,9 +701,9 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
 
   // these names correspond to the integer flags setup in the
   // Castro_setup.cpp
-  const char* names_bc[] =
-    { "interior", "inflow", "outflow",
-      "symmetry", "slipwall", "noslipwall" };
+  constexpr std::array<std::string_view, 6> names_bc{
+      "interior", "inflow", "outflow",
+      "symmetry", "slipwall", "noslipwall"};
 
 
   jobInfoFile << "   -x: " << names_bc[lo_bc_out[0]] << "\n";

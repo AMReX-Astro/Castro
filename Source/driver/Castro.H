@@ -167,8 +167,8 @@ public:
 /// Restart from a checkpoint file.
 ///
 /// @param papa             parent ``amrex::Amr`` object
-/// @param is
-/// @param bReadSpecial
+/// @param is               input stream for checkpoint data
+/// @param bReadSpecial     whether to read problem-specific restart data
 ///
     void restart (amrex::Amr&     papa,
                   istream& is,
@@ -326,7 +326,7 @@ public:
 ///
 /// Timestamp particles
 ///
-/// @param ngrow
+/// @param ngrow    number of ghost cells
 ///
     void TimestampParticles (int ngrow);
 
@@ -423,7 +423,7 @@ public:
 /// This routine will advance the old state data (called ``S_old`` here)
 /// to the new time, for a single level.  The new data is called
 /// ``S_new`` here.  The update includes reactions (if we are not doing
-/// SDC), hydro, and the source terms. The advance is doing using the CTU
+/// SDC), hydro, and the source terms. The advance is done using the CTU
 /// (corner transport upwind) approach. We also use this interface for the
 /// simplified SDC update.
 ///
@@ -442,7 +442,7 @@ public:
 #endif
 
 ///
-/// Save a copy of the old state data in case for the purposes of a retry.
+/// Save a copy of the old state data for use by a retry.
 ///
     void save_data_for_retry();
 
@@ -458,7 +458,7 @@ public:
     bool retry_advance_ctu(amrex::Real dt, const advance_status& status);
 
 ///
-/// Subcyles until we've reached the target time, ``time`` + ``dt``.
+/// Subcycles until we've reached the target time, ``time`` + ``dt``.
 /// The last timestep will be shortened if needed so that
 /// it does not overshoot the ending time. This is used only for
 /// the CTU advance.
@@ -570,8 +570,8 @@ public:
 /// @param subcycle         unused
 /// @param n_cycle          the number of subcycles at this level
 /// @param ref_ratio        unused
-/// @param dt_min
-/// @param dt_level
+/// @param dt_min          minimum timestep allowed at each level
+/// @param dt_level        timestep at each level
 /// @param stop_time        End time of simulation
 /// @param post_regrid_flag Have we done regridding yet?
 ///
@@ -610,15 +610,15 @@ public:
 ///
 /// Contains operations to be done only after a full coarse timestep.
 ///
-/// @param cumtime
+/// @param cumtime    cumulative simulation time
 ///
     void postCoarseTimeStep (amrex::Real cumtime) override;
 
 ///
 /// Do work after regrid().
 ///
-/// @param lbase
-/// @param new_finest
+/// @param lbase         the coarsest level affected by regridding
+/// @param new_finest    the new finest AMR level
 ///
     void post_regrid (int lbase,
                       int new_finest) override;
@@ -659,7 +659,7 @@ public:
 ///
 /// Do work at the end of the simulation - before the last outputs
 ///
-/// @param amr_level
+/// @param amr_level    AMR levels in the simulation hierarchy
 ///
     static void problem_post_simulation (amrex::Vector<std::unique_ptr<AmrLevel> >& amr_level);
 #endif
@@ -738,7 +738,7 @@ public:
 #ifdef RADIATION
 
 ///
-/// @param S_new
+/// @param S_new        state at the new time
 /// @param iteration    where we are in the current AMR subcycle
 /// @param ncycle       the number of subcycles at this level
 ///
@@ -750,6 +750,9 @@ public:
 ///
 /// Reset the internal energy
 ///
+/// @param Bx       magnetic field in x
+/// @param By       magnetic field in y
+/// @param Bz       magnetic field in z
 /// @param State    Current state (MultiFab)
 /// @param ng       number of ghost cells
 ///
@@ -766,6 +769,9 @@ public:
 /// Reset the internal energy
 ///
 /// @param bx       Box to update
+/// @param Bx       magnetic field in x
+/// @param By       magnetic field in y
+/// @param Bz       magnetic field in z
 /// @param u        Current state (Fab)
 ///
     static void reset_internal_energy (const amrex::Box& bx,
@@ -811,6 +817,9 @@ public:
 ///
 /// Compute the current temperature
 ///
+/// @param Bx       magnetic field in x
+/// @param By       magnetic field in y
+/// @param Bz       magnetic field in z
 /// @param state    the state to operate on
 /// @param time     current time
 /// @param ng       number of ghost cells
@@ -980,7 +989,7 @@ public:
 
 
 ///
-/// @param lev
+/// @param lev    AMR level index
 ///
     Castro& getLevel (int lev);
 
@@ -991,9 +1000,9 @@ public:
 ///
 /// Do refluxing
 ///
-/// @param crse_level
-/// @param fine_level
-/// @param in_post_timestep
+/// @param crse_level         coarse AMR level index
+/// @param fine_level         fine AMR level index
+/// @param in_post_timestep   true if called from post_timestep()
 ///
     void reflux (int crse_level, int fine_level, bool in_post_timestep);
 
@@ -1130,7 +1139,7 @@ public:
     }
 
 #ifdef AMREX_PARTICLES
-    static amrex::AmrTracerParticleContainer* theTracerPC () { return TracerPC; }
+    static amrex::AmrTracerParticleContainer* theTracerPC () { return TracerPC.get(); }
 #endif
 
     static amrex::Vector<std::string> source_names;
@@ -1175,8 +1184,8 @@ protected:
 
 
 ///
-/// Build a mask that ghost cells overlapping with interior cells in the same multifab
-///     are set to 0, whereas others are set to 1.
+/// Build a mask where ghost cells overlapping interior cells in the same
+/// multifab are set to 0, and all others are set to 1.
 ///
     amrex::Vector<std::unique_ptr<amrex::iMultiFab> > ib_mask;
 
@@ -1228,7 +1237,7 @@ protected:
 
 #ifdef TRUE_SDC
 ///
-/// A state array for the some reaction stuff with SDC
+/// A state array for reaction-related data used by SDC
 ///
     amrex::MultiFab Sburn;
 
@@ -1239,12 +1248,12 @@ protected:
     amrex::MultiFab q;
 
 ///
-/// we need a second version when doing fourth order
+/// A second primitive-state array used by the fourth-order method
 ///
     amrex::MultiFab q_bar;
 
 ///
-/// for diffusion in fourth order we need the cell-center temperature
+/// Cell-centered temperature needed for fourth-order diffusion
 //
 #ifdef DIFFUSION
     amrex::MultiFab T_cc;
@@ -1404,13 +1413,13 @@ protected:
 ///
 /// There can be only one Gravity object, it covers all levels:
 ///
-    static class Gravity *gravity;
+    static std::unique_ptr<class Gravity> gravity;
 
 
 ///
 /// There can be only one Diffusion object, it covers all levels:
 ///
-    static class Diffusion *diffusion;
+    static std::unique_ptr<class Diffusion> diffusion;
 
 #ifdef RADIATION
 
@@ -1418,13 +1427,13 @@ protected:
 ///
 /// There can be only one Radiation object, it covers all levels:
 ///
-    static class Radiation *radiation;
+    static std::unique_ptr<class Radiation> radiation;
 
     friend class Radiation;
 #endif
 
 #ifdef AMREX_PARTICLES
-    static amrex::AmrTracerParticleContainer* TracerPC;
+    static std::unique_ptr<amrex::AmrTracerParticleContainer> TracerPC;
 #endif
 
     static amrex::IntVect hydro_tile_size;
@@ -1477,7 +1486,7 @@ Castro::Area ()
 
 
 ///
-/// @param dir
+/// @param dir    coordinate direction
 ///
 inline
 amrex::MultiFab&
@@ -1495,7 +1504,7 @@ Castro::Volume ()
 
 
 ///
-/// @param lev
+/// @param lev    AMR level index
 ///
 inline
 Castro&
