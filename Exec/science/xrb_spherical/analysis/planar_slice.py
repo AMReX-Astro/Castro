@@ -280,7 +280,10 @@ def add_derived_fields(ds):
                      display_name=r"$|\nabla \rho|$")
 
 def planar_slice(fnames:list[str], fields:list[str],
-                 figsize=(16, 9), contour_field=None,
+                 figsize=(16, 9),
+                 xmin=None, xmax=None,
+                 ymin=None, ymax=None,
+                 contour_field=None,
                  overplot_fine_levels=False,
                  annotate_front=False,
                  annotate_velocity_streamlines=False,
@@ -416,8 +419,10 @@ def planar_slice(fnames:list[str], fields:list[str],
 
             ax.set_xlabel(r"$\theta$ [rad]")
             ax.set_ylabel("Radial [km]")
-            ax.set_ylim(r[0], r[1]) # Plot half of the radial dir for now
-            ax.set_xlim(theta.min(), theta.max())
+            ax.set_xlim(xmin if xmin is not None else theta.min(),
+                        xmax if xmax is not None else theta.max())
+            ax.set_ylim(ymin if ymin is not None else r[0],
+                        ymax if ymax is not None else r[1]) # Plot half of the radial dir by default
 
             cb_label = preset["label"]
             if not cb_label:
@@ -455,6 +460,14 @@ if __name__ == "__main__":
                         """)
     parser.add_argument("--figsize", nargs=2, type=float, default=[16, 9],
                         metavar=("WIDTH", "HEIGHT"), help="Figure size in inches.")
+    parser.add_argument("--xmin", type=float, default=None, metavar="THETA",
+                        help="Minimum theta for plot xlim")
+    parser.add_argument("--xmax", type=float, default=None, metavar="THETA",
+                        help="Maximum theta for plot xlim")
+    parser.add_argument("--ymin", type=float, default=None, metavar="R",
+                        help="Minimum r [km] for plot ylim")
+    parser.add_argument("--ymax", type=float, default=None, metavar="R",
+                        help="Maximum r [km] for plot ylim")
     parser.add_argument("--contour-field", default=None,
                         help="Field variable to use for overplotting contour lines (e.g. 'pressure').")
     parser.add_argument("--overplot-fine-levels", action="store_true",
@@ -480,6 +493,10 @@ if __name__ == "__main__":
         fnames                            = args.fnames,
         fields                            = args.fields,
         figsize                           = tuple(args.figsize),
+        xmin                              = args.xmin,
+        xmax                              = args.xmax,
+        ymin                              = args.ymin,
+        ymax                              = args.ymax,
         contour_field                     = args.contour_field,
         overplot_fine_levels              = args.overplot_fine_levels,
         annotate_front                    = args.annotate_front,
