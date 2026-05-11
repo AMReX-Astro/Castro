@@ -21,6 +21,14 @@ parser.add_argument('-f', '--fields', nargs='+', type=str,
                     """)
 parser.add_argument("--figsize", nargs=2, type=float, default=[16, 9],
                     metavar=("WIDTH", "HEIGHT"), help="Figure size in inches.")
+parser.add_argument("--xmin", type=float, default=None, metavar="THETA",
+                    help="Minimum theta for plot xlim")
+parser.add_argument("--xmax", type=float, default=None, metavar="THETA",
+                    help="Maximum theta for plot xlim")
+parser.add_argument("--ymin", type=float, default=None, metavar="R",
+                    help="Minimum r [km] for plot ylim")
+parser.add_argument("--ymax", type=float, default=None, metavar="R",
+                    help="Maximum r [km] for plot ylim")
 parser.add_argument("--contour-field", default=None,
                     help="Field variable to use for overplotting contour lines (e.g. 'pressure').")
 parser.add_argument("--overplot-fine-levels", action="store_true",
@@ -43,7 +51,10 @@ args = parser.parse_args()
 with ProcessPoolExecutor(max_workers=args.jobs) as executor:
     future_to_index = {
         executor.submit(planar_slice, [fname], args.fields,
-                        figsize=args.figsize, contour_field=args.contour_field,
+                        figsize=args.figsize,
+                        xmin=args.xmin, xmax=args.xmax,
+                        ymin=args.ymin, ymax=args.ymax,
+                        contour_field=args.contour_field,
                         overplot_fine_levels=args.overplot_fine_levels,
                         annotate_front=args.annotate_front,
                         annotate_velocity_streamlines=args.annotate_velocity_streamlines,
