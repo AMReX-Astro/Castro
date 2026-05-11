@@ -330,13 +330,13 @@ def planar_slice(fnames:list[str], fields:list[str],
         r, theta, cg0 = extract_info(ds, data_level=0)
 
         if ymin is None:
-            ymin = r[0]
+            ymin = r[0].value
         if ymax is None:
-            ymax = 0.5*(r[1] - r[0])
+            ymax = 0.5*(r[1].value - r[0].value)
         if xmin is None:
-            xmin = theta[0]
+            xmin = theta[0].value
         if xmax is None:
-            xmax = theta[1]
+            xmax = theta[1].value
 
         # Loop over all possible fields
         for i, field in enumerate(fields):
