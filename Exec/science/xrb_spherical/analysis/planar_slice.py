@@ -329,6 +329,15 @@ def planar_slice(fnames:list[str], fields:list[str],
         # Get level 0 data
         r, cg0 = extract_info(ds, data_level=0)
 
+        if ymin is None:
+            ymin = r[0]
+        if ymax is None:
+            ymax = r[1] # note r[1] is at half the total height
+        if xmin is None:
+            xmin = theta.min()
+        if xmax is None:
+            xmax = theta.max()
+
         # Loop over all possible fields
         for i, field in enumerate(fields):
 
@@ -378,12 +387,13 @@ def planar_slice(fnames:list[str], fields:list[str],
                 ash_front_theta = front_tracking_data["ash_theta"]
                 flame_front_theta = front_tracking_data["flame_theta"]
 
+                text_pos = ymin + 0.8*(ymax - ymin)
                 ax.axvline(ash_front_theta, linestyle="-.", color="k", linewidth=1.5)
-                ax.text(ash_front_theta, r[0] + 0.8*(r[1] - r[0]), "Ash\nFront",
+                ax.text(ash_front_theta, text_pos, "Ash\nFront",
                         color="k", fontsize=12, ha="center", va="center", rotation=90)
 
                 ax.axvline(flame_front_theta, linestyle="-.", color="k", linewidth=1.5)
-                ax.text(flame_front_theta, r[0] + 0.8*(r[1] - r[0]), "Flame\nFront",
+                ax.text(flame_front_theta, text_pos, "Flame\nFront",
                         color="k", fontsize=12, ha="center", va="center", rotation=90)
 
             # Annotate optional AMR grids
@@ -419,10 +429,8 @@ def planar_slice(fnames:list[str], fields:list[str],
 
             ax.set_xlabel(r"$\theta$ [rad]")
             ax.set_ylabel("Radial [km]")
-            ax.set_xlim(xmin if xmin is not None else theta.min(),
-                        xmax if xmax is not None else theta.max())
-            ax.set_ylim(ymin if ymin is not None else r[0],
-                        ymax if ymax is not None else r[1]) # Plot half of the radial dir by default
+            ax.set_xlim(xmin, xmax)
+            ax.set_ylim(ymin, ymax)
 
             cb_label = preset["label"]
             if not cb_label:
