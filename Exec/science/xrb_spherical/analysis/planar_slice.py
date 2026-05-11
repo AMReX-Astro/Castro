@@ -241,12 +241,12 @@ def extract_info(ds, data_level=0):
     right_edge = ds.domain_right_edge
     rl = left_edge[0] * 1e-5
     rr = right_edge[0] * 1e-5
-    rc = 0.5*(left_edge[0] + right_edge[0])*1e-5
-    r = [rl, rc, rr] # in km
+    r = [rl, rr] # in km
+    theta = [left_edge[1], right_edge[1]]
 
     # Get grid data
     cg = ds.smoothed_covering_grid(level=data_level, left_edge=left_edge, dims=dims)
-    return (r, cg)
+    return (r, theta, cg)
 
 def add_derived_fields(ds):
     """Given a dataset add the derived fields"""
@@ -327,16 +327,16 @@ def planar_slice(fnames:list[str], fields:list[str],
             time = ds.current_time.in_units("us")
 
         # Get level 0 data
-        r, cg0 = extract_info(ds, data_level=0)
+        r, theta, cg0 = extract_info(ds, data_level=0)
 
         if ymin is None:
             ymin = r[0]
         if ymax is None:
-            ymax = r[1] # note r[1] is at half the total height
+            ymax = 0.5*(r[1] - r[0])
         if xmin is None:
-            xmin = theta.min()
+            xmin = theta[0]
         if xmax is None:
-            xmax = theta.max()
+            xmax = theta[1]
 
         # Loop over all possible fields
         for i, field in enumerate(fields):
@@ -347,14 +347,14 @@ def planar_slice(fnames:list[str], fields:list[str],
 
             # Get plotting variables
             var    = cg0["boxlib", field][:, :, 0].to_ndarray()
-            radial = cg0["index", "r"][:, :, 0].to("km").to_ndarray() # longitudinal distance in km
-            theta  = cg0["index", "theta"][:, :, 0].to_ndarray()
+            r_arr = cg0["index", "r"][:, :, 0].to("km").to_ndarray() # longitudinal distance in km
+            theta_arr  = cg0["index", "theta"][:, :, 0].to_ndarray()
 
             # Choose different settings based on what field parameter is plotted
             preset = FIELD_PRESETS.get(field, DEFAULT_PRESET)
 
             # Plot level 0 data using pcolormesh
-            pcm = ax.pcolormesh(theta, radial, var, shading="auto",
+            pcm = ax.pcolormesh(theta_arr, r_arr, var, shading="auto",
                                 cmap=preset["cmap"], norm=preset["norm"])
 
             # Overplot finer level data if available
@@ -365,7 +365,7 @@ def planar_slice(fnames:list[str], fields:list[str],
             if contour_field is not None:
                 contour_var = cg0["boxlib", contour_field][:, :, 0].to_ndarray()
                 contour_levels = CONTOUR_LEVEL_PRESETS.get(contour_field, 10)
-                ax.contour(theta, radial, contour_var, levels=contour_levels, linewidths=1, colors="k")
+                ax.contour(theta_arr, r_arr, contour_var, levels=contour_levels, linewidths=1, colors="k")
 
             # Annotate optional velocity or acceleration streamlines
             # note here x-velocity is in radial so its technically vertical
@@ -375,11 +375,11 @@ def planar_slice(fnames:list[str], fields:list[str],
             if annotate_velocity_streamlines:
                 vt = cg0["boxlib", "y_velocity"][:, :, 0].to_ndarray()
                 vr = cg0["boxlib", "x_velocity"][:, :, 0].to_ndarray()
-                ax.streamplot(theta, radial, vt, vr, density=1)
+                ax.streamplot(theta_arr, r_arr, vt, vr, density=1)
             elif annotate_acceleration_streamlines and ("boxlib", "pressure") in ds.field_list:
                 at = cg0["boxlib", "Dvt_Dt"][:, :, 0].to_ndarray()
                 ar = cg0["boxlib", "Dvr_Dt"][:, :, 0].to_ndarray()
-                ax.streamplot(theta, radial, at, ar, density=1)
+                ax.streamplot(theta_arr, r_arr, at, ar, density=1)
 
             # Plot vertical line to indicate flame front and ash front
             if annotate_front:
