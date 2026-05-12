@@ -42,10 +42,18 @@ parser.add_argument("--annotate-acceleration-streamlines", action="store_true",
                     help="Overlay acceleration streamlines.")
 parser.add_argument("--annotate-grids", action="store_true",
                     help="Overlay AMR grid boundaries colored by level.")
+parser.add_arguement("--time-interval", type=float, default=None,
+                     help="Time interval [ms] at which the plot file are divisible by.")
 parser.add_argument('--jobs', '-j', default=1, type=int,
                     help="""Number of workers to plot in parallel""")
 
 args = parser.parse_args()
+
+fnames = args.fnames
+if args.time_interval is not None:
+    fnames = [fname for fname in fnames
+              if np.isclose(CastroDataset(fname).current_time.in_units("ms") % interval, 0.0,
+                            rtol=1e-3, atol=1e-4)]
 
 # Parallelize the plotting
 with ProcessPoolExecutor(max_workers=args.jobs) as executor:
@@ -61,7 +69,7 @@ with ProcessPoolExecutor(max_workers=args.jobs) as executor:
                         annotate_acceleration_streamlines=args.annotate_acceleration_streamlines,
                         annotate_grids=args.annotate_grids,
                         outName=fname+"_planar_slice.png"): i
-        for i, fname in enumerate(args.fnames)
+        for i, fname in enumerate(fnames)
     }
     try:
         for future in as_completed(future_to_index):
