@@ -4,6 +4,7 @@ import sys
 import argparse
 import numpy as np
 import pandas as pd
+from yt.frontends.boxlib.api import CastroDataset
 from planar_slice import planar_slice
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
