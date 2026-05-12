@@ -53,7 +53,7 @@ args = parser.parse_args()
 fnames = args.fnames
 if args.time_interval is not None:
     fnames = [fname for fname in fnames
-              if np.isclose(CastroDataset(fname).current_time.in_units("ms") % interval, 0.0,
+              if np.isclose(CastroDataset(fname).current_time.in_units("ms") % args.time_interval, 0.0,
                             rtol=1e-3, atol=1e-4)]
 
 # Parallelize the plotting
