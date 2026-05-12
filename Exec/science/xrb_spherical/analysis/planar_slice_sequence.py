@@ -42,7 +42,7 @@ parser.add_argument("--annotate-acceleration-streamlines", action="store_true",
                     help="Overlay acceleration streamlines.")
 parser.add_argument("--annotate-grids", action="store_true",
                     help="Overlay AMR grid boundaries colored by level.")
-parser.add_arguement("--time-interval", type=float, default=None,
+parser.add_argument("--time-interval", type=float, default=None,
                      help="Time interval [ms] at which the plot file are divisible by.")
 parser.add_argument('--jobs', '-j', default=1, type=int,
                     help="""Number of workers to plot in parallel""")
