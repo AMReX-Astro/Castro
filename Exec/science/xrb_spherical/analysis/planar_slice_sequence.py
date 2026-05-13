@@ -54,7 +54,7 @@ fnames = args.fnames
 if args.time_interval is not None:
     fnames = [fname for fname in fnames
               if np.isclose(CastroDataset(fname).current_time.in_units("ms").value % args.time_interval, 0.0,
-                            rtol=1e-2, atol=1e-3)]
+                            rtol=0, atol=1e-3)] # only use atol
 
 # Parallelize the plotting
 with ProcessPoolExecutor(max_workers=args.jobs) as executor:
