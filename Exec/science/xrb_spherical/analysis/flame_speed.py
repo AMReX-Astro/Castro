@@ -77,6 +77,8 @@ if __name__ == "__main__":
 
     parser.add_argument('tracking_fnames', nargs='+', type=str,
                         help='cvs file generated from front_tracker.py to track flame front position')
+    parser.add_argument("--figsize", nargs=2, type=float, default=[7, 9],
+                        metavar=("WIDTH", "HEIGHT"), help="Figure size in inches.")
     parser.add_argument('--ash-tmin', default=0.0, type=float,
                         help='minimum time for ash front curve fitting. Note that this will not affect plotting')
     parser.add_argument('--flame-tmin', default=0.0, type=float,
@@ -227,7 +229,7 @@ if __name__ == "__main__":
     ax_velocity.set_xlabel("time [ms]")
 
     fig.tight_layout()
-    fig.set_size_inches(7, 9)
+    fig.set_size_inches(*args.figsize)
     # Store to output, otherwise show plot
     if args.output is not None:
         fig.savefig(args.output, format="png", bbox_inches="tight")
