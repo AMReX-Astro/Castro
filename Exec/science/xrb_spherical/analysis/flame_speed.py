@@ -194,9 +194,9 @@ if __name__ == "__main__":
     v3 = 2.5 * np.sqrt(D / t_nuc) * L_R / ocean_height * 1e-5
 
     # Plot theoretical speeds
-    ax_velocity.plot(times_vel, v1, 'v', color='k', markersize=7, label=r'$v\sim \sqrt{D/t_n}$')
-    ax_velocity.plot(times_vel, v2, 'p', color='k', markersize=7, label=r'$v\sim L_R/t_n$')
-    ax_velocity.plot(times_vel, v3, 'X', color='k', markersize=7, label=r'$v\sim \sqrt{D/t_n} L_R/H$')
+    ax_velocity.plot(times_vel[::stride], v1[::stride], 'v', color='k', markersize=7, label=r'$v\sim \sqrt{D/t_n}$')
+    ax_velocity.plot(times_vel[::stride], v2[::stride], 'p', color='k', markersize=7, label=r'$v\sim L_R/t_n$')
+    ax_velocity.plot(times_vel[::stride], v3[::stride], 'X', color='k', markersize=7, label=r'$v\sim L_R/H \sqrt{D/t_n} $')
 
     # Assume neutron star of radius 11 km, so linear speed is R*omega
     R = 11
