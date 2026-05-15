@@ -121,7 +121,7 @@ def _Dvr_Dt(field, data):
     Material derivative of velocity along radial direction
     Dvr/Dt = -1/rho dp/dr + g + 1/r (vt^2 + vp^2) + 2 Omega vp sin(theta)
     """
-    omega = 1.0 / data.ds.parameters.get("castro.rotational_period") / s
+    omega = 2.0 * np.pi / data.ds.parameters.get("castro.rotational_period") / s
     grav  = data.ds.parameters.get("gravity.const_grav") * cm / s**2
     P     = data["boxlib", "pressure"]
     vr    = data["boxlib", "x_velocity"]
@@ -142,7 +142,7 @@ def _Dvt_Dt(field, data):
     Material derivative of velocity along theta direction
     Dvt/Dt = -1/rho dp/rdtheta + 1/r (-vr vt + vp^2 cot(theta)) + 2 Omega vp cos(theta)
     """
-    omega = 1.0 / data.ds.parameters.get("castro.rotational_period") / s
+    omega = 2.0 * np.pi / data.ds.parameters.get("castro.rotational_period") / s
     P     = data["boxlib", "pressure"]
     vr    = data["boxlib", "x_velocity"]
     vt    = data["boxlib", "y_velocity"]
@@ -163,7 +163,7 @@ def _Dvp_Dt(field, data):
     Material derivative of velocity along phi direction
     Dvt/Dt = -1/rho dp/rsin(theta)dphi - 1/r (vr vp + vt vp cot(theta)) - 2 Omega (vt cos(theta) + vr sin(theta))
     """
-    omega = 1.0 / data.ds.parameters.get("castro.rotational_period") / s
+    omega = 2.0 * np.pi / data.ds.parameters.get("castro.rotational_period") / s
     vr    = data["boxlib", "x_velocity"]
     vt    = data["boxlib", "y_velocity"]
     vp    = data["boxlib", "z_velocity"]
@@ -338,6 +338,10 @@ def planar_slice(fnames:list[str], fields:list[str],
         if xmax is None:
             xmax = theta[1].value
 
+        # Compute necessary data for plotting front beforehand
+        if annotate_front:
+            front_tracking_data = track_front(ds)
+
         # Loop over all possible fields
         for i, field in enumerate(fields):
 
@@ -383,9 +387,9 @@ def planar_slice(fnames:list[str], fields:list[str],
 
             # Plot vertical line to indicate flame front and ash front
             if annotate_front:
-                front_tracking_data = track_front(ds)
                 ash_front_theta = front_tracking_data["ash_theta"]
                 flame_front_theta = front_tracking_data["flame_theta"]
+                flame_tail_theta = front_tracking_data["flame_tail"]
 
                 text_pos = ymin + 0.8*(ymax - ymin)
                 ax.axvline(ash_front_theta, linestyle="-.", color="k", linewidth=1.5)
@@ -394,6 +398,10 @@ def planar_slice(fnames:list[str], fields:list[str],
 
                 ax.axvline(flame_front_theta, linestyle="-.", color="k", linewidth=1.5)
                 ax.text(flame_front_theta, text_pos, "Flame\nFront",
+                        color="k", fontsize=12, ha="center", va="center", rotation=90)
+
+                ax.axvline(flame_tail_theta, linestyle="-.", color="k", linewidth=1.5)
+                ax.text(flame_front_theta, text_pos, "Flame\nTail",
                         color="k", fontsize=12, ha="center", va="center", rotation=90)
 
             # Annotate optional AMR grids

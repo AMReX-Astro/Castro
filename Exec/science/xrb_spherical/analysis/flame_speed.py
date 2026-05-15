@@ -109,6 +109,11 @@ if __name__ == "__main__":
     times = tracking_data['time[ms]']
     flame_thetas = tracking_data['flame_theta']
     ash_thetas = tracking_data['ash_theta']
+    t_nuc = tracking_data['t_nuc']
+    D = tracking_data['D']
+    ocean_height = tracking_data['ocean_height']
+    coriolis_param = tracking_data['coriolis_param']
+    ash_velocity = tracking_data['ash_velocity']
 
     # Only plot up to tmax
     if args.tmax is not None:
@@ -116,6 +121,21 @@ if __name__ == "__main__":
         times = times[cond]
         flame_thetas = flame_thetas[cond]
         ash_thetas = ash_thetas[cond]
+        t_nuc = t_nuc[cond]
+        D = D[cond]
+        ocean_height = ocean_height[cond]
+        coriolis_param = coriolis_param[cond]
+        ash_velocity = ash_velocity[cond]
+
+    # Now since t_nuc and diffusion coefficient, D, will be None when dataset is smallplt
+    # since it doesn't have enough information. Do filtering on these dataset.
+    none_mask = D.notna()
+    times_vel = times[none_mask]
+    t_nuc = t_nuc[none_mask]
+    D = D[none_mask]
+    ocean_height = ocean_height[none_mask]
+    coriolis_param = coriolis_param[none_mask]
+    ash_velocity = ash_velocity[none_mask]
 
     # Now get the fitted front data
     # init_guess = np.array([0.0, 0.0004, 0.0, 0.01, 5, -2.0])
@@ -156,8 +176,28 @@ if __name__ == "__main__":
     ax_theta.grid(linestyle=":")
     ax_theta.tick_params(top=True, bottom=True, left=True, right=True)
     ax_theta.legend(frameon=False)
+    ax_theta.tick_params(axis="both",direction="in")
 
-    # Then do velocity plotting. Only show fitting data here.
+    # Then do velocity plotting.
+    # Show fitting data and velocity from theoretical prediction.
+
+    # Compute theoretical speed.
+    # Conduction Speed (Landau)
+    v1 = np.sqrt(D / t_nuc) * 1e-5 # convert to km/s
+
+    # Ageotrophic Speed (Spitkovski 2002)
+    g = 1.5e14
+    L_R = np.sqrt(g * ocean_height) / coriolis_param
+    v2 = L_R / t_nuc * 1e-5
+
+    # Conduction + Ageotrophic (Cavecchi 2013)
+    v3 = 2.5 * np.sqrt(D / t_nuc) * L_R / ocean_height * 1e-5
+
+    # Plot theoretical speeds
+    ax_velocity.plot(times_vel, v1, 'v', color='k', markersize=7, label=r'$v\sim \sqrt{D/t_n}$')
+    ax_velocity.plot(times_vel, v2, 'p', color='k', markersize=7, label=r'$v\sim L_R/t_n$')
+    ax_velocity.plot(times_vel, v3, 'X', color='k', markersize=7, label=r'$v\sim \sqrt{D/t_n} L_R/H$')
+
     # Assume neutron star of radius 11 km, so linear speed is R*omega
     R = 11
     ax_velocity.plot(flame_fit["fit_times"], R*flame_fit["w_nominal"], linewidth=3,
@@ -180,6 +220,7 @@ if __name__ == "__main__":
     ax_velocity.grid(linestyle=":")
     ax_velocity.tick_params(top=True, bottom=True, left=True, right=True)
     ax_velocity.legend(frameon=False)
+    ax_velocity.tick_params(axis="both",direction="in")
 
     ax_velocity.set_xlabel("time [ms]")
 
