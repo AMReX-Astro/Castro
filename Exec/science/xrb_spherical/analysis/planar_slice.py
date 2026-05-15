@@ -136,12 +136,12 @@ def _Dvr_Dt(field, data):
     theta = data["index", "theta"]
 
     # F_P = -np.gradient(P.to_ndarray(), r[:,0,0].to_ndarray(), axis=0) / rho.to_ndarray() *cm/s**2
-    grad = P/r
-    grad[1:-1, :, :] = (P[2:, :, :] - P[:-2, :, :]) / (r[2:, :, :] - r[:-2, :, :])
-    grad[0, :, :] = (P[1, :, :] - P[0, :, :]) / (r[1, :, :] - r[0, :, :])
-    grad[-1, :, :] = (P[-1, :, :] - P[-2, :, :]) / (r[-1, :, :] - r[-2, :, :])
+    gradP_r = P/r
+    gradP_r[1:-1, :, :] = (P[2:, :, :] - P[:-2, :, :]) / (r[2:, :, :] - r[:-2, :, :])
+    gradP_r[0, :, :] = (P[1, :, :] - P[0, :, :]) / (r[1, :, :] - r[0, :, :])
+    gradP_r[-1, :, :] = (P[-1, :, :] - P[-2, :, :]) / (r[-1, :, :] - r[-2, :, :])
 
-    F_p = -gradP_r / rho
+    F_P = -gradP_r / rho
     F_geom = (vt**2 + vp**2) / r
     F_coriolis = 2 * omega * vp * np.sin(theta)
 
