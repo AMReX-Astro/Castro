@@ -132,10 +132,16 @@ def _Dvr_Dt(field, data):
     vt    = data["boxlib", "y_velocity"]
     vp    = data["boxlib", "z_velocity"]
     rho   = data["boxlib", "density"]
-    r     = data["index", "r"]
+    r     = data["index", "r"].in_units("cm")
     theta = data["index", "theta"]
 
-    F_P = -np.gradient(P.to_ndarray(), r[:,0,0].to_ndarray(), axis=0) / rho.to_ndarray() *cm/s**2
+    # F_P = -np.gradient(P.to_ndarray(), r[:,0,0].to_ndarray(), axis=0) / rho.to_ndarray() *cm/s**2
+    grad = P/r
+    grad[1:-1, :, :] = (P[2:, :, :] - P[:-2, :, :]) / (r[2:, :, :] - r[:-2, :, :])
+    grad[0, :, :] = (P[1, :, :] - P[0, :, :]) / (r[1, :, :] - r[0, :, :])
+    grad[-1, :, :] = (P[-1, :, :] - P[-2, :, :]) / (r[-1, :, :] - r[-2, :, :])
+
+    F_p = -gradP_r / rho
     F_geom = (vt**2 + vp**2) / r
     F_coriolis = 2 * omega * vp * np.sin(theta)
 
@@ -152,11 +158,16 @@ def _Dvt_Dt(field, data):
     vt    = data["boxlib", "y_velocity"]
     vp    = data["boxlib", "z_velocity"]
     rho   = data["boxlib", "density"]
-    r     = data["index", "r"]
+    r     = data["index", "r"].in_units("cm")
     theta = data["index", "theta"]
 
-    gradP_theta = np.gradient(P, theta[0,:,0], axis=1)
-    F_P = -gradP_theta / (r*rho)
+    # gradP_theta = np.gradient(P, theta[0,:,0], axis=1)
+    gradP_t = P/r
+    gradP_t[:, 1:-1, :] = (P[:, 2:, :] - P[:, :-2, :]) / (r[:, 1:-1, :] * (theta[:, 2:, :] - theta[:, :-2, :]))
+    gradP_t[:, 0, :] = (P[:, 1, :] - P[:, 0, :]) / (r[:, 0, :] * (theta[:, 1, :] - theta[:, 0, :]))
+    gradP_t[:, -1, :] = (P[:, -1, :] - P[:, -2, :]) / (r[:, -1, :] * (theta[:, -1, :] - theta[:, -2, :]))
+
+    F_P = -gradP_t / rho
     F_geom = (vp**2 / np.tan(theta) - vr * vt) / r
     F_coriolis = 2 * omega * vp * np.cos(theta)
 
@@ -172,7 +183,7 @@ def _Dvp_Dt(field, data):
     vt    = data["boxlib", "y_velocity"]
     vp    = data["boxlib", "z_velocity"]
     rho   = data["boxlib", "density"]
-    r     = data["index", "r"]
+    r     = data["index", "r"].in_units("cm")
     theta = data["index", "theta"]
 
     F_P = 0  # Axisymmetric -- no pressure grad in phi
@@ -379,14 +390,26 @@ def planar_slice(fnames:list[str], fields:list[str],
             # note here x-velocity is in radial so its technically vertical
             # this uses level 0 data for now
             if annotate_velocity_streamlines:
+                rho = cg0["boxlib", "density"][:, :, 0].to_ndarray()
                 vt = cg0["boxlib", "y_velocity"][:, :, 0].to_ndarray()
                 vr = cg0["boxlib", "x_velocity"][:, :, 0].to_ndarray()
-                ax.streamplot(theta_arr, r_arr, vt, vr, color="tab:green", linewidth=2, density=1)
+
+                # Mask out region withou low density and high density
+                mask = (rho < 1e-1) | (rho > 1e6)
+                vt = np.ma.array(vt, mask=mask)
+
+                ax.streamplot(theta, radial, vt, vr, color="tab:green", linewidth=2, density=1)
 
             if annotate_acceleration_streamlines and ("boxlib", "pressure") in ds.field_list:
+                rho = cg0["boxlib", "density"][:, :, 0].to_ndarray()
                 at = cg0["boxlib", "Dvt_Dt"][:, :, 0].to_ndarray()
                 ar = cg0["boxlib", "Dvr_Dt"][:, :, 0].to_ndarray()
-                ax.streamplot(theta_arr, r_arr, at, ar, color="tab:orange", linewidth=2, density=1)
+
+                # Mask out region withou low density and high density
+                mask = (rho < 1e-1) | (rho > 1e6)
+                at = np.ma.array(at, mask=mask)
+
+                ax.streamplot(theta, radial, at, ar, color="tab:blue", linewidth=2, density=1)
 
             # Plot vertical line to indicate flame front and ash front
             if annotate_front:
@@ -404,7 +427,7 @@ def planar_slice(fnames:list[str], fields:list[str],
                         color="k", fontsize=12, ha="center", va="center", rotation=90)
 
                 ax.axvline(flame_tail_theta, linestyle="-.", color="k", linewidth=1.5)
-                ax.text(flame_front_theta, text_pos, "Flame\nTail",
+                ax.text(flame_tail_theta, text_pos, "Flame\nTail",
                         color="k", fontsize=12, ha="center", va="center", rotation=90)
 
             # Annotate optional AMR grids
