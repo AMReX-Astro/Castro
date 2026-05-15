@@ -127,7 +127,7 @@ def get_ocean_height(r, theta_1d, abar, flame_tail, surface_height):
 
     return ocean_r, ocean_theta, ocean_height
 
-def track_front(ds, threshold=1e-6, percent=1e-3):
+def track_front(ds, threshold=1e-4, percent=1e-2):
     '''
     This function tracks multiple quantities of the xrb flame.
     1. Flame front and flame tail in [rad]
@@ -203,13 +203,15 @@ def track_front(ds, threshold=1e-6, percent=1e-3):
 
     t_nuc = None
     if ("boxlib", "eint_e") in ds.field_list:
-        eint = cg["boxlib", "eint_e"][e_r_idx, e_theta_idx, 0].to_ndarray()[enuc_mask]
-        t_nuc = np.average(eint, method="inverted_cdf", weights=density) / np.average(enuc[enuc_mask], method="inverted_cdf", weights=density)
+        eint = cg["boxlib", "eint_e"][:, :, 0].to_ndarray()[enuc_mask]
+        avg_eint = np.average(eint, weights=density)
+        avg_enuc = np.average(enuc[enuc_mask], weights=density)
+        t_nuc = avg_eint / avg_enuc
 
     D = None
     if ("boxlib", "diff_coeff") in ds.field_list:
         diff_coeff = cg["boxlib", "diff_coeff"][:, :, 0].to_ndarray()[enuc_mask]
-        D = np.average(diff_coeff, method="inverted_cdf", weights=density)
+        D = np.average(diff_coeff)
 
     # Returns 10 quantities
     # 1) file name of the dataset
@@ -243,10 +245,10 @@ if __name__ == "__main__":
 
     parser.add_argument('fnames', nargs='+', type=str,
                         help="Dataset file names for tracking flame front.")
-    parser.add_argument('--percent', '-p', default=1e-3, type=float,
+    parser.add_argument('--percent', '-p', default=1e-2, type=float,
                         help="""Float number between (0, 1]. Representing the percent of
                         the averaged maximum of enuc used to track the flame.""")
-    parser.add_argument('--threshold', '-t', default=1.e-6, type=float,
+    parser.add_argument('--threshold', '-t', default=1.e-4, type=float,
                         help="""Float number between (0, 1]. Representing the percent of
                         the global maximum of enuc used to select valid zones
                         for averaging""")
