@@ -378,16 +378,15 @@ def planar_slice(fnames:list[str], fields:list[str],
             # Annotate optional velocity or acceleration streamlines
             # note here x-velocity is in radial so its technically vertical
             # this uses level 0 data for now
-            if annotate_velocity_streamlines and annotate_acceleration_streamlines:
-                raise ValueError("Annotate both velocity and acceleration is not ideal.")
             if annotate_velocity_streamlines:
                 vt = cg0["boxlib", "y_velocity"][:, :, 0].to_ndarray()
                 vr = cg0["boxlib", "x_velocity"][:, :, 0].to_ndarray()
-                ax.streamplot(theta_arr, r_arr, vt, vr, density=1)
-            elif annotate_acceleration_streamlines and ("boxlib", "pressure") in ds.field_list:
+                ax.streamplot(theta_arr, r_arr, vt, vr, color="tab:green", linewidth=2, density=1)
+
+            if annotate_acceleration_streamlines and ("boxlib", "pressure") in ds.field_list:
                 at = cg0["boxlib", "Dvt_Dt"][:, :, 0].to_ndarray()
                 ar = cg0["boxlib", "Dvr_Dt"][:, :, 0].to_ndarray()
-                ax.streamplot(theta_arr, r_arr, at, ar, density=1)
+                ax.streamplot(theta_arr, r_arr, at, ar, color="tab:orange", linewidht=2, density=1)
 
             # Plot vertical line to indicate flame front and ash front
             if annotate_front:
