@@ -173,29 +173,6 @@ def track_front(ds, threshold=1e-5, percent=1e-2):
     omega = 2.0 * np.pi / ds.parameters.get("castro.rotational_period")
     coriolis_param = 2.0*omega*np.cos(flame_theta)
 
-    # # Find burning timescale -- using for estimating flame speed
-    # t_nuc = None
-    # if ("boxlib", "eint_e") in ds.field_list:
-    #     # Get a characteristic position in the flame front
-    #     # This can be used to get characteristic values of different quantities
-    #     e_theta_idx = np.argmin(np.abs(theta_1d - avg_max_enuc_theta))
-    #     enuc_1d = enuc[:, e_theta_idx]
-    #     e_r_idx = np.argmin(np.abs(enuc_1d - avg_max_enuc))
-
-    #     eint = cg["boxlib", "eint_e"][e_r_idx, e_theta_idx, 0].to_ndarray()
-    #     t_nuc = eint / avg_max_enuc
-
-    # # Now find diffusion coefficient, D
-    # D = None
-    # if ("boxlib", "diff_coeff") in ds.field_list:
-    #     diff_coeff = cg["boxlib", "diff_coeff"][:, :, 0].to_ndarray()
-    #     density = cg["boxlib", "density"][:, :, 0].to_ndarray()
-    #     max_diff_coeff = diff_coeff.max()
-    #     diff_coeff_cond = diff_coeff > max_diff_coeff * 1e-3
-    #     valid_diff_coeff = diff_coeff[diff_coeff_cond]
-    #     percentile = 99
-    #     D = np.percentile(valid_diff_coeff, percentile, method="inverted_cdf", weights=density[diff_coeff_cond])
-
     # Find burning timescale and diffusion coefficient.
     # Consider density average over region with valid enuc zones
     enuc_mask = enuc > enuc.max() * threshold

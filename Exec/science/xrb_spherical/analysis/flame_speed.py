@@ -89,6 +89,8 @@ if __name__ == "__main__":
     parser.add_argument('--plot-stride', type=int, default=1,
                         help="""Interval at which we plot the raw front position data.
                         Increasing it can make plot look nicer""")
+    parser.add_argument("-o", "--output", default=None, type=str, metavar="FILENAME",
+                        help="Output filename (PNG). If not set, shows interactive plot.")
 
     args = parser.parse_args()
     all_data = []
@@ -226,4 +228,8 @@ if __name__ == "__main__":
 
     fig.tight_layout()
     fig.set_size_inches(7, 9)
-    plt.show()
+    # Store to output, otherwise show plot
+    if args.output is not None:
+        fig.savefig(args.output, format="png", bbox_inches="tight")
+    else:
+        plt.show()
