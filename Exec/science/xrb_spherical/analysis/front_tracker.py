@@ -12,7 +12,7 @@ from yt.units import cm
 from dataclasses import dataclass
 
 
-def get_flame_front(theta_1d, enuc, threshold=1e-6, percent=1e-3):
+def get_flame_front(theta_1d, enuc, threshold=1e-5, percent=1e-2):
     """
     Procedure to determine flame front:
     1) Use enuc as metric to determine flame front position
@@ -20,7 +20,7 @@ def get_flame_front(theta_1d, enuc, threshold=1e-6, percent=1e-3):
     3) Determine the minimum value required to consider averaging zones based on global max
     4) Do a radial average of the data set to convert to 1D as a function of theta
     5) Determine flame front theta where the radially averaged quantity drops to
-       percent * averaged_max of that quantity. Default percent is 0.1%
+       percent * averaged_max of that quantity. Default percent is 1%
     """
 
     # Find the minimum threshold to include in radial average
@@ -127,7 +127,7 @@ def get_ocean_height(r, theta_1d, abar, flame_tail, surface_height):
 
     return ocean_r, ocean_theta, ocean_height
 
-def track_front(ds, threshold=1e-4, percent=1e-2):
+def track_front(ds, threshold=1e-5, percent=1e-2):
     '''
     This function tracks multiple quantities of the xrb flame.
     1. Flame front and flame tail in [rad]
@@ -248,7 +248,7 @@ if __name__ == "__main__":
     parser.add_argument('--percent', '-p', default=1e-2, type=float,
                         help="""Float number between (0, 1]. Representing the percent of
                         the averaged maximum of enuc used to track the flame.""")
-    parser.add_argument('--threshold', '-t', default=1.e-4, type=float,
+    parser.add_argument('--threshold', '-t', default=1.e-5, type=float,
                         help="""Float number between (0, 1]. Representing the percent of
                         the global maximum of enuc used to select valid zones
                         for averaging""")
