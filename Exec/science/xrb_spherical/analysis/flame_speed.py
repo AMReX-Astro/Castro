@@ -53,7 +53,7 @@ tracking_data = tracking_data.sort_values(by='time[ms]')
 # data has columns: fname, time, front_theta, theta_max_avg, max_avg, theta_max, max_val.
 # Get time and theta, these should already be time-sorted
 times = tracking_data['time[ms]']
-front_thetas = tracking_data['front_theta']
+front_thetas = tracking_data['flame_theta']
 
 # Only plot up to tmax
 if args.tmax is not None:

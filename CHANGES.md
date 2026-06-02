@@ -1,5 +1,14 @@
 # Changelog
 
+## 26.06
+
+  * `xrb_spherical` : add planar slice plot scripts (#3340)
+
+  * `flame` : fix issue in analysis scripts with t = 0 having
+    enuc = 0 (#3338)
+
+  * docs: fix Sphinx equation rendering (#3336)
+
 ## 26.05
 
   * Fix the maximum level of refinement for tagging in various input
