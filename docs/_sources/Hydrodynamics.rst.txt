@@ -238,14 +238,13 @@ We begin with the fully compressible equations for the conserved state vector,
 
 .. math::
 
-   \begin{align}
    \frac{\partial \rho}{\partial t} &= - \nabla \cdot (\rho \ub) + S_{{\rm ext},\rho}, \\
    \frac{\partial (\rho \ub)}{\partial t} &= - \nabla \cdot (\rho \ub \ub) - \nabla p +\rho \gb + \Sb_{{\rm ext},\rho\ub}, \\
    \frac{\partial (\rho E)}{\partial t} &= - \nabla \cdot (\rho \ub E + p \ub) + \rho \ub \cdot \gb - \sum_k {\rho q_k \dot\omega_k} + \nabla\cdot\kth\nabla T + S_{{\rm ext},\rho E}, \\
    \frac{\partial (\rho A_k)}{\partial t} &= - \nabla \cdot (\rho \ub A_k) + S_{{\rm ext},\rho A_k}, \\
    \frac{\partial (\rho X_k)}{\partial t} &= - \nabla \cdot (\rho \ub X_k) + \rho \dot\omega_k + S_{{\rm ext},\rho X_k}, \\
    \frac{\partial (\rho Y_k)}{\partial t} &= - \nabla \cdot (\rho \ub Y_k) + S_{{\rm ext},\rho Y_k}.\label{eq:compressible-equations}
-   \end{align}
+
 
 Here :math:`\rho, \ub, T, p`, and :math:`\kth` are the density,
 velocity, temperature, pressure, and thermal conductivity,
@@ -361,8 +360,7 @@ The primitive variable equations for density, velocity, and pressure are:
 
 .. math::
 
-   \begin{align}
-     \frac{\partial\rho}{\partial t} &= -\ub\cdot\nabla\rho - \rho\nabla\cdot\ub + S_{{\rm ext},\rho} \\
+   \frac{\partial\rho}{\partial t} &= -\ub\cdot\nabla\rho - \rho\nabla\cdot\ub + S_{{\rm ext},\rho} \\
    %
      \frac{\partial\ub}{\partial t} &= -\ub\cdot\nabla\ub - \frac{1}{\rho}\nabla p + \gb +
    \frac{1}{\rho} (\Sb_{{\rm ext},\rho\ub} - \ub \; S_{{\rm ext},\rho}) \\
@@ -371,20 +369,17 @@ The primitive variable equations for density, velocity, and pressure are:
    &+\  \frac{1}{\rho}\sum_k\left(\frac{\partial p}{\partial X_k}\right)_{\rho,e,X_j,j\neq k}\left(\rho\dot\omega_k + S_{{\rm ext},\rho X_k} - X_kS_{{\rm ext},\rho}\right)\nonumber\\
    & +\  \frac{1}{\rho}\left(\frac{\partial p}{\partial e}\right)_{\rho,X}\left[-eS_{{\rm ext},\rho} - \sum_k\rho q_k\dot\omega_k + \nabla\cdot\kth\nabla T \right.\nonumber\\
    & \quad\qquad\qquad\qquad+\ S_{{\rm ext},\rho E} - \ub\cdot\left(\Sb_{{\rm ext},\rho\ub} - \frac{\ub}{2}S_{{\rm ext},\rho}\right)\Biggr]
-   \end{align}
 
 The advected quantities appear as:
 
 .. math::
 
-   \begin{align}
    \frac{\partial A_k}{\partial t} &= -\ub\cdot\nabla A_k + \frac{1}{\rho}
                                         ( S_{{\rm ext},\rho A_k} - A_k S_{{\rm ext},\rho} ), \\
    \frac{\partial X_k}{\partial t} &= -\ub\cdot\nabla X_k + \dot\omega_k + \frac{1}{\rho}
                                         ( S_{{\rm ext},\rho X_k}  - X_k S_{{\rm ext},\rho} ), \\
    \frac{\partial Y_k}{\partial t} &= -\ub\cdot\nabla Y_k + \frac{1}{\rho}
                                         ( S_{{\rm ext},\rho Y_k}  - Y_k S_{{\rm ext},\rho} ).
-   \end{align}
 
 All of the primitive variables are derived from the conservative state
 vector, as described in Section `6.1 <#Sec:Compute Primitive Variables>`__.
@@ -398,11 +393,9 @@ We augment the above system with an internal energy equation:
 
 .. math::
 
-   \begin{align}
    \frac{\partial(\rho e)}{\partial t} &= - \ub\cdot\nabla(\rho e) - (\rho e+p)\nabla\cdot\ub - \sum_k \rho q_k\dot\omega_k
                                            + \nabla\cdot\kth\nabla T + S_{{\rm ext},\rho E} \nonumber\\
    & -\  \ub\cdot\left(\Sb_{{\rm ext},\rho\ub}-\frac{1}{2}S_{{\rm ext},\rho}\ub\right),
-   \end{align}
 
 This has two benefits. First, for a general equation of state,
 carrying around an additional thermodynamic quantity allows us to
@@ -715,11 +708,9 @@ equations in 1D, for simplicity):
 
       .. math::
 
-         \begin{align}
          (D^2s)_{i+\myhalf} &= 3\left(s_{i}-2s_{i+\myhalf}+s_{i+1}\right) \\
          (D^2s)_{i+\myhalf,L} &= s_{i-1}-2s_{i}+s_{i+1} \\
          (D^2s)_{i+\myhalf,R} &= s_{i}-2s_{i+1}+s_{i+2}
-         \end{align}
 
    #. Define
 
@@ -748,19 +739,15 @@ equations in 1D, for simplicity):
 
       .. math::
 
-         \begin{align}
          (Ds)_{i,{\rm face},-} &= s_{i-1/2} - s_{i-3/2} \\
          (Ds)_{i,{\rm face},+} &= s_{i+3/2} - s_{i-1/2}
-         \end{align}
 
       .. math:: (Ds)_{i,{\rm face,min}} = \min\left[\left|(Ds)_{i,{\rm face},-}\right|,\left|(Ds)_{i,{\rm face},+}\right|\right].
 
       .. math::
 
-         \begin{align}
          (Ds)_{i,{\rm cc},-} &= s_{i} - s_{i-1} \\
          (Ds)_{i,{\rm cc},+} &= s_{i+1} - s_{i}
-         \end{align}
 
       .. math:: (Ds)_{i,{\rm cc,min}} = \min\left[\left|(Ds)_{i,{\rm cc},-}\right|,\left|(Ds)_{i,{\rm cc},+}\right|\right].
 
@@ -777,12 +764,10 @@ equations in 1D, for simplicity):
 
       .. math::
 
-         \begin{align}
          (D^2s)_{i} &= 6(\alpha_{i,+}+\alpha_{i,-}) \\
          (D^2s)_{i,L} &= s_{i-2}-2s_{i-1}+s_{i} \\
          (D^2s)_{i,R} &= s_{i}-2s_{i+1}+s_{i+2} \\
          (D^2s)_{i,C} &= s_{i-1}-2s_{i}+s_{i+1}
-         \end{align}
 
       Then, define
 
@@ -835,19 +820,15 @@ equations in 1D, for simplicity):
 
      .. math::
 
-        \begin{align}
         \mathcal{I}^{(k)}_{+}(s_i) &= \frac{1}{\sigma_k h}\int_{(i+\myhalf)h-\sigma_k h}^{(i+\myhalf)h}s_i^I(x)dx \\
         \mathcal{I}^{(k)}_{-}(s_i) &= \frac{1}{\sigma_k h}\int_{(i-\myhalf)h}^{(i-\myhalf)h+\sigma_k h}s_i^I(x)dx
-        \end{align}
 
      Plugging in :eq:`Quadratic Interp` gives:
 
      .. math::
 
-        \begin{align}
         \mathcal{I}^{(k)}_{+}(s_i) &= s_{i,+} - \frac{\sigma_k}{2}\left[s_{i,+}-s_{i,-}-\left(1-\frac{2}{3}\sigma_k\right)s_{6,i}\right], \\
         \mathcal{I}^{(k)}_{-}(s_i) &= s_{i,-} + \frac{\sigma_k}{2}\left[s_{i,+}-s_{i,-}+\left(1-\frac{2}{3}\sigma_k\right)s_{6,i}\right].
-        \end{align}
 
 -  **Step 4:** Obtain 1D edge states by performing a 1D
    extrapolation to get left and right edge states. Note that we
@@ -855,10 +836,8 @@ equations in 1D, for simplicity):
 
    .. math::
 
-      \begin{align}
       s_{L,i+\myhalf} &= s_i - \chi_i\sum_{k:\lambda_k \ge 0}\lb_k\cdot\left[s_i-\mathcal{I}^{(k)}_{+}(s_i)\right]\rb_k + \frac{\dt}{2}S_i^n, \\
       s_{R,i-\myhalf} &= s_i - \chi_i\sum_{k:\lambda_k < 0}\lb_k\cdot\left[s_i-\mathcal{I}^{(k)}_{-}(s_i)\right]\rb_k + \frac{\dt}{2}S_i^n.
-      \end{align}
 
    Here, :math:`\rb_k` is the :math:`k^{\rm th}` right column eigenvector of
    :math:`\Rb(\Ab_d)` and :math:`\lb_k` is the :math:`k^{\rm th}` left row eigenvector lf
@@ -966,11 +945,9 @@ Then,
 
 .. math::
 
-   \begin{align}
    c_{\rm out} &= c_0 - {\rm sign}(u^*)u_0, \\
    c_{\rm in} &= c^* - {\rm sign}(u^*)u^*, \\
    c_{\rm shock} &= \frac{c_{\rm in} + c_{\rm out}}{2}.
-   \end{align}
 
 If :math:`p^* - p_0 \ge 0`, then :math:`c_{\rm in} = c_{\rm out} = c_{\rm shock}`.
 Then, if :math:`c_{\rm out} = c_{\rm in}`, we define :math:`c_{\rm temp} =
@@ -996,12 +973,10 @@ Then, define
 
 .. math::
 
-   \begin{align}
    \rho_{\rm gdnv} &= f\rho^* + (1-f)\rho_0, \\
    u_{\rm gdnv} &= f u^* + (1-f)u_0, \\
    p_{\rm gdnv} &= f p^* + (1-f)p_0, \\
    (\rho e)_{\rm gdnv} &=& f(\rho e)^* + (1-f)(\rho e)_0.
-   \end{align}
 
 Finally, if :math:`c_{\rm out} < 0`, set
 :math:`\rho_{\rm gdnv}=\rho_0, u_{\rm gdnv}=u_0, p_{\rm gdnv}=p_0`, and
@@ -1106,10 +1081,8 @@ which takes values:
 
     .. math::
 
-      \begin{align}
-            \mathcal{I}_{+}^{(k)}(p_i) &= p(\mathcal{I}_{+}^{(k)}(\rho_i), \mathcal{I}_{+}^{(k)}(T_i)) \\
-            \mathcal{I}_{+}^{(k)}((\rho e)_i) &= (\rho e)(\mathcal{I}_{+}^{(k)}(\rho_i), \mathcal{I}_{+}^{(k)}(T_i))
-          \end{align}
+       \mathcal{I}_{+}^{(k)}(p_i) &= p(\mathcal{I}_{+}^{(k)}(\rho_i), \mathcal{I}_{+}^{(k)}(T_i)) \\
+       \mathcal{I}_{+}^{(k)}((\rho e)_i) &= (\rho e)(\mathcal{I}_{+}^{(k)}(\rho_i), \mathcal{I}_{+}^{(k)}(T_i))
 
     The remainder of the hydrodynamics algorithm then proceeds unchanged.
 

@@ -485,14 +485,12 @@ defined)</p></td>
 <p>We begin with the fully compressible equations for the conserved state vector,
 <span class="math notranslate nohighlight">\(\Ub = (\rho, \rho \ub, \rho E, \rho A_k, \rho X_k, \rho Y_k):\)</span></p>
 <div class="math notranslate nohighlight">
-\[\begin{split}\begin{align}
-\frac{\partial \rho}{\partial t} &amp;= - \nabla \cdot (\rho \ub) + S_{{\rm ext},\rho}, \\
+\[\begin{split}\frac{\partial \rho}{\partial t} &amp;= - \nabla \cdot (\rho \ub) + S_{{\rm ext},\rho}, \\
 \frac{\partial (\rho \ub)}{\partial t} &amp;= - \nabla \cdot (\rho \ub \ub) - \nabla p +\rho \gb + \Sb_{{\rm ext},\rho\ub}, \\
 \frac{\partial (\rho E)}{\partial t} &amp;= - \nabla \cdot (\rho \ub E + p \ub) + \rho \ub \cdot \gb - \sum_k {\rho q_k \dot\omega_k} + \nabla\cdot\kth\nabla T + S_{{\rm ext},\rho E}, \\
 \frac{\partial (\rho A_k)}{\partial t} &amp;= - \nabla \cdot (\rho \ub A_k) + S_{{\rm ext},\rho A_k}, \\
 \frac{\partial (\rho X_k)}{\partial t} &amp;= - \nabla \cdot (\rho \ub X_k) + \rho \dot\omega_k + S_{{\rm ext},\rho X_k}, \\
-\frac{\partial (\rho Y_k)}{\partial t} &amp;= - \nabla \cdot (\rho \ub Y_k) + S_{{\rm ext},\rho Y_k}.\label{eq:compressible-equations}
-\end{align}\end{split}\]</div>
+\frac{\partial (\rho Y_k)}{\partial t} &amp;= - \nabla \cdot (\rho \ub Y_k) + S_{{\rm ext},\rho Y_k}.\label{eq:compressible-equations}\end{split}\]</div>
 <p>Here <span class="math notranslate nohighlight">\(\rho, \ub, T, p\)</span>, and <span class="math notranslate nohighlight">\(\kth\)</span> are the density,
 velocity, temperature, pressure, and thermal conductivity,
 respectively, and <span class="math notranslate nohighlight">\(E = e + \ub \cdot \ub / 2\)</span> is the total
@@ -593,8 +591,7 @@ the state <span class="math notranslate nohighlight">\(\Qb = (\rho, \ub, p, \rho
 interface states that are input to the Riemann problem.</p>
 <p>The primitive variable equations for density, velocity, and pressure are:</p>
 <div class="math notranslate nohighlight">
-\[\begin{split}\begin{align}
-  \frac{\partial\rho}{\partial t} &amp;= -\ub\cdot\nabla\rho - \rho\nabla\cdot\ub + S_{{\rm ext},\rho} \\
+\[\begin{split}\frac{\partial\rho}{\partial t} &amp;= -\ub\cdot\nabla\rho - \rho\nabla\cdot\ub + S_{{\rm ext},\rho} \\
 %
   \frac{\partial\ub}{\partial t} &amp;= -\ub\cdot\nabla\ub - \frac{1}{\rho}\nabla p + \gb +
 \frac{1}{\rho} (\Sb_{{\rm ext},\rho\ub} - \ub \; S_{{\rm ext},\rho}) \\
@@ -602,18 +599,15 @@ interface states that are input to the Riemann problem.</p>
 \left(\frac{\partial p}{\partial \rho}\right)_{e,X}S_{{\rm ext},\rho}\nonumber\\
 &amp;+\  \frac{1}{\rho}\sum_k\left(\frac{\partial p}{\partial X_k}\right)_{\rho,e,X_j,j\neq k}\left(\rho\dot\omega_k + S_{{\rm ext},\rho X_k} - X_kS_{{\rm ext},\rho}\right)\nonumber\\
 &amp; +\  \frac{1}{\rho}\left(\frac{\partial p}{\partial e}\right)_{\rho,X}\left[-eS_{{\rm ext},\rho} - \sum_k\rho q_k\dot\omega_k + \nabla\cdot\kth\nabla T \right.\nonumber\\
-&amp; \quad\qquad\qquad\qquad+\ S_{{\rm ext},\rho E} - \ub\cdot\left(\Sb_{{\rm ext},\rho\ub} - \frac{\ub}{2}S_{{\rm ext},\rho}\right)\Biggr]
-\end{align}\end{split}\]</div>
+&amp; \quad\qquad\qquad\qquad+\ S_{{\rm ext},\rho E} - \ub\cdot\left(\Sb_{{\rm ext},\rho\ub} - \frac{\ub}{2}S_{{\rm ext},\rho}\right)\Biggr]\end{split}\]</div>
 <p>The advected quantities appear as:</p>
 <div class="math notranslate nohighlight">
-\[\begin{split}\begin{align}
-\frac{\partial A_k}{\partial t} &amp;= -\ub\cdot\nabla A_k + \frac{1}{\rho}
+\[\begin{split}\frac{\partial A_k}{\partial t} &amp;= -\ub\cdot\nabla A_k + \frac{1}{\rho}
                                      ( S_{{\rm ext},\rho A_k} - A_k S_{{\rm ext},\rho} ), \\
 \frac{\partial X_k}{\partial t} &amp;= -\ub\cdot\nabla X_k + \dot\omega_k + \frac{1}{\rho}
                                      ( S_{{\rm ext},\rho X_k}  - X_k S_{{\rm ext},\rho} ), \\
 \frac{\partial Y_k}{\partial t} &amp;= -\ub\cdot\nabla Y_k + \frac{1}{\rho}
-                                     ( S_{{\rm ext},\rho Y_k}  - Y_k S_{{\rm ext},\rho} ).
-\end{align}\end{split}\]</div>
+                                     ( S_{{\rm ext},\rho Y_k}  - Y_k S_{{\rm ext},\rho} ).\end{split}\]</div>
 <p>All of the primitive variables are derived from the conservative state
 vector, as described in Section <a class="reference external" href="#Sec:ComputePrimitiveVariables">6.1</a>.
 When accessing the primitive variable state vector, the integer variable
@@ -622,15 +616,13 @@ keys for the different quantities are listed in <a class="reference internal" hr
 <h3>Internal energy and temperature<a class="headerlink" href="#internal-energy-and-temperature" title="Link to this heading"></a></h3>
 <p>We augment the above system with an internal energy equation:</p>
 <div class="math notranslate nohighlight">
-\[\begin{split}\begin{align}
-\frac{\partial(\rho e)}{\partial t} &amp;= - \ub\cdot\nabla(\rho e) - (\rho e+p)\nabla\cdot\ub - \sum_k \rho q_k\dot\omega_k
+\[\begin{split}\frac{\partial(\rho e)}{\partial t} &amp;= - \ub\cdot\nabla(\rho e) - (\rho e+p)\nabla\cdot\ub - \sum_k \rho q_k\dot\omega_k
                                         + \nabla\cdot\kth\nabla T + S_{{\rm ext},\rho E} \nonumber\\
-&amp; -\  \ub\cdot\left(\Sb_{{\rm ext},\rho\ub}-\frac{1}{2}S_{{\rm ext},\rho}\ub\right),
-\end{align}\end{split}\]</div>
+&amp; -\  \ub\cdot\left(\Sb_{{\rm ext},\rho\ub}-\frac{1}{2}S_{{\rm ext},\rho}\ub\right),\end{split}\]</div>
 <p>This has two benefits. First, for a general equation of state,
 carrying around an additional thermodynamic quantity allows us to
 avoid equation of state calls (in particular, in the Riemann solver,
-see e.g. <span id="id1">[<a class="reference internal" href="zreferences.html#id3" title="P. Colella and H. M. Glaz. Efficient solution algorithms for the Riemann problem for real gases. Journal of Computational Physics, 59:264-289, June 1985. doi:10.1016/0021-9991(85)90146-9.">29</a>]</span>). Second, it is sometimes the case that the
+see e.g. <span class="bibtex-citation" id="id1">[<a class="reference internal" href="zreferences.html#id3" title="P. Colella and H. M. Glaz. Efficient solution algorithms for the Riemann problem for real gases. Journal of Computational Physics, 59:264-289, June 1985. doi:10.1016/0021-9991(85)90146-9.">29</a>]</span>). Second, it is sometimes the case that the
 internal energy calculated as</p>
 <div class="math notranslate nohighlight">
 \[e_T \equiv E - \frac{1}{2} \mathbf{v}^2\]</div>
@@ -642,7 +634,7 @@ other source terms, these can indirectly alter the value of the
 internal energy if obtained from the total energy.</p>
 <p>To provide a more reasonable internal energy for defining the
 thermodynamic state, we have implemented the dual energy formalism
-from ENZO <span id="id2">[<a class="reference internal" href="zreferences.html#id16" title="G. L. Bryan, M. L. Norman, J. M. Stone, R. Cen, and J. P. Ostriker. A piecewise parabolic method for cosmological hydrodynamics. Computer Physics Communications, 89:149-168, August 1995. doi:10.1016/0010-4655(94)00191-4.">25</a>]</span>, <span id="id3">[<a class="reference internal" href="zreferences.html#id17" title="G. L. Bryan, M. L. Norman, B. W. O'Shea, T. Abel, J. H. Wise, M. J. Turk, D. R. Reynolds, D. C. Collins, P. Wang, S. W. Skillman, B. Smith, R. P. Harkness, J. Bordner, J.-h. Kim, M. Kuhlen, H. Xu, N. Goldbaum, C. Hummels, A. G. Kritsuk, E. Tasker, S. Skory, C. M. Simpson, O. Hahn, J. S. Oishi, G. C. So, F. Zhao, R. Cen, Y. Li, and Enzo Collaboration. ENZO: An Adaptive Mesh Refinement Code for Astrophysics. ApJS, 211:19, April 2014. arXiv:1307.2265, doi:10.1088/0067-0049/211/2/19.">24</a>]</span>, where we switch
+from ENZO <span class="bibtex-citation" id="id2">[<a class="reference internal" href="zreferences.html#id16" title="G. L. Bryan, M. L. Norman, J. M. Stone, R. Cen, and J. P. Ostriker. A piecewise parabolic method for cosmological hydrodynamics. Computer Physics Communications, 89:149-168, August 1995. doi:10.1016/0010-4655(94)00191-4.">25</a>]</span>, <span class="bibtex-citation" id="id3">[<a class="reference internal" href="zreferences.html#id17" title="G. L. Bryan, M. L. Norman, B. W. O'Shea, T. Abel, J. H. Wise, M. J. Turk, D. R. Reynolds, D. C. Collins, P. Wang, S. W. Skillman, B. Smith, R. P. Harkness, J. Bordner, J.-h. Kim, M. Kuhlen, H. Xu, N. Goldbaum, C. Hummels, A. G. Kritsuk, E. Tasker, S. Skory, C. M. Simpson, O. Hahn, J. S. Oishi, G. C. So, F. Zhao, R. Cen, Y. Li, and Enzo Collaboration. ENZO: An Adaptive Mesh Refinement Code for Astrophysics. ApJS, 211:19, April 2014. arXiv:1307.2265, doi:10.1088/0067-0049/211/2/19.">24</a>]</span>, where we switch
 between <span class="math notranslate nohighlight">\((\rho e)\)</span> and <span class="math notranslate nohighlight">\((\rho e_T)\)</span> depending on the local
 state of the fluid. To do so, we define parameters <span class="math notranslate nohighlight">\(\eta_1\)</span>,
 <span class="math notranslate nohighlight">\(\eta_2\)</span>, and <span class="math notranslate nohighlight">\(\eta_3\)</span>, corresponding to the code
@@ -814,7 +806,7 @@ Then we use the EOS to compute <span class="math notranslate nohighlight">\(p,T 
 <p>We also compute the flattening coefficient, <span class="math notranslate nohighlight">\(\chi\in[0,1]\)</span>, used in
 the edge state prediction to further limit slopes near strong shocks.
 We use the same flattening procedure described in the original
-PPM paper <span id="id4">[<a class="reference internal" href="zreferences.html#id5" title="P. Colella and P. R. Woodward. The Piecewise Parabolic Method (PPM) for Gas-Dynamical Simulations. Journal of Computational Physics, 54:174-201, September 1984. doi:10.1016/0021-9991(84)90143-8.">31</a>]</span> and the Flash paper <span id="id5">[<a class="reference internal" href="zreferences.html#id11" title="B. Fryxell, K. Olson, P. Ricker, F. X. Timmes, M. Zingale, D. Q. Lamb, P. MacNeice, R. Rosner, J. W. Truran, and H. Tufo. FLASH: An Adaptive Mesh Hydrodynamics Code for Modeling Astrophysical Thermonuclear Flashes. ApJS, 131:273-334, November 2000. doi:10.1086/317361.">39</a>]</span>.
+PPM paper <span class="bibtex-citation" id="id4">[<a class="reference internal" href="zreferences.html#id5" title="P. Colella and P. R. Woodward. The Piecewise Parabolic Method (PPM) for Gas-Dynamical Simulations. Journal of Computational Physics, 54:174-201, September 1984. doi:10.1016/0021-9991(84)90143-8.">31</a>]</span> and the Flash paper <span class="bibtex-citation" id="id5">[<a class="reference internal" href="zreferences.html#id11" title="B. Fryxell, K. Olson, P. Ricker, F. X. Timmes, M. Zingale, D. Q. Lamb, P. MacNeice, R. Rosner, J. W. Truran, and H. Tufo. FLASH: An Adaptive Mesh Hydrodynamics Code for Modeling Astrophysical Thermonuclear Flashes. ApJS, 131:273-334, November 2000. doi:10.1086/317361.">39</a>]</span>.
 A flattening coefficient of 1 indicates that no additional limiting
 takes place; a flattening coefficient of 0 means we effectively drop
 order to a first-order Godunov scheme (this convention is opposite of
@@ -858,15 +850,15 @@ near shocks (0 or 1; default 1)</p></li>
 <p>We wish to compute a left and right state of primitive variables at
 each edge to be used as inputs to the Riemann problem. There
 are several reconstruction techniques, a piecewise
-linear method that follows the description in <span id="id6">[<a class="reference internal" href="zreferences.html#id12" title="P. Colella. Multidimensional upwind methods for hyperbolic conservation laws. Journal of Computational Physics, 87:171-200, March 1990. doi:10.1016/0021-9991(90)90233-Q.">28</a>]</span>,
-the classic PPM limiters <span id="id7">[<a class="reference internal" href="zreferences.html#id5" title="P. Colella and P. R. Woodward. The Piecewise Parabolic Method (PPM) for Gas-Dynamical Simulations. Journal of Computational Physics, 54:174-201, September 1984. doi:10.1016/0021-9991(84)90143-8.">31</a>]</span>, and the new PPM limiters introduced
-in <span id="id8">[<a class="reference internal" href="zreferences.html#id13" title="P. Colella and M. D. Sekora. A limiter for PPM that preserves accuracy at smooth extrema. Journal of Computational Physics, 227:7069-7076, July 2008. doi:10.1016/j.jcp.2008.03.034.">30</a>]</span>. The choice of
+linear method that follows the description in <span class="bibtex-citation" id="id6">[<a class="reference internal" href="zreferences.html#id12" title="P. Colella. Multidimensional upwind methods for hyperbolic conservation laws. Journal of Computational Physics, 87:171-200, March 1990. doi:10.1016/0021-9991(90)90233-Q.">28</a>]</span>,
+the classic PPM limiters <span class="bibtex-citation" id="id7">[<a class="reference internal" href="zreferences.html#id5" title="P. Colella and P. R. Woodward. The Piecewise Parabolic Method (PPM) for Gas-Dynamical Simulations. Journal of Computational Physics, 54:174-201, September 1984. doi:10.1016/0021-9991(84)90143-8.">31</a>]</span>, and the new PPM limiters introduced
+in <span class="bibtex-citation" id="id8">[<a class="reference internal" href="zreferences.html#id13" title="P. Colella and M. D. Sekora. A limiter for PPM that preserves accuracy at smooth extrema. Journal of Computational Physics, 227:7069-7076, July 2008. doi:10.1016/j.jcp.2008.03.034.">30</a>]</span>. The choice of
 limiters is determined by castro.ppm_type.</p>
 <p>For the new PPM limiters, we have further modified the method
-of <span id="id9">[<a class="reference internal" href="zreferences.html#id13" title="P. Colella and M. D. Sekora. A limiter for PPM that preserves accuracy at smooth extrema. Journal of Computational Physics, 227:7069-7076, July 2008. doi:10.1016/j.jcp.2008.03.034.">30</a>]</span> to eliminate sensitivity due to roundoff error
+of <span class="bibtex-citation" id="id9">[<a class="reference internal" href="zreferences.html#id13" title="P. Colella and M. D. Sekora. A limiter for PPM that preserves accuracy at smooth extrema. Journal of Computational Physics, 227:7069-7076, July 2008. doi:10.1016/j.jcp.2008.03.034.">30</a>]</span> to eliminate sensitivity due to roundoff error
 (modifications via personal communication with Colella).</p>
 <p>We also use characteristic tracing with corner coupling in 3D, as
-described in Miller &amp; Colella (2002) <span id="id10">[<a class="reference internal" href="zreferences.html#id14" title="G. H. Miller and P. Colella. A Conservative Three-Dimensional Eulerian Method for Coupled Solid-Fluid Shock Capturing. Journal of Computational Physics, 183:26-82, November 2002. doi:10.1006/jcph.2002.7158.">55</a>]</span>. We
+described in Miller &amp; Colella (2002) <span class="bibtex-citation" id="id10">[<a class="reference internal" href="zreferences.html#id14" title="G. H. Miller and P. Colella. A Conservative Three-Dimensional Eulerian Method for Coupled Solid-Fluid Shock Capturing. Journal of Computational Physics, 183:26-82, November 2002. doi:10.1006/jcph.2002.7158.">55</a>]</span>. We
 give full details of the new PPM algorithm, as it has not appeared before
 in the literature, and summarize the developments from Miller &amp;
 Colella.</p>
@@ -895,11 +887,9 @@ second derivative. The steps are as follows:</p>
 <ol class="arabic">
 <li><p>Define:</p>
 <div class="math notranslate nohighlight">
-\[\begin{split}\begin{align}
-(D^2s)_{i+\myhalf} &amp;= 3\left(s_{i}-2s_{i+\myhalf}+s_{i+1}\right) \\
+\[\begin{split}(D^2s)_{i+\myhalf} &amp;= 3\left(s_{i}-2s_{i+\myhalf}+s_{i+1}\right) \\
 (D^2s)_{i+\myhalf,L} &amp;= s_{i-1}-2s_{i}+s_{i+1} \\
-(D^2s)_{i+\myhalf,R} &amp;= s_{i}-2s_{i+1}+s_{i+2}
-\end{align}\end{split}\]</div>
+(D^2s)_{i+\myhalf,R} &amp;= s_{i}-2s_{i+1}+s_{i+2}\end{split}\]</div>
 </li>
 <li><p>Define</p>
 <div class="math notranslate nohighlight">
@@ -925,17 +915,13 @@ need to detect whether a particular cell corresponds to an
 <li><p>We only apply the second test if either
 <span class="math notranslate nohighlight">\(|\alpha_{i,\pm}| &gt; 2|\alpha_{i,\mp}|\)</span>. If so, we define:</p>
 <div class="math notranslate nohighlight">
-\[\begin{split}\begin{align}
-(Ds)_{i,{\rm face},-} &amp;= s_{i-1/2} - s_{i-3/2} \\
-(Ds)_{i,{\rm face},+} &amp;= s_{i+3/2} - s_{i-1/2}
-\end{align}\end{split}\]</div>
+\[\begin{split}(Ds)_{i,{\rm face},-} &amp;= s_{i-1/2} - s_{i-3/2} \\
+(Ds)_{i,{\rm face},+} &amp;= s_{i+3/2} - s_{i-1/2}\end{split}\]</div>
 <div class="math notranslate nohighlight">
 \[(Ds)_{i,{\rm face,min}} = \min\left[\left|(Ds)_{i,{\rm face},-}\right|,\left|(Ds)_{i,{\rm face},+}\right|\right].\]</div>
 <div class="math notranslate nohighlight">
-\[\begin{split}\begin{align}
-(Ds)_{i,{\rm cc},-} &amp;= s_{i} - s_{i-1} \\
-(Ds)_{i,{\rm cc},+} &amp;= s_{i+1} - s_{i}
-\end{align}\end{split}\]</div>
+\[\begin{split}(Ds)_{i,{\rm cc},-} &amp;= s_{i} - s_{i-1} \\
+(Ds)_{i,{\rm cc},+} &amp;= s_{i+1} - s_{i}\end{split}\]</div>
 <div class="math notranslate nohighlight">
 \[(Ds)_{i,{\rm cc,min}} = \min\left[\left|(Ds)_{i,{\rm cc},-}\right|,\left|(Ds)_{i,{\rm cc},+}\right|\right].\]</div>
 <p>If <span class="math notranslate nohighlight">\((Ds)_{i,{\rm face,min}} \ge (Ds)_{i,{\rm cc,min}}\)</span>, set
@@ -950,12 +936,10 @@ whether we are at an extremum.</p>
 <li><p>If we are at an extremum, we modify <span class="math notranslate nohighlight">\(\alpha_{i,\pm}\)</span>. First, we
 define</p>
 <div class="math notranslate nohighlight">
-\[\begin{split}\begin{align}
-(D^2s)_{i} &amp;= 6(\alpha_{i,+}+\alpha_{i,-}) \\
+\[\begin{split}(D^2s)_{i} &amp;= 6(\alpha_{i,+}+\alpha_{i,-}) \\
 (D^2s)_{i,L} &amp;= s_{i-2}-2s_{i-1}+s_{i} \\
 (D^2s)_{i,R} &amp;= s_{i}-2s_{i+1}+s_{i+2} \\
-(D^2s)_{i,C} &amp;= s_{i-1}-2s_{i}+s_{i+1}
-\end{align}\end{split}\]</div>
+(D^2s)_{i,C} &amp;= s_{i-1}-2s_{i}+s_{i+1}\end{split}\]</div>
 <p>Then, define</p>
 <div class="math notranslate nohighlight">
 \[s = \text{sign}\left[(D^2s)_{i}\right],\]</div>
@@ -1004,26 +988,20 @@ across the face assuming the profile is moving at a speed
 </div>
 <blockquote>
 <div><div class="math notranslate nohighlight">
-\[\begin{split}\begin{align}
-\mathcal{I}^{(k)}_{+}(s_i) &amp;= \frac{1}{\sigma_k h}\int_{(i+\myhalf)h-\sigma_k h}^{(i+\myhalf)h}s_i^I(x)dx \\
-\mathcal{I}^{(k)}_{-}(s_i) &amp;= \frac{1}{\sigma_k h}\int_{(i-\myhalf)h}^{(i-\myhalf)h+\sigma_k h}s_i^I(x)dx
-\end{align}\end{split}\]</div>
+\[\begin{split}\mathcal{I}^{(k)}_{+}(s_i) &amp;= \frac{1}{\sigma_k h}\int_{(i+\myhalf)h-\sigma_k h}^{(i+\myhalf)h}s_i^I(x)dx \\
+\mathcal{I}^{(k)}_{-}(s_i) &amp;= \frac{1}{\sigma_k h}\int_{(i-\myhalf)h}^{(i-\myhalf)h+\sigma_k h}s_i^I(x)dx\end{split}\]</div>
 <p>Plugging in <a class="reference internal" href="#equation-quadratic-interp">(3)</a> gives:</p>
 <div class="math notranslate nohighlight">
-\[\begin{split}\begin{align}
-\mathcal{I}^{(k)}_{+}(s_i) &amp;= s_{i,+} - \frac{\sigma_k}{2}\left[s_{i,+}-s_{i,-}-\left(1-\frac{2}{3}\sigma_k\right)s_{6,i}\right], \\
-\mathcal{I}^{(k)}_{-}(s_i) &amp;= s_{i,-} + \frac{\sigma_k}{2}\left[s_{i,+}-s_{i,-}+\left(1-\frac{2}{3}\sigma_k\right)s_{6,i}\right].
-\end{align}\end{split}\]</div>
+\[\begin{split}\mathcal{I}^{(k)}_{+}(s_i) &amp;= s_{i,+} - \frac{\sigma_k}{2}\left[s_{i,+}-s_{i,-}-\left(1-\frac{2}{3}\sigma_k\right)s_{6,i}\right], \\
+\mathcal{I}^{(k)}_{-}(s_i) &amp;= s_{i,-} + \frac{\sigma_k}{2}\left[s_{i,+}-s_{i,-}+\left(1-\frac{2}{3}\sigma_k\right)s_{6,i}\right].\end{split}\]</div>
 </div></blockquote>
 </li>
 <li><p><strong>Step 4:</strong> Obtain 1D edge states by performing a 1D
 extrapolation to get left and right edge states. Note that we
 include an explicit source term contribution.</p>
 <div class="math notranslate nohighlight">
-\[\begin{split}\begin{align}
-s_{L,i+\myhalf} &amp;= s_i - \chi_i\sum_{k:\lambda_k \ge 0}\lb_k\cdot\left[s_i-\mathcal{I}^{(k)}_{+}(s_i)\right]\rb_k + \frac{\dt}{2}S_i^n, \\
-s_{R,i-\myhalf} &amp;= s_i - \chi_i\sum_{k:\lambda_k &lt; 0}\lb_k\cdot\left[s_i-\mathcal{I}^{(k)}_{-}(s_i)\right]\rb_k + \frac{\dt}{2}S_i^n.
-\end{align}\end{split}\]</div>
+\[\begin{split}s_{L,i+\myhalf} &amp;= s_i - \chi_i\sum_{k:\lambda_k \ge 0}\lb_k\cdot\left[s_i-\mathcal{I}^{(k)}_{+}(s_i)\right]\rb_k + \frac{\dt}{2}S_i^n, \\
+s_{R,i-\myhalf} &amp;= s_i - \chi_i\sum_{k:\lambda_k &lt; 0}\lb_k\cdot\left[s_i-\mathcal{I}^{(k)}_{-}(s_i)\right]\rb_k + \frac{\dt}{2}S_i^n.\end{split}\]</div>
 <p>Here, <span class="math notranslate nohighlight">\(\rb_k\)</span> is the <span class="math notranslate nohighlight">\(k^{\rm th}\)</span> right column eigenvector of
 <span class="math notranslate nohighlight">\(\Rb(\Ab_d)\)</span> and <span class="math notranslate nohighlight">\(\lb_k\)</span> is the <span class="math notranslate nohighlight">\(k^{\rm th}\)</span> left row eigenvector lf
 <span class="math notranslate nohighlight">\(\Lb(\Ab_d)\)</span>. The flattening coefficient is <span class="math notranslate nohighlight">\(\chi_i\)</span>.</p>
@@ -1068,7 +1046,7 @@ its transverse update.</p></li>
 <section id="riemann-problem">
 <h3>Riemann Problem<a class="headerlink" href="#riemann-problem" title="Link to this heading"></a></h3>
 <p>Castro has three main options for the Riemann solver—the
-Colella &amp; Glaz solver <span id="id11">[<a class="reference internal" href="zreferences.html#id3" title="P. Colella and H. M. Glaz. Efficient solution algorithms for the Riemann problem for real gases. Journal of Computational Physics, 59:264-289, June 1985. doi:10.1016/0021-9991(85)90146-9.">29</a>]</span> (the same solver used
+Colella &amp; Glaz solver <span class="bibtex-citation" id="id11">[<a class="reference internal" href="zreferences.html#id3" title="P. Colella and H. M. Glaz. Efficient solution algorithms for the Riemann problem for real gases. Journal of Computational Physics, 59:264-289, June 1985. doi:10.1016/0021-9991(85)90146-9.">29</a>]</span> (the same solver used
 by Flash), a simpler solver described in an unpublished
 manuscript by Colella, Glaz, &amp; Ferguson, and an HLLC
 solver. The first two are both
@@ -1115,11 +1093,9 @@ cell-centered data.</p>
 \[c^* = \max\left(c_{\rm small},\sqrt{\left|\frac{\Gamma_0 p^*}{\rho^*}\right|}\right)\]</div>
 <p>Then,</p>
 <div class="math notranslate nohighlight">
-\[\begin{split}\begin{align}
-c_{\rm out} &amp;= c_0 - {\rm sign}(u^*)u_0, \\
+\[\begin{split}c_{\rm out} &amp;= c_0 - {\rm sign}(u^*)u_0, \\
 c_{\rm in} &amp;= c^* - {\rm sign}(u^*)u^*, \\
-c_{\rm shock} &amp;= \frac{c_{\rm in} + c_{\rm out}}{2}.
-\end{align}\end{split}\]</div>
+c_{\rm shock} &amp;= \frac{c_{\rm in} + c_{\rm out}}{2}.\end{split}\]</div>
 <p>If <span class="math notranslate nohighlight">\(p^* - p_0 \ge 0\)</span>, then <span class="math notranslate nohighlight">\(c_{\rm in} = c_{\rm out} = c_{\rm shock}\)</span>.
 Then, if <span class="math notranslate nohighlight">\(c_{\rm out} = c_{\rm in}\)</span>, we define <span class="math notranslate nohighlight">\(c_{\rm temp} =
 \epsilon c_{\rm avg}\)</span>. Otherwise, <span class="math notranslate nohighlight">\(c_{\rm temp} = c_{\rm out} -
@@ -1137,12 +1113,10 @@ v_R, &amp; {\rm otherwise}
 \end{cases}.\end{split}\]</div>
 <p>Then, define</p>
 <div class="math notranslate nohighlight">
-\[\begin{split}\begin{align}
-\rho_{\rm gdnv} &amp;= f\rho^* + (1-f)\rho_0, \\
+\[\begin{split}\rho_{\rm gdnv} &amp;= f\rho^* + (1-f)\rho_0, \\
 u_{\rm gdnv} &amp;= f u^* + (1-f)u_0, \\
 p_{\rm gdnv} &amp;= f p^* + (1-f)p_0, \\
-(\rho e)_{\rm gdnv} &amp;=&amp; f(\rho e)^* + (1-f)(\rho e)_0.
-\end{align}\end{split}\]</div>
+(\rho e)_{\rm gdnv} &amp;=&amp; f(\rho e)^* + (1-f)(\rho e)_0.\end{split}\]</div>
 <p>Finally, if <span class="math notranslate nohighlight">\(c_{\rm out} &lt; 0\)</span>, set
 <span class="math notranslate nohighlight">\(\rho_{\rm gdnv}=\rho_0, u_{\rm gdnv}=u_0, p_{\rm gdnv}=p_0\)</span>, and
 <span class="math notranslate nohighlight">\((\rho e)_{\rm gdnv}=(\rho e)_0\)</span>.
@@ -1170,8 +1144,8 @@ in the momentum equation.</p>
 </li>
 </ul>
 <p>The default is to use the solver based on an unpublished Colella,
-Glaz, &amp; Ferguson manuscript (it also appears in <span id="id12">[<a class="reference internal" href="zreferences.html#id15" title="Richard B. Pember, Jeffrey A. Greenough, and Phillip Colella. An adaptive, higher-order godunov method for gas dynamics in three-dimensional orthogonal curvilinear coordinates. In unknown. 1996.">9</a>]</span>),
-as described in the original Castro paper <span id="id13">[<a class="reference internal" href="zreferences.html#id4" title="A. S. Almgren, V. E. Beckner, J. B. Bell, M. S. Day, L. H. Howell, C. C. Joggerst, M. J. Lijewski, A. Nonaka, M. Singer, and M. Zingale. CASTRO: A New Compressible Astrophysical Solver. I. Hydrodynamics and Self-gravity. ApJ, 715:1221-1238, June 2010. doi:10.1088/0004-637X/715/2/1221.">20</a>]</span>.</p>
+Glaz, &amp; Ferguson manuscript (it also appears in <span class="bibtex-citation" id="id12">[<a class="reference internal" href="zreferences.html#id15" title="Richard B. Pember, Jeffrey A. Greenough, and Phillip Colella. An adaptive, higher-order godunov method for gas dynamics in three-dimensional orthogonal curvilinear coordinates. In unknown. 1996.">9</a>]</span>),
+as described in the original Castro paper <span class="bibtex-citation" id="id13">[<a class="reference internal" href="zreferences.html#id4" title="A. S. Almgren, V. E. Beckner, J. B. Bell, M. S. Day, L. H. Howell, C. C. Joggerst, M. J. Lijewski, A. Nonaka, M. Singer, and M. Zingale. CASTRO: A New Compressible Astrophysical Solver. I. Hydrodynamics and Self-gravity. ApJ, 715:1221-1238, June 2010. doi:10.1088/0004-637X/715/2/1221.">20</a>]</span>.</p>
 <p>The Colella &amp; Glaz solver is iterative, and two runtime parameters are used
 to control its behavior:</p>
 <ul>
@@ -1232,10 +1206,8 @@ reconstruction and characteristic tracing on <span class="math notranslate nohig
 <span class="math notranslate nohighlight">\(\mathcal{I}_{+}^{(k)}(T_i)\)</span>. We then derive the pressure and
 internal energy (gas portion) via the equation of state as:</p>
 <div class="math notranslate nohighlight">
-\[\begin{split}\begin{align}
-      \mathcal{I}_{+}^{(k)}(p_i) &amp;= p(\mathcal{I}_{+}^{(k)}(\rho_i), \mathcal{I}_{+}^{(k)}(T_i)) \\
-      \mathcal{I}_{+}^{(k)}((\rho e)_i) &amp;= (\rho e)(\mathcal{I}_{+}^{(k)}(\rho_i), \mathcal{I}_{+}^{(k)}(T_i))
-    \end{align}\end{split}\]</div>
+\[\begin{split}\mathcal{I}_{+}^{(k)}(p_i) &amp;= p(\mathcal{I}_{+}^{(k)}(\rho_i), \mathcal{I}_{+}^{(k)}(T_i)) \\
+\mathcal{I}_{+}^{(k)}((\rho e)_i) &amp;= (\rho e)(\mathcal{I}_{+}^{(k)}(\rho_i), \mathcal{I}_{+}^{(k)}(T_i))\end{split}\]</div>
 <p>The remainder of the hydrodynamics algorithm then proceeds unchanged.</p>
 </li>
 <li><p>2: on entering the Riemann solver, we recompute the thermodynamics
@@ -1264,7 +1236,7 @@ cases. Additionally, it is not specified at all how to reset momenta
 in such a case. Consequently, we desired to improve the situation by
 limiting fluxes such that negative densities could not occur, so that
 such a reset would in practice always be avoided. Our solution
-implements the positivity-preserving method of <span id="id14">[<a class="reference internal" href="zreferences.html#id20" title="X. Y. Hu, N. A. Adams, and C.-W. Shu. Positivity-preserving method for high-order conservative schemes solving compressible Euler equations. Journal of Computational Physics, 242:169-180, June 2013. URL: http://adsabs.harvard.edu/abs/2013JCoPh.242..169H, arXiv:1203.1540.">46</a>]</span>. This
+implements the positivity-preserving method of <span class="bibtex-citation" id="id14">[<a class="reference internal" href="zreferences.html#id20" title="X. Y. Hu, N. A. Adams, and C.-W. Shu. Positivity-preserving method for high-order conservative schemes solving compressible Euler equations. Journal of Computational Physics, 242:169-180, June 2013. URL: http://adsabs.harvard.edu/abs/2013JCoPh.242..169H, arXiv:1203.1540.">46</a>]</span>. This
 behavior is controlled by
 <code class="docutils literal notranslate"><span class="pre">castro.limit_fluxes_on_small_dens</span></code>.</p>
 <p>A hydrodynamical update to a zone can be broken down into an update
@@ -1294,21 +1266,21 @@ hold. In regions where the density is not at risk of going negative,
 <span class="math notranslate nohighlight">\(\theta \approx 1\)</span> and the original hydrodynamic update is recovered.
 Further discussion, including a proof of the method, a description of
 multi-dimensional effects, and test verification problems, can be
-found in <span id="id15">[<a class="reference internal" href="zreferences.html#id20" title="X. Y. Hu, N. A. Adams, and C.-W. Shu. Positivity-preserving method for high-order conservative schemes solving compressible Euler equations. Journal of Computational Physics, 242:169-180, June 2013. URL: http://adsabs.harvard.edu/abs/2013JCoPh.242..169H, arXiv:1203.1540.">46</a>]</span>.</p>
+found in <span class="bibtex-citation" id="id15">[<a class="reference internal" href="zreferences.html#id20" title="X. Y. Hu, N. A. Adams, and C.-W. Shu. Positivity-preserving method for high-order conservative schemes solving compressible Euler equations. Journal of Computational Physics, 242:169-180, June 2013. URL: http://adsabs.harvard.edu/abs/2013JCoPh.242..169H, arXiv:1203.1540.">46</a>]</span>.</p>
 </section>
 </section>
 <section id="hybrid-momentum">
 <h2>Hybrid Momentum<a class="headerlink" href="#hybrid-momentum" title="Link to this heading"></a></h2>
-<p>Castro implements the hybrid momentum scheme of <span id="id16">[<a class="reference internal" href="zreferences.html#id21" title="Z. D. Byerly, B. Adelstein-Lelbach, J. E. Tohline, and D. C. Marcello. A Hybrid Advection Scheme for Conserving Angular Momentum on a Refined Cartesian Mesh. Astrophysical Journal Supplement Series, 212:23, June 2014. arXiv:1404.5942, doi:10.1088/0067-0049/212/2/23.">26</a>]</span>.
+<p>Castro implements the hybrid momentum scheme of <span class="bibtex-citation" id="id16">[<a class="reference internal" href="zreferences.html#id21" title="Z. D. Byerly, B. Adelstein-Lelbach, J. E. Tohline, and D. C. Marcello. A Hybrid Advection Scheme for Conserving Angular Momentum on a Refined Cartesian Mesh. Astrophysical Journal Supplement Series, 212:23, June 2014. arXiv:1404.5942, doi:10.1088/0067-0049/212/2/23.">26</a>]</span>.
 In particular, this switches from using the Cartesian momenta,
 <span class="math notranslate nohighlight">\((\rho u)\)</span>, <span class="math notranslate nohighlight">\((\rho v)\)</span>, and <span class="math notranslate nohighlight">\((\rho w)\)</span>, to a
 cylindrical momentum set, <span class="math notranslate nohighlight">\((\rho v_R)\)</span>, <span class="math notranslate nohighlight">\((\rho R v_\phi)\)</span>,
 and <span class="math notranslate nohighlight">\((\rho v_z)\)</span>.  This latter component is identical to the
 Cartesian value.  We translate between these sets of momentum throughout the code,
 ultimately doing the conservative update in terms of the cylindrical momentum.  Additional
-source terms appear in this formulation, which are written out in <span id="id17">[<a class="reference internal" href="zreferences.html#id21" title="Z. D. Byerly, B. Adelstein-Lelbach, J. E. Tohline, and D. C. Marcello. A Hybrid Advection Scheme for Conserving Angular Momentum on a Refined Cartesian Mesh. Astrophysical Journal Supplement Series, 212:23, June 2014. arXiv:1404.5942, doi:10.1088/0067-0049/212/2/23.">26</a>]</span>.</p>
+source terms appear in this formulation, which are written out in <span class="bibtex-citation" id="id17">[<a class="reference internal" href="zreferences.html#id21" title="Z. D. Byerly, B. Adelstein-Lelbach, J. E. Tohline, and D. C. Marcello. A Hybrid Advection Scheme for Conserving Angular Momentum on a Refined Cartesian Mesh. Astrophysical Journal Supplement Series, 212:23, June 2014. arXiv:1404.5942, doi:10.1088/0067-0049/212/2/23.">26</a>]</span>.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem gives a good test for this.  This problem
-originated with <span id="id18">[<a class="reference internal" href="zreferences.html#id22" title="J. C. B. Papaloizou and J. E. Pringle. The dynamical stability of differentially rotating discs with constant specific angular momentum. Monthly Notices of the Royal Astronomical Society, 208:721-750, June 1984. URL: http://adsabs.harvard.edu/abs/1984MNRAS.208..721P.">61</a>]</span>.  The
+originated with <span class="bibtex-citation" id="id18">[<a class="reference internal" href="zreferences.html#id22" title="J. C. B. Papaloizou and J. E. Pringle. The dynamical stability of differentially rotating discs with constant specific angular momentum. Monthly Notices of the Royal Astronomical Society, 208:721-750, June 1984. URL: http://adsabs.harvard.edu/abs/1984MNRAS.208..721P.">61</a>]</span>.  The
 problem is initialized as a torus with constant specific angular
 momentum, as shown below:</p>
 <figure class="align-default" id="id23">

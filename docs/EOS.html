@@ -258,32 +258,28 @@ specific enthalpy with respect to mass fraction at constant
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">eos_xderivs.dpdX[NumSpec]</span></code>: the derivative of the pressure with respect to mass fraction:</p>
 <div class="math notranslate nohighlight">
-\[\begin{split}\begin{align}
-p_{X_k} &amp;= \left .\frac{\partial p}{\partial \bar{A}} \right |_{\rho, T, \bar{Z}}
+\[\begin{split}p_{X_k} &amp;= \left .\frac{\partial p}{\partial \bar{A}} \right |_{\rho, T, \bar{Z}}
           \frac{\partial \bar{A}}{\partial X_k} +
           \left . \frac{\partial p}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}
           \frac{\partial \bar{Z}}{\partial X_k} \nonumber \\
         &amp;= -\frac{\bar{A}^2}{A_k}
           \left .\frac{\partial p}{\partial \bar{A}} \right |_{\rho, T, \bar{Z}} +
           \frac{\bar{A}}{A_k} \left (Z_k - \bar{Z} \right )
-          \left . \frac{\partial p}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}
-\end{align}\end{split}\]</div>
+          \left . \frac{\partial p}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}\end{split}\]</div>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">eos_xderivs.dedX[NumSpec]</span></code>: the derivative of the specific internal energy with respect to mass fraction:</p>
 <div class="math notranslate nohighlight">
-\[\begin{split}\begin{align}
-e_{X_k} &amp;= \left . \frac{\partial e }{\partial \bar{A}} \right |_{\rho, T, \bar{Z}}
+\[\begin{split}e_{X_k} &amp;= \left . \frac{\partial e }{\partial \bar{A}} \right |_{\rho, T, \bar{Z}}
         \frac{\partial \bar{A}}{\partial X_k} +
         \left .\frac{\partial e}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}
         \frac{\partial \bar{Z}}{\partial X_k} \nonumber \\
         &amp;= -\frac{\bar{A}^2}{A_k}
         \left . \frac{\partial e }{\partial \bar{A}} \right |_{\rho, T, \bar{Z}} +
         \frac{\bar{A}}{A_k} \left (Z_k - \bar{Z}\right )
-        \left .\frac{\partial e}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}
-\end{align}\end{split}\]</div>
+        \left .\frac{\partial e}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}\end{split}\]</div>
 </li>
 </ul>
-<p>(see <span id="id1">[<a class="reference internal" href="zreferences.html#id9" title="A. S. Almgren, J. B. Bell, A. Nonaka, and M. Zingale. Low Mach Number Modeling of Type Ia Supernovae. III. Reactions. ApJ, 684:449-470, September 2008. doi:10.1086/590321.">21</a>]</span>, Appendix A).</p>
+<p>(see <span class="bibtex-citation" id="id1">[<a class="reference internal" href="zreferences.html#id9" title="A. S. Almgren, J. B. Bell, A. Nonaka, and M. Zingale. Low Mach Number Modeling of Type Ia Supernovae. III. Reactions. ApJ, 684:449-470, September 2008. doi:10.1086/590321.">21</a>]</span>, Appendix A).</p>
 </section>
 </section>
 

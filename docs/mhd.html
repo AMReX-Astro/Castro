@@ -146,7 +146,7 @@
 <h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h2>
 <p>Castro implements a constrained transport (CT) corner transport upwind
 (CTU) ideal MHD scheme based on the work of Miniati &amp; Martin
-<span id="id1">[<a class="reference internal" href="zreferences.html#id50" title="Francesco Miniati and Daniel F. Martin. CONSTRAINED-TRANSPORT MAGNETOHYDRODYNAMICS WITH ADAPTI VE MESH REFINEMENT IN CHARM. The Astrophysical Journal Supplement Series, 195(1):5, July 2011. URL: https://iopscience.iop.org/article/10.1088/0067-0049/195/1/5 (visited on 2020-05-01), doi:10.1088/0067-0049/195/1/5.">8</a>]</span>.  MHD is enabled by compiling with <code class="docutils literal notranslate"><span class="pre">USE_MHD</span> <span class="pre">=</span>
+<span class="bibtex-citation" id="id1">[<a class="reference internal" href="zreferences.html#id50" title="Francesco Miniati and Daniel F. Martin. CONSTRAINED-TRANSPORT MAGNETOHYDRODYNAMICS WITH ADAPTI VE MESH REFINEMENT IN CHARM. The Astrophysical Journal Supplement Series, 195(1):5, July 2011. URL: https://iopscience.iop.org/article/10.1088/0067-0049/195/1/5 (visited on 2020-05-01), doi:10.1088/0067-0049/195/1/5.">8</a>]</span>.  MHD is enabled by compiling with <code class="docutils literal notranslate"><span class="pre">USE_MHD</span> <span class="pre">=</span>
 <span class="pre">TRUE</span></code>.  This replaces the pure hydrodynamics solver, but uses the
 same driver as the CTU hydrodynamics solver.  This means that all of
 the source terms supported by the hydrodynamics solver are also
@@ -163,12 +163,10 @@ for science simulations.  See the issues in the github repo.</p>
 <h2>Equations and Data Structures<a class="headerlink" href="#equations-and-data-structures" title="Link to this heading"></a></h2>
 <p>The ideal MHD equations we solve appear as:</p>
 <div class="math notranslate nohighlight">
-\[\begin{split}\begin{align}
-\frac{\partial \rho X_k}{\partial t} + \frac{\partial}{\partial x_j} ( \rho U_j X_k) &amp;= \rho \omegadot_k \\
+\[\begin{split}\frac{\partial \rho X_k}{\partial t} + \frac{\partial}{\partial x_j} ( \rho U_j X_k) &amp;= \rho \omegadot_k \\
 \frac{\partial \rho U_j}{\partial t} + \frac{\partial}{\partial x_j} (\rho U_i U_j + p \delta_{ij} - B_j B_i) &amp;= S_{\rho U_j} \\
 \frac{\partial \rho E}{\partial t} + \frac{\partial}{\partial x_j} \left [ U_j (\rho E + p) - B_j B_i u_i \right ] &amp;= S_{\rho E} + \rho H_\mathrm{nuc} \\
-\frac{\partial B_i}{\partial t} &amp;= -\frac{\partial}{\partial x_j} (U_j B_i - B_j U_i)
-\end{align}\end{split}\]</div>
+\frac{\partial B_i}{\partial t} &amp;= -\frac{\partial}{\partial x_j} (U_j B_i - B_j U_i)\end{split}\]</div>
 <p>where</p>
 <div class="math notranslate nohighlight">
 \[p = p_g + \frac{1}{2} B^2\]</div>
@@ -238,7 +236,7 @@ characteristic variables (the default) or the primitive variables.</p>
 <h2>Electric Update<a class="headerlink" href="#electric-update" title="Link to this heading"></a></h2>
 <p>Coupled to the hydrodynamics update is the electric field update.
 Here we update the components of E using the contact upwind scheme
-first proposed in <span id="id2">[<a class="reference internal" href="zreferences.html#id51" title="Thomas A. Gardiner and James M. Stone. An unsplit Godunov method for ideal MHD via constrained transport. Journal of Computational Physics, 205(2):509-539, May 2005. arXiv:astro-ph/0501557, doi:10.1016/j.jcp.2004.11.016.">41</a>]</span>.  The updated electric field then
+first proposed in <span class="bibtex-citation" id="id2">[<a class="reference internal" href="zreferences.html#id51" title="Thomas A. Gardiner and James M. Stone. An unsplit Godunov method for ideal MHD via constrained transport. Journal of Computational Physics, 205(2):509-539, May 2005. arXiv:astro-ph/0501557, doi:10.1016/j.jcp.2004.11.016.">41</a>]</span>.  The updated electric field then
 gives the magnetic field via Faraday’s law and the discretization ensures
 that <span class="math notranslate nohighlight">\(\nabla \cdot {\bf B} = 0\)</span>.</p>
 </section>
