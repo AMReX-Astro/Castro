@@ -15,11 +15,11 @@ Castro::make_cell_center(const Box& bx,
   // Take a cell-average state U and a convert it to a cell-center
   // state U_cc via U_cc = U - 1/24 L U
 
-  auto U_lo = lbound(U);
-  auto U_hi = ubound(U);
+  [[maybe_unused]] const auto U_lo = lbound(U);
+  [[maybe_unused]] const auto U_hi = ubound(U);
 
-  const auto *lo = bx.loVect();
-  const auto *hi = bx.hiVect();
+  [[maybe_unused]] const auto *lo = bx.loVect();
+  [[maybe_unused]] const auto *hi = bx.hiVect();
 
   AMREX_ASSERT(U_lo.x <= lo[0]-1 && U_hi.x >= hi[0]+1);
 #if AMREX_SPACEDIM >= 2
@@ -122,8 +122,8 @@ Castro::compute_lap_term(const Box& bx,
 
 void
 Castro::make_fourth_average(const Box& bx,
-                            Array4<Real> const& q,
-                            Array4<Real const> const& q_bar,
+                            Array4<Real> const& q_arr,
+                            Array4<Real const> const& q_bar_arr,
                             GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi) {
 
   // Take the cell-center state q and another state q_bar (e.g.,
@@ -140,20 +140,20 @@ Castro::make_fourth_average(const Box& bx,
     hi_periodic[idir] = hi_bc[idir] == amrex::PhysBCType::interior;
   }
 
-  amrex::ParallelFor(bx, q.nComp(),
+  amrex::ParallelFor(bx, q_arr.nComp(),
   [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
   {
-    Real lap = compute_laplacian(i, j, k, n, q_bar,
+    Real lap = compute_laplacian(i, j, k, n, q_bar_arr,
                                  lo_periodic, hi_periodic, domlo, domhi);
 
-    q(i,j,k,n) += (1.0_rt/24.0_rt) * lap;
+    q_arr(i,j,k,n) += (1.0_rt/24.0_rt) * lap;
   });
 }
 
 
 void
 Castro::make_fourth_in_place(const Box& bx,
-                             Array4<Real> const& q,
+                             Array4<Real> const& q_arr,
                              Array4<Real> const& tmp,
                              GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi) {
 
@@ -161,15 +161,15 @@ Castro::make_fourth_in_place(const Box& bx,
   // (e.g. q is overwritten by its average), q <- q + 1/24 L q.
   // Note: this routine is not tile safe.
 
-  for (int n = 0; n < q.nComp(); n++) {
-    make_fourth_in_place_n(bx, q, n, tmp, domlo, domhi);
+  for (int n = 0; n < q_arr.nComp(); n++) {
+    make_fourth_in_place_n(bx, q_arr, n, tmp, domlo, domhi);
   }
 }
 
 
 void
 Castro::make_fourth_in_place_n(const Box& bx,
-                               Array4<Real> const& q, const int ncomp,
+                               Array4<Real> const& q_arr, const int ncomp,
                                Array4<Real> const& tmp,
                                GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi) {
 
@@ -193,14 +193,14 @@ Castro::make_fourth_in_place_n(const Box& bx,
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
-    tmp(i,j,k) = compute_laplacian(i, j, k, ncomp, q,
+    tmp(i,j,k) = compute_laplacian(i, j, k, ncomp, q_arr,
                                    lo_periodic, hi_periodic, domlo, domhi);
   });
 
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
-    q(i,j,k,ncomp) += (1.0_rt/24.0_rt) * tmp(i,j,k);
+    q_arr(i,j,k,ncomp) += (1.0_rt/24.0_rt) * tmp(i,j,k);
   });
 
 }

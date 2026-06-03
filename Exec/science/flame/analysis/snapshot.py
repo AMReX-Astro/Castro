@@ -5,16 +5,13 @@
 import argparse
 import os
 import re
-import sys
 
 import matplotlib
 import matplotlib.ticker as mticker
 
 import numpy as np
-from cycler import cycler
 
 matplotlib.use('agg')
-import math
 
 import matplotlib.pyplot as plt
 import yt
@@ -57,6 +54,7 @@ def get_rTe_profile(plotfile):
     temp = np.array(ad['Temp'][srt])
     enuc = np.array(ad['enuc'][srt])
     return time, x_coord, density, temp, enuc
+
 
 def get_nuc_profile(plotfile):
 
@@ -124,10 +122,11 @@ def doit(pf, xmin, xmax, nuc_thresh):
         ax_e.set_xlim(xmin, xmax)
         ax_X.set_xlim(xmin, xmax)
 
-    ax_e.set_yscale("log")
+    if np.abs(enuc).max() > 0:
+        ax_e.set_yscale("log")
+        cur_lims = ax_e.get_ylim()
+        ax_e.set_ylim(1.e-10*cur_lims[-1], cur_lims[-1])
     ax_e.set_ylabel(r"$S_\mathrm{nuc}$ (erg/g/s)")
-    cur_lims = ax_e.get_ylim()
-    ax_e.set_ylim(1.e-10*cur_lims[-1], cur_lims[-1])
     ax_e.xaxis.set_major_formatter(mticker.ScalarFormatter(useMathText=True))
 
     ax_X.set_yscale("log")
@@ -153,7 +152,14 @@ def doit(pf, xmin, xmax, nuc_thresh):
     f.text(0.02, 0.005, f"t = {float(time):8.3f} s", transform=f.transFigure)
 
     prefix = os.getcwd().split("/")[-1]
-    time_str = f"{time:05.3f}s"
+    if time < 1.e-9:
+        time_str = f"{time/1.e-9:05.3f}ns"
+    elif time < 1.e-6:
+        time_str = f"{time/1.e-6:05.3f}us"
+    elif time < 1.e-3:
+        time_str = f"{time/1.e-3:05.3f}ms"
+    else:
+        time_str = f"{time:05.3f}s"
     f.savefig(f"snapshot_{prefix}_{pf}_{time_str}.png")
 
 

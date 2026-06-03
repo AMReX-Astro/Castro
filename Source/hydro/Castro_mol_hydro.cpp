@@ -405,36 +405,33 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                            q_bar_arr, qaux_bar_arr,
                            avis_arr, idir);
 
-              Array4<Real const> const avis_arr = avis.array();
-
               amrex::ParallelFor(nbx, NUM_STATE,
               [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
               {
-                  if (n == UTEMP) {
-                    flux_arr(i,j,k,n) = 0.0;
+                  if (n == UTEMP) {  // NOLINT(bugprone-branch-clone)
+                      flux_arr(i,j,k,n) = 0.0;
 #ifdef SHOCK_VAR
                   } else if (n == USHK) {
-                    flux_arr(i,j,k,n) = 0.0;
+                      flux_arr(i,j,k,n) = 0.0;
 #endif
 #ifdef NSE_NET
-          } else if (n == UMUP || n == UMUN) {
-            flux_arr(i,j,k,n) = 0.0;
+                  } else if (n == UMUP || n == UMUN) {
+                      flux_arr(i,j,k,n) = 0.0;
 #endif
                   } else {
+                      if (idir == 0) {
+                          flux_arr(i,j,k,n) += avisc_coeff * avis_arr(i,j,k,0) *
+                              (uin_arr(i,j,k,n) - uin_arr(i-1,j,k,n));
 
-                    if (idir == 0) {
-                      flux_arr(i,j,k,n) = flux_arr(i,j,k,n) +
-                        avisc_coeff * avis_arr(i,j,k,0) * (uin_arr(i,j,k,n) - uin_arr(i-1,j,k,n));
+                      } else if (idir == 1) {
+                          flux_arr(i,j,k,n) += avisc_coeff * avis_arr(i,j,k,0) *
+                              (uin_arr(i,j,k,n) - uin_arr(i,j-1,k,n));
 
-                    } else if (idir == 1) {
-                      flux_arr(i,j,k,n) = flux_arr(i,j,k,n) +
-                        avisc_coeff * avis_arr(i,j,k,0) * (uin_arr(i,j,k,n) - uin_arr(i,j-1,k,n));
+                      } else {
+                          flux_arr(i,j,k,n) += avisc_coeff * avis_arr(i,j,k,0) *
+                              (uin_arr(i,j,k,n) - uin_arr(i,j,k-1,n));
 
-                    } else {
-                      flux_arr(i,j,k,n) = flux_arr(i,j,k,n) +
-                        avisc_coeff * avis_arr(i,j,k,0) * (uin_arr(i,j,k,n) - uin_arr(i,j,k-1,n));
-
-                    }
+                      }
                   }
 
                 });
@@ -511,19 +508,17 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                  qaux_arr, shk_arr,
                  idir, false);
 
-              // set UTEMP and USHK fluxes to zero
-              Array4<Real const> const uin_arr = Sborder.array(mfi);
-
+              // set UTEMP, USHK, and chemical potential fluxes to zero
               amrex::ParallelFor(nbx,
               [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
               {
-                flux_arr(i,j,k,UTEMP) = 0.e0;
+                  flux_arr(i,j,k,UTEMP) = 0.e0;
 #ifdef SHOCK_VAR
-                flux_arr(i,j,k,USHK) = 0.e0;
+                  flux_arr(i,j,k,USHK) = 0.e0;
 #endif
 #ifdef NSE_NET
-                flux_arr(i,j,k,UMUP) = 0.e0;
-                flux_arr(i,j,k,UMUN) = 0.e0;
+                  flux_arr(i,j,k,UMUP) = 0.e0;
+                  flux_arr(i,j,k,UMUN) = 0.e0;
 #endif
               });
 
@@ -531,24 +526,24 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
               apply_av(nbx, idir, div_arr, uin_arr, flux_arr);
 
             } else {
-              // we are not doing hydro, so simply zero out the fluxes
-              const Box& nbx = amrex::surroundingNodes(bx, idir);
-              const Box& gbx = amrex::grow(nbx, 1);
+                // we are not doing hydro, so simply zero out the fluxes
+                const Box& nbx = amrex::surroundingNodes(bx, idir);
+                const Box& gbx = amrex::grow(nbx, 1);
 
-              Array4<Real> const flux_arr = (flux[idir]).array();
-              Array4<Real> const qe_arr = (qe[idir]).array();
-              const int nstate = NUM_STATE;
+                Array4<Real> const flux_arr = (flux[idir]).array();
+                Array4<Real> const qe_arr = (qe[idir]).array();
+                const int nstate = NUM_STATE;
 
-              AMREX_HOST_DEVICE_FOR_4D(gbx, nstate, i, j, k, n,
+                AMREX_HOST_DEVICE_FOR_4D(gbx, nstate, i, j, k, n,
                                        {
-                                         flux_arr(i,j,k,n) = 0.e0;
+                                           flux_arr(i,j,k,n) = 0.e0;
                                        });
 
-              const int ncomp = NGDNV;
+                const int ncomp = NGDNV;
 
-              AMREX_HOST_DEVICE_FOR_4D(gbx, ncomp, i, j, k, n,
+                AMREX_HOST_DEVICE_FOR_4D(gbx, ncomp, i, j, k, n,
                                        {
-                                         qe_arr(i,j,k,n) = 0.e0;
+                                           qe_arr(i,j,k,n) = 0.e0;
                                        });
             } // end do_hydro
 
@@ -574,27 +569,26 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
         if (do_hydro) {
 
-          for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
+            for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
-            const Box& nbx = amrex::surroundingNodes(bx, idir);
+                const Box& nbx = amrex::surroundingNodes(bx, idir);
 
-            Array4<Real> const flux_arr = (flux[idir]).array();
+                Array4<Real> const flux_arr = (flux[idir]).array();
 
-            // apply the density flux limiter
-            if (limit_fluxes_on_small_dens == 1) {
-                limit_hydro_fluxes_on_small_dens
-                  (nbx, idir,
-                   Sborder.array(mfi),
-                   volume.array(mfi),
-                   flux[idir].array(),
-                   area[idir].array(mfi),
-                   dt);
+                // apply the density flux limiter
+                if (limit_fluxes_on_small_dens == 1) {
+                    limit_hydro_fluxes_on_small_dens(nbx, idir,
+                                                     Sborder.array(mfi),
+                                                     volume.array(mfi),
+                                                     flux[idir].array(),
+                                                     area[idir].array(mfi),
+                                                     dt);
+                }
+
+                // ensure that the species fluxes are normalized
+                normalize_species_fluxes(nbx, flux_arr);
+
             }
-
-            // ensure that the species fluxes are normalized
-            normalize_species_fluxes(nbx, flux_arr);
-
-          }
 
         }
 
