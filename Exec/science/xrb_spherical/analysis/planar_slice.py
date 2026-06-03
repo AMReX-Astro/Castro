@@ -398,7 +398,7 @@ def planar_slice(fnames:list[str], fields:list[str],
                 mask = (rho < 1e-1) | (rho > 1e6)
                 vt = np.ma.array(vt, mask=mask)
 
-                ax.streamplot(theta, radial, vt, vr, color="tab:green", linewidth=2, density=1)
+                ax.streamplot(theta_arr, r_arr, vt, vr, color="tab:green", linewidth=2, density=1)
 
             if annotate_acceleration_streamlines and ("boxlib", "pressure") in ds.field_list:
                 rho = cg0["boxlib", "density"][:, :, 0].to_ndarray()
@@ -409,7 +409,7 @@ def planar_slice(fnames:list[str], fields:list[str],
                 mask = (rho < 1e-1) | (rho > 1e6)
                 at = np.ma.array(at, mask=mask)
 
-                ax.streamplot(theta, radial, at, ar, color="tab:blue", linewidth=2, density=1)
+                ax.streamplot(theta_arr, r_arr, at, ar, color="tab:blue", linewidth=2, density=1)
 
             # Plot vertical line to indicate flame front and ash front
             if annotate_front:
