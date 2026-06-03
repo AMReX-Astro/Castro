@@ -49,7 +49,7 @@ def plot_theta_profile(ds, field, r_kms, figsize=(7, 9), outName=None):
     # Show ticks on all 4 axes (top, bottom, left, right)
     ax.tick_params(top=True, bottom=True, left=True, right=True)
     plt.tight_layout()
-    if outname not None:
+    if outname is not None:
         fig.savefig(outName, format="png", bbox_inches="tight")
     else:
         plt.show()
@@ -79,13 +79,13 @@ if __name__ == "__main__":
     ds = CastroDataset(fname)
 
     rmin = args.rmin
-    if rmin == None:
+    if rmin is None:
         rel_height= ds.parameters.get("problem.H_star") + 1.5 * ds.parameters.get("problem.atm_delta")
         rmin = ds.domain_left_edge[0].in_units("cm") + rel_height*cm
         rmin = rmin.value * 1e-5 # convert to km
 
     rmax = args.rmax
-    if rmax == None:
+    if rmax is None:
         rmax = rmin + 0.05
 
     r_kms = np.linspace(rmin, rmax, args.rstep)
