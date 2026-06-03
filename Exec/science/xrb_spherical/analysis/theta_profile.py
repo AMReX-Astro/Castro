@@ -49,7 +49,7 @@ def plot_theta_profile(ds, field, r_kms, figsize=(7, 9), outName=None):
     # Show ticks on all 4 axes (top, bottom, left, right)
     ax.tick_params(top=True, bottom=True, left=True, right=True)
     plt.tight_layout()
-    if outname is not None:
+    if outName is not None:
         fig.savefig(outName, format="png", bbox_inches="tight")
     else:
         plt.show()
@@ -69,14 +69,14 @@ if __name__ == "__main__":
                         help="maximum depth to do the theta profile")
     parser.add_argument('--rstep', default=10, type=float,
                         help="Number of theta profiles to plot")
-    parser.add_argument("--figsize", nargs=2, type=float, default=[7, 9],
+    parser.add_argument("--figsize", nargs=2, type=float, default=[8, 8],
                         metavar=("WIDTH", "HEIGHT"), help="Figure size in inches.")
     parser.add_argument("-o", "--output", default=None, type=str, metavar="FILENAME",
                         help="Output filename (PNG). If not set, shows interactive plot.")
 
     args = parser.parse_args()
 
-    ds = CastroDataset(fname)
+    ds = CastroDataset(args.fname[0])
 
     rmin = args.rmin
     if rmin is None:
@@ -90,4 +90,4 @@ if __name__ == "__main__":
 
     r_kms = np.linspace(rmin, rmax, args.rstep)
 
-    plot_theta_profiles(ds, field, r_kms, figsize=args.figsize, outName=args.output)
+    plot_theta_profile(ds, args.field, r_kms, figsize=args.figsize, outName=args.output)
