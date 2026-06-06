@@ -1,11 +1,9 @@
-Frontier scaling on 2025-04-09
+New scaling study done on June 6, 2026.
 
-This uses ROCm 6.3.1
+For the Microphysics repo, I am using this PR:
+https://github.com/AMReX-Astro/Microphysics/pull/1998
 
-A sample submission script is included here.
+Tests were run with two integrators (VODE and Rosenbrock) and two
+networks (iso7 and ase).
 
-These runs disabled the EXTRACXXFLAGS that disabled inlining with HIP,
-since those are no longer necessary.  But note that has little effect
-on the runtime.
 
-Note that for 2048
