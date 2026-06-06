@@ -47,18 +47,9 @@ else:
     # Let's extract data from SlicePlot using FRB and annotate grid
     # yt doesn't support annotating grids in spherical case.
 
-    # # Get refinement ratio between finest to coarest level
-    # ref_ratio = ds.relative_refinement(0, ds.max_level)
-
-    # # Get the max possible number of pixels for the full domain
-    # dims = ds.domain_dimensions * ref_ratio
-    # pixels = (dims[0], dims[1])
-
-    # Set FRB resolution
-    slc.render()
-
-    # Now get the frb directly from the slice plot
+    # Get the frb directly from the slice plot
     # This gives 2D array the shape as the dims
+    slc.render()
     frb = slc.frb
     var = np.array(frb[f])
 
@@ -73,77 +64,6 @@ else:
                         norm=mcolors.Normalize(vmin=np.nanmin(var),
                                                vmax=np.nanmax(var)),
                         cmap="plasma_r", shading="auto")
-
-    # fig, ax = plt.subplots(figsize=(8, 8))
-
-    # # Needed for smoothed_covering_grid to use fine level data
-    # ds.force_periodicity()
-
-    # # Extract data coarsest to finest level and plot
-    # r_min = ds.domain_left_edge[0].value
-    # r_max = ds.domain_right_edge[0].value
-    # th_min = ds.domain_left_edge[1].value
-    # th_max = ds.domain_right_edge[1].value
-
-    # max_level = ds.max_level
-    # # First Do the Plotting
-    # for level in range(max_level + 1):
-    #     grids = [g for g in ds.index.grids if g.Level == level]
-    #     if not grids:
-    #         continue
-
-    #     # Get left grid edge to get the covering grid
-    #     # Make sure that we're within the actual domain and exclude ghost cells
-    #     r_left = max(min(g.LeftEdge[0].value for g in grids), r_min)
-    #     th_left = max(min(g.LeftEdge[1].value for g in grids), th_min)
-    #     r_right = min(max(g.RightEdge[0].value for g in grids), r_max)
-    #     th_right = min(max(g.RightEdge[1].value for g in grids), th_max)
-    #     left_edge = ds.arr([r_left, th_left, ds.domain_left_edge[2].value], "code_length")
-    #     right_edge = ds.arr([r_right, th_right, ds.domain_right_edge[2].value], "code_length")
-
-    #     # Get covering grid corresponding to each individual levels
-    #     # Compute the refinement ratio between the coarsest level and current level
-    #     # ref_ratio = ds.relative_refinement(0, level)
-    #     ref_ratio = ds.refine_by**level
-    #     dims = ds.domain_dimensions * ref_ratio
-    #     dims[2] = 1
-    #     print(ds.refinement_factors)
-    #     cg = ds.covering_grid(level=level, left_edge=left_edge, dims=dims)
-
-    #     # Get data and plot
-    #     var   = cg["boxlib", f][:, :, 0].to_ndarray()
-    #     r     = cg["index", "r"][:, :, 0].to("cm").to_ndarray()
-    #     theta = cg["index", "theta"][:, :, 0].to_ndarray()
-
-    #     # Convert to cylindrical R-Z coordinate -- This is cell-centered coordinate
-    #     R = r * np.sin(theta)
-    #     Z = r * np.cos(theta)
-
-    #     # yt can generate data outside of the simulation domain -- ghost cells?
-    #     # Make sure that we're within the actual domain for the field we're plotting
-    #     mask = (r >= r_min) & (r <= r_max) & (theta >= th_min) & (theta <= th_max)
-    #     masked_var = np.where(mask, var, np.nan)
-
-    #     pcm = ax.pcolormesh(R, Z, masked_var, cmap=cmap,
-    #                         norm=Normalize(vmin=var.min(), vmax=var.max()), shading="auto")
-
-    #     if level == 0:
-    #         # Compute the edge values so that we get proper x-y lim
-    #         dr = r[1, 0] - r[0, 0]
-    #         dtheta = theta[0, 1] - theta[0, 0]
-
-    #         Rr = (r + 0.5*dr) * np.sin(theta + 0.5*dtheta)
-    #         Rmax = max(Rr[mask])
-    #         Rl = (r - 0.5*dr) * np.sin(theta + 0.5*dtheta)
-    #         Rmin = min(Rl[mask])
-
-    #         Zr = (r + 0.5*dr) * np.cos(theta + 0.5*dtheta)
-    #         Zmax = max(Zr[mask])
-    #         Zl = (r - 0.5*dr) * np.cos(theta - 0.5*dtheta)
-    #         Zmin = min(Zl[mask])
-
-    #         ax.set_xlim(Rmin, Rmax)
-    #         ax.set_ylim(Zmin, Zmax)
 
     # Now annotate grids
     level_colors = plt.get_cmap("Set1", ds.max_level + 1)
