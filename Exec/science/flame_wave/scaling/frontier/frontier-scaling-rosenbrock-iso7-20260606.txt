@@ -1,0 +1,20 @@
+# ROCm 6.3.1
+#
+# EOS: /ccs/home/zingale/Microphysics/EOS/helmholtz
+# NETWORK: /ccs/home/zingale/Microphysics/networks/iso7
+# CONDUCTIVITY: /ccs/home/zingale/Microphysics/conductivity/stellar
+# INTEGRATOR: Rosenbrock
+# SCREENING: screen5
+#
+# Castro       git describe: 26.06-2-gb8c2bab45
+# AMReX        git describe: 26.06-10-g61f7201085
+# Microphysics git describe: 26.05-26-gcbc103fe
+#
+# nodes       avg      std-dev
+
+  48        61.4965    0.203143
+  64        43.337     0.187684
+ 128        24.7404    0.168029
+# 256
+# 512
+#1024
