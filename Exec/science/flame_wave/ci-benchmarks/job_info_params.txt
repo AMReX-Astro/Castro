@@ -18,6 +18,7 @@
     castro.rot_source_type = 4
     castro.implicit_rotation_update = 1
 [*] castro.rot_axis = 2
+    castro.fixed_rotational_latitude = -1e+200
     castro.sponge_lower_radius = -1
     castro.sponge_upper_radius = -1
 [*] castro.sponge_lower_density = 1
