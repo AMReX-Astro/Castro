@@ -52,6 +52,11 @@ frontier_h_he_vode_nodes = _data[:, 0]
 frontier_h_he_vode_times = _data[:, 1]
 frontier_h_he_vode_std = _data[:, 2]
 
+_data = np.genfromtxt("frontier-h-he-scaling-vode32bitjac-cno-he-burn-34am.txt")
+frontier_h_he_vode32bitjac_nodes = _data[:, 0]
+frontier_h_he_vode32bitjac_times = _data[:, 1]
+frontier_h_he_vode32bitjac_std = _data[:, 2]
+
 
 def trend_line(c, t):
     cnew = np.array(sorted(list(set(c))))
@@ -96,6 +101,9 @@ ax.errorbar(frontier_h_he_vode_nodes, frontier_h_he_vode_times, yerr=frontier_h_
 
 ax.errorbar(frontier_h_he_rosenbrock_nodes, frontier_h_he_rosenbrock_times, yerr=frontier_h_he_rosenbrock_std,
             ls="None", marker="x", color="C1", label="H-He / Rosenbrock")
+
+ax.errorbar(frontier_h_he_vode32bitjac_nodes, frontier_h_he_vode32bitjac_times, yerr=frontier_h_he_vode32bitjac_std,
+            ls="None", marker="x", color="C3", label="H-He / VODE (32-bit Jac)")
 
 
 c, t = trend_line(frontier_ase_rosenbrock_nodes, frontier_ase_rosenbrock_times)
