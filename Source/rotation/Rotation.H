@@ -46,7 +46,7 @@ GpuArray<Real, 3> get_omega_vec(const GeometryData& geomdata,
     if (coord == 2) {
         Real theta;
         if (castro::fixed_rotational_latitude >= 0.0_rt) {
-            theta = fixed_rotational_latitude;
+            theta = castro::fixed_rotational_latitude;
         } else {
             theta = problo + (static_cast<Real>(j) + 0.5_rt) * dtheta;
         }
