@@ -435,7 +435,7 @@ namespace: ``castro``
 
 **gravity and rotation**
 
-.. index:: castro.do_grav, castro.moving_center, castro.grav_source_type, castro.do_rotation, castro.rotational_period, castro.rotation_include_centrifugal, castro.rotation_include_coriolis, castro.rot_source_type, castro.implicit_rotation_update, castro.rot_axis, castro.use_point_mass, castro.point_mass, castro.point_mass_fix_solution, castro.gw_dist, castro.point_mass_offset_is_true, castro.point_mass_location_offset
+.. index:: castro.do_grav, castro.moving_center, castro.grav_source_type, castro.do_rotation, castro.rotational_period, castro.rotation_include_centrifugal, castro.rotation_include_coriolis, castro.rot_source_type, castro.implicit_rotation_update, castro.rot_axis, castro.fixed_rotational_latitude, castro.use_point_mass, castro.point_mass, castro.point_mass_fix_solution, castro.gw_dist, castro.point_mass_offset_is_true, castro.point_mass_location_offset
 
 
 +--------------------------------------------+-------------------------------------------------------------+-----------------------------+
@@ -472,6 +472,11 @@ namespace: ``castro``
 |                                            | (rot_axis = 2) For Spherical2D, it is also assumed to be in |                             |
 |                                            | the z-axis i.e. cos(theta) r_hat - sin(theta) theta_hat in  |                             |
 |                                            | Spherical coordinate.                                       |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``fixed_rotational_latitude``              | For Spherical 2D, we can optionally allow for rotational    | -1.e200                     |
+|                                            | forces in fixed latitude. This is the standard f-plane      |                             |
+|                                            | approximation. This is used to compare the effect of fixed  |                             |
+|                                            | rotation.                                                   |                             |
 +--------------------------------------------+-------------------------------------------------------------+-----------------------------+
 | ``use_point_mass``                         | include a central point mass                                | 0                           |
 +--------------------------------------------+-------------------------------------------------------------+-----------------------------+
