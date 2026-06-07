@@ -106,10 +106,10 @@ ax.errorbar(frontier_h_he_vode32bitjac_nodes, frontier_h_he_vode32bitjac_times, 
             ls="None", marker="x", color="C3", label="H-He / VODE (32-bit Jac)")
 
 
-c, t = trend_line(frontier_ase_rosenbrock_nodes, frontier_ase_rosenbrock_times)
+c, t = trend_line(frontier_ase_vode_nodes, frontier_ase_vode_times)
 ax.plot(c, t, alpha=0.5, linestyle=":", color="k")
 
-c, t = trend_line(frontier_h_he_rosenbrock_nodes, frontier_h_he_rosenbrock_times)
+c, t = trend_line(frontier_h_he_vode_nodes, frontier_h_he_vode_times)
 ax.plot(c, t, alpha=0.5, linestyle=":", color="k")
 
 
@@ -119,7 +119,7 @@ ax.set_xlabel("number of nodes")
 ax.set_xscale("log")
 ax.set_yscale("log")
 
-ax.legend(fontsize="small", ncol=2)
+ax.legend(fontsize="9", ncol=2)
 
 ax.set_title("3D XRB flame scaling")
 

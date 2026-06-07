@@ -6,13 +6,15 @@ https://github.com/AMReX-Astro/Microphysics/pull/1998
 Tests were run with several integrators (VODE, Rosenbrock, and RKC) and two
 different inputs files (one for He and one for H/He).
 
-* He (inputs.He.25cm.static.1000Hz)
+* He (`inputs.He.25cm.static.1000Hz`)
 
-  * we try two networks: iso7 and ase
+  * we try two networks: `iso7` and `ase`
 
 * H/He (`inputs.H_He.64cm_x_16cm.static.1000Hz`)
 
-  * we do one network: cno-he-burn-32am
+  * we do one network: `cno-he-burn-34am`
+
+  * Rosenbrock does not fit on < 256 nodes (out of memory)
 
   * RKC does not work at all (lots of retries)
 
