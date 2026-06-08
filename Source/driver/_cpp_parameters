@@ -501,6 +501,11 @@ implicit_rotation_update     bool           1                  ROTATION
 # i.e. cos(theta) r_hat - sin(theta) theta_hat in Spherical coordinate.
 rot_axis                     int           3                  ROTATION
 
+# For Spherical 2D, we can optionally allow for rotational forces
+# in fixed latitude. This is the standard f-plane approximation.
+# This is used to compare the effect of fixed rotation.
+fixed_rotational_latitude    Real          -1.e200            ROTATION
+
 # include a central point mass
 use_point_mass               bool           0                  GRAVITY
 
