@@ -394,7 +394,7 @@ def planar_slice(fnames:list[str], fields:list[str],
                 vt = cg0["boxlib", "y_velocity"][:, :, 0].to_ndarray()
                 vr = cg0["boxlib", "x_velocity"][:, :, 0].to_ndarray()
 
-                # Mask out region withou low density and high density
+                # Mask out region without low density and high density
                 mask = (rho < 1e-1) | (rho > 1e6)
                 vt = np.ma.array(vt, mask=mask)
 
@@ -405,7 +405,7 @@ def planar_slice(fnames:list[str], fields:list[str],
                 at = cg0["boxlib", "Dvt_Dt"][:, :, 0].to_ndarray()
                 ar = cg0["boxlib", "Dvr_Dt"][:, :, 0].to_ndarray()
 
-                # Mask out region withou low density and high density
+                # Mask out region without low density and high density
                 mask = (rho < 1e-1) | (rho > 1e6)
                 at = np.ma.array(at, mask=mask)
 
