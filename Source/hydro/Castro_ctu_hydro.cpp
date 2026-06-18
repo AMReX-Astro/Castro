@@ -188,6 +188,15 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
     FArrayBox qmyz(The_Async_Arena()), qpyz(The_Async_Arena());
 #endif
 
+#ifdef CASTRO_SYNC_TRANS_SINGLE
+    auto sync_trans_single = [] (const char* label) {
+        amrex::Print() << "Synchronizing after trans_single: " << label << std::endl;
+        Gpu::streamSynchronize();
+    };
+#else
+    auto sync_trans_single = [] (const char*) {};
+#endif
+
     MultiFab& old_source = get_old_data(Source_Type);
 
     for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
@@ -583,6 +592,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
                    areay_arr,
                    vol_arr,
                    hdt, hdtdy);
+      sync_trans_single("xbx y-to-x");
 
       reset_edge_state_thermo(xbx, ql_arr);
 
@@ -626,6 +636,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
                    areax_arr,
                    vol_arr,
                    hdt, hdtdx);
+      sync_trans_single("ybx x-to-y");
 
       reset_edge_state_thermo(ybx, ql_arr);
 
@@ -708,6 +719,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 #endif
                    qgdnvtmp1_arr,
                    hdt, cdtdx);
+      sync_trans_single("tyxbx x-to-y");
 
       reset_edge_state_thermo(tyxbx, qmyx.array());
 
@@ -734,6 +746,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 #endif
                    qgdnvtmp1_arr,
                    hdt, cdtdx);
+      sync_trans_single("tzxbx x-to-z");
 
       reset_edge_state_thermo(tzxbx, qmzx.array());
 
@@ -780,6 +793,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 #endif
                    qgdnvtmp1_arr,
                    hdt, cdtdy);
+      sync_trans_single("txybx y-to-x");
 
       reset_edge_state_thermo(txybx, qmxy.array());
 
@@ -809,6 +823,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 #endif
                    qgdnvtmp1_arr,
                    hdt, cdtdy);
+      sync_trans_single("tzybx y-to-z");
 
       reset_edge_state_thermo(tzybx, qmzy.array());
 
@@ -855,6 +870,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 #endif
                    qgdnvtmp1_arr,
                    hdt, cdtdz);
+      sync_trans_single("txzbx z-to-x");
 
       reset_edge_state_thermo(txzbx, qmxz.array());
 
@@ -884,6 +900,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 #endif
                    qgdnvtmp1_arr,
                    hdt, cdtdz);
+      sync_trans_single("tyzbx z-to-y");
 
       reset_edge_state_thermo(tyzbx, qmyz.array());
 
