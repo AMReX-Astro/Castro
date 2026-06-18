@@ -749,9 +749,10 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
       sync_trans_single("tzxbx x-to-z");
 
       reset_edge_state_thermo(tzxbx, qmzx.array());
+      sync_trans_single("tzxbx qmzx reset_edge_state_thermo");
 
       reset_edge_state_thermo(tzxbx, qpzx.array());
-      sync_trans_single("tzxbx reset_edge_state_thermo");
+      sync_trans_single("tzxbx qpzx reset_edge_state_thermo");
 
       // compute F^y
       // [lo(1)-1, lo(2), lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1]
