@@ -51,7 +51,7 @@ Castro::trans_single(const Box& bx,
     amrex::Print() << "Synchronizing after actual_trans_single: "
                    << "idir_t = " << idir_t << ", idir_n = " << idir_n
                    << ", d = -1, bx = " << bx << std::endl;
-    Gpu::streamSynchronize();
+    Gpu::synchronize();
 #endif
 
     actual_trans_single(bx, idir_t, idir_n, 0,
@@ -72,7 +72,7 @@ Castro::trans_single(const Box& bx,
     amrex::Print() << "Synchronizing after actual_trans_single: "
                    << "idir_t = " << idir_t << ", idir_n = " << idir_n
                    << ", d = 0, bx = " << bx << std::endl;
-    Gpu::streamSynchronize();
+    Gpu::synchronize();
 #endif
 }
 
