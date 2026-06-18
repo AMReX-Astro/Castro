@@ -107,7 +107,10 @@ Castro::actual_trans_single(const Box& bx,  // NOLINT(readability-convert-member
 
     bool reset_density = transverse_reset_density;
     bool reset_rhoe = transverse_reset_rhoe;
+    bool use_eos = transverse_use_eos;
     Real small_p = small_pres;
+    Real temp_guess = T_guess;
+    Real abundance_tol = abundance_failure_tolerance;
 
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
@@ -384,8 +387,8 @@ Castro::actual_trans_single(const Box& bx,  // NOLINT(readability-convert-member
         // Reset to original value if adding transverse terms made any mass fraction invalid.
 
         for (int n = 0; n < NumSpec; ++n) {
-            if (qo_arr(i,j,k,n+QFS) > 1.0_rt + castro::abundance_failure_tolerance ||
-                qo_arr(i,j,k,n+QFS) < -castro::abundance_failure_tolerance) {
+            if (qo_arr(i,j,k,n+QFS) > 1.0_rt + abundance_tol ||
+                qo_arr(i,j,k,n+QFS) < -abundance_tol) {
                 rrnewn = rrn;
                 runewn = run;
                 rvnewn = rvn;
@@ -443,13 +446,13 @@ Castro::actual_trans_single(const Box& bx,  // NOLINT(readability-convert-member
             // Pretend QREINT has been fixed
             // We can get pressure update via eos or using p-evolution equation
 
-            if (transverse_use_eos) {
+            if (use_eos) {
 
                 // With the EOS route:
                 eos_rep_t eos_state;
                 eos_state.rho = rrnewn;
                 eos_state.e = qo_arr(i,j,k,QREINT) * rhoinv;
-                eos_state.T = T_guess;
+                eos_state.T = temp_guess;
 
                 for (int n = 0; n < NumSpec; n++) {
                     eos_state.xn[n] = qo_arr(i,j,k,QFS+n);
@@ -581,7 +584,10 @@ Castro::actual_trans_final(const Box& bx,  // NOLINT(readability-convert-member-
 
     bool reset_density = transverse_reset_density;
     bool reset_rhoe = transverse_reset_rhoe;
+    bool use_eos = transverse_use_eos;
     Real small_p = small_pres;
+    Real temp_guess = T_guess;
+    Real abundance_tol = abundance_failure_tolerance;
 
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
@@ -860,8 +866,8 @@ Castro::actual_trans_final(const Box& bx,  // NOLINT(readability-convert-member-
         // Reset to original value if adding transverse terms made any mass fraction invalid.
 
         for (int n = 0; n < NumSpec; ++n) {
-            if (qo_arr(i,j,k,n+QFS) > 1.0_rt + castro::abundance_failure_tolerance ||
-                qo_arr(i,j,k,n+QFS) < -castro::abundance_failure_tolerance) {
+            if (qo_arr(i,j,k,n+QFS) > 1.0_rt + abundance_tol ||
+                qo_arr(i,j,k,n+QFS) < -abundance_tol) {
                 rrnewn = rrn;
                 runewn = run;
                 rvnewn = rvn;
@@ -914,13 +920,13 @@ Castro::actual_trans_final(const Box& bx,  // NOLINT(readability-convert-member-
             // Pretend QREINT has been fixed
             // We can get pressure update via eos or using p-evolution equation
 
-            if (transverse_use_eos) {
+            if (use_eos) {
 
                 // With the EOS route:
                 eos_rep_t eos_state;
                 eos_state.rho = rrnewn;
                 eos_state.e = qo_arr(i,j,k,QREINT) / rrnewn;
-                eos_state.T = T_guess;
+                eos_state.T = temp_guess;
 
                 for (int n = 0; n < NumSpec; n++) {
                     eos_state.xn[n] = qo_arr(i,j,k,QFS+n);
