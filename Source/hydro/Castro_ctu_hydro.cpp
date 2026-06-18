@@ -751,6 +751,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
       reset_edge_state_thermo(tzxbx, qmzx.array());
 
       reset_edge_state_thermo(tzxbx, qpzx.array());
+      sync_trans_single("tzxbx reset_edge_state_thermo");
 
       // compute F^y
       // [lo(1)-1, lo(2), lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1]
@@ -768,6 +769,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
                           qgdnvtmp1_arr,
                           qaux_arr, shk_arr,
                           1, false);
+      sync_trans_single("cybx y-flux before txybx");
 
       // [lo(1), lo(2), lo(3)-1], [hi(1)+1, hi(2), lo(3)+1]
       const Box& txybx = amrex::grow(xbx, IntVect(AMREX_D_DECL(0,0,1)));
@@ -779,6 +781,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
       qpxy.resize(txybx, NQ);
       auto qpxy_arr = qpxy.array();
       fab_size += qpxy.nBytes();
+
+      sync_trans_single("about to launch txybx y-to-x");
 
       // ftmp1 = fy
       // rftmp1 = rfy
