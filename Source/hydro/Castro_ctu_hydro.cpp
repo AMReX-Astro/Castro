@@ -190,7 +190,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 
 #ifdef CASTRO_SYNC_TRANS_SINGLE
     auto sync_trans_single = [] (const char* label) {
-        amrex::Print() << "Synchronizing after trans_single: " << label << std::endl;
+        amrex::Print() << "[rank " << ParallelDescriptor::MyProc()
+                       << "] Synchronizing after trans_single: "
+                       << label << std::endl;
         Gpu::synchronize();
     };
 #else

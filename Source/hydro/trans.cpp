@@ -48,7 +48,8 @@ Castro::trans_single(const Box& bx,
                         hdt, cdtdx);
 
 #ifdef CASTRO_SYNC_TRANS_SINGLE
-    amrex::Print() << "Synchronizing after actual_trans_single: "
+    amrex::Print() << "[rank " << ParallelDescriptor::MyProc()
+                   << "] Synchronizing after actual_trans_single: "
                    << "idir_t = " << idir_t << ", idir_n = " << idir_n
                    << ", d = -1, bx = " << bx << std::endl;
     Gpu::synchronize();
@@ -69,7 +70,8 @@ Castro::trans_single(const Box& bx,
                         hdt, cdtdx);
 
 #ifdef CASTRO_SYNC_TRANS_SINGLE
-    amrex::Print() << "Synchronizing after actual_trans_single: "
+    amrex::Print() << "[rank " << ParallelDescriptor::MyProc()
+                   << "] Synchronizing after actual_trans_single: "
                    << "idir_t = " << idir_t << ", idir_n = " << idir_n
                    << ", d = 0, bx = " << bx << std::endl;
     Gpu::synchronize();

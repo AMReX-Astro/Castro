@@ -73,7 +73,8 @@ Castro::reset_edge_state_thermo(const Box& bx,
     });
 
 #ifdef CASTRO_SYNC_TRANS_SINGLE
-    amrex::Print() << "Synchronizing after reset_edge_state_thermo: bx = "
+    amrex::Print() << "[rank " << ParallelDescriptor::MyProc()
+                   << "] Synchronizing after reset_edge_state_thermo: bx = "
                    << bx << std::endl;
     Gpu::synchronize();
 #endif
