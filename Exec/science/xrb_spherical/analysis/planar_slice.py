@@ -42,6 +42,10 @@ FIELD_PRESETS = {
     "pressure": dict(cmap="inferno_r", norm=LogNorm(vmin=1e16, vmax=1e25), label=r"Pressure [dyn cm$^{-2}$]"),
     "enuc": dict(cmap="inferno_r", norm=LogNorm(vmin=1e16, vmax=5e19, clip=True),
                  label=r"$\dot{e}_{\mathrm{nuc}}$ [erg g${}^{-1}$ s${}^{-1}$]"),
+    "eint_e": dict(cmap="inferno_r", norm=Normalize(vmin=5e16, vmax=1e18, clip=True),
+                 label=r"$e$ [erg g${}^{-1}$]"),
+    "diff_coeff": dict(cmap="plasma_r", norm=LogNorm(vmin=5e5, vmax=3e6, clip=True),
+                 label=r"$D$ [cm${}^{2}$ s${}^{-1}$]"),
     "abar": dict(cmap="plasma_r", norm=Normalize(vmin=4, vmax=8), label=r"$\bar{A}$"),
     "ash": dict(cmap="plasma_r", norm=LogNorm(vmin=1e-2, vmax=1e6), label=r"$\rho X \left(ash\right) [g cm$^{-3}$]$"),
     "grad_rho": dict(cmap="plasma_r", norm=LogNorm(vmin=1e-2, vmax=1e6), label=r"$|\nabla \rho|$"),
@@ -121,17 +125,23 @@ def _Dvr_Dt(field, data):
     Material derivative of velocity along radial direction
     Dvr/Dt = -1/rho dp/dr + g + 1/r (vt^2 + vp^2) + 2 Omega vp sin(theta)
     """
-    omega = 1.0 / data.ds.parameters.get("castro.rotational_period") / s
+    omega = 2.0 * np.pi / data.ds.parameters.get("castro.rotational_period") / s
     grav  = data.ds.parameters.get("gravity.const_grav") * cm / s**2
     P     = data["boxlib", "pressure"]
     vr    = data["boxlib", "x_velocity"]
     vt    = data["boxlib", "y_velocity"]
     vp    = data["boxlib", "z_velocity"]
     rho   = data["boxlib", "density"]
-    r     = data["index", "r"]
+    r     = data["index", "r"].in_units("cm")
     theta = data["index", "theta"]
 
-    F_P = -np.gradient(P.to_ndarray(), r[:,0,0].to_ndarray(), axis=0) / rho.to_ndarray() *cm/s**2
+    # F_P = -np.gradient(P.to_ndarray(), r[:,0,0].to_ndarray(), axis=0) / rho.to_ndarray() *cm/s**2
+    gradP_r = P/r
+    gradP_r[1:-1, :, :] = (P[2:, :, :] - P[:-2, :, :]) / (r[2:, :, :] - r[:-2, :, :])
+    gradP_r[0, :, :] = (P[1, :, :] - P[0, :, :]) / (r[1, :, :] - r[0, :, :])
+    gradP_r[-1, :, :] = (P[-1, :, :] - P[-2, :, :]) / (r[-1, :, :] - r[-2, :, :])
+
+    F_P = -gradP_r / rho
     F_geom = (vt**2 + vp**2) / r
     F_coriolis = 2 * omega * vp * np.sin(theta)
 
@@ -142,17 +152,22 @@ def _Dvt_Dt(field, data):
     Material derivative of velocity along theta direction
     Dvt/Dt = -1/rho dp/rdtheta + 1/r (-vr vt + vp^2 cot(theta)) + 2 Omega vp cos(theta)
     """
-    omega = 1.0 / data.ds.parameters.get("castro.rotational_period") / s
+    omega = 2.0 * np.pi / data.ds.parameters.get("castro.rotational_period") / s
     P     = data["boxlib", "pressure"]
     vr    = data["boxlib", "x_velocity"]
     vt    = data["boxlib", "y_velocity"]
     vp    = data["boxlib", "z_velocity"]
     rho   = data["boxlib", "density"]
-    r     = data["index", "r"]
+    r     = data["index", "r"].in_units("cm")
     theta = data["index", "theta"]
 
-    gradP_theta = np.gradient(P, theta[0,:,0], axis=1)
-    F_P = -gradP_theta / (r*rho)
+    # gradP_theta = np.gradient(P, theta[0,:,0], axis=1)
+    gradP_t = P/r
+    gradP_t[:, 1:-1, :] = (P[:, 2:, :] - P[:, :-2, :]) / (r[:, 1:-1, :] * (theta[:, 2:, :] - theta[:, :-2, :]))
+    gradP_t[:, 0, :] = (P[:, 1, :] - P[:, 0, :]) / (r[:, 0, :] * (theta[:, 1, :] - theta[:, 0, :]))
+    gradP_t[:, -1, :] = (P[:, -1, :] - P[:, -2, :]) / (r[:, -1, :] * (theta[:, -1, :] - theta[:, -2, :]))
+
+    F_P = -gradP_t / rho
     F_geom = (vp**2 / np.tan(theta) - vr * vt) / r
     F_coriolis = 2 * omega * vp * np.cos(theta)
 
@@ -163,12 +178,12 @@ def _Dvp_Dt(field, data):
     Material derivative of velocity along phi direction
     Dvt/Dt = -1/rho dp/rsin(theta)dphi - 1/r (vr vp + vt vp cot(theta)) - 2 Omega (vt cos(theta) + vr sin(theta))
     """
-    omega = 1.0 / data.ds.parameters.get("castro.rotational_period") / s
+    omega = 2.0 * np.pi / data.ds.parameters.get("castro.rotational_period") / s
     vr    = data["boxlib", "x_velocity"]
     vt    = data["boxlib", "y_velocity"]
     vp    = data["boxlib", "z_velocity"]
     rho   = data["boxlib", "density"]
-    r     = data["index", "r"]
+    r     = data["index", "r"].in_units("cm")
     theta = data["index", "theta"]
 
     F_P = 0  # Axisymmetric -- no pressure grad in phi
@@ -241,12 +256,12 @@ def extract_info(ds, data_level=0):
     right_edge = ds.domain_right_edge
     rl = left_edge[0] * 1e-5
     rr = right_edge[0] * 1e-5
-    rc = 0.5*(left_edge[0] + right_edge[0])*1e-5
-    r = [rl, rc, rr] # in km
+    r = [rl, rr] # in km
+    theta = [left_edge[1], right_edge[1]]
 
     # Get grid data
     cg = ds.smoothed_covering_grid(level=data_level, left_edge=left_edge, dims=dims)
-    return (r, cg)
+    return (r, theta, cg)
 
 def add_derived_fields(ds):
     """Given a dataset add the derived fields"""
@@ -280,7 +295,10 @@ def add_derived_fields(ds):
                      display_name=r"$|\nabla \rho|$")
 
 def planar_slice(fnames:list[str], fields:list[str],
-                 figsize=(16, 9), contour_field=None,
+                 figsize=(16, 9),
+                 xmin=None, xmax=None,
+                 ymin=None, ymax=None,
+                 contour_field=None,
                  overplot_fine_levels=False,
                  annotate_front=False,
                  annotate_velocity_streamlines=False,
@@ -324,7 +342,20 @@ def planar_slice(fnames:list[str], fields:list[str],
             time = ds.current_time.in_units("us")
 
         # Get level 0 data
-        r, cg0 = extract_info(ds, data_level=0)
+        r, theta, cg0 = extract_info(ds, data_level=0)
+
+        if ymin is None:
+            ymin = r[0].value
+        if ymax is None:
+            ymax = 0.5*(r[1].value - r[0].value)
+        if xmin is None:
+            xmin = theta[0].value
+        if xmax is None:
+            xmax = theta[1].value
+
+        # Compute necessary data for plotting front beforehand
+        if annotate_front:
+            front_tracking_data = track_front(ds)
 
         # Loop over all possible fields
         for i, field in enumerate(fields):
@@ -335,14 +366,14 @@ def planar_slice(fnames:list[str], fields:list[str],
 
             # Get plotting variables
             var    = cg0["boxlib", field][:, :, 0].to_ndarray()
-            radial = cg0["index", "r"][:, :, 0].to("km").to_ndarray() # longitudinal distance in km
-            theta  = cg0["index", "theta"][:, :, 0].to_ndarray()
+            r_arr = cg0["index", "r"][:, :, 0].to("km").to_ndarray() # longitudinal distance in km
+            theta_arr  = cg0["index", "theta"][:, :, 0].to_ndarray()
 
             # Choose different settings based on what field parameter is plotted
             preset = FIELD_PRESETS.get(field, DEFAULT_PRESET)
 
             # Plot level 0 data using pcolormesh
-            pcm = ax.pcolormesh(theta, radial, var, shading="auto",
+            pcm = ax.pcolormesh(theta_arr, r_arr, var, shading="auto",
                                 cmap=preset["cmap"], norm=preset["norm"])
 
             # Overplot finer level data if available
@@ -353,34 +384,50 @@ def planar_slice(fnames:list[str], fields:list[str],
             if contour_field is not None:
                 contour_var = cg0["boxlib", contour_field][:, :, 0].to_ndarray()
                 contour_levels = CONTOUR_LEVEL_PRESETS.get(contour_field, 10)
-                ax.contour(theta, radial, contour_var, levels=contour_levels, linewidths=1, colors="k")
+                ax.contour(theta_arr, r_arr, contour_var, levels=contour_levels, linewidths=1, colors="k")
 
             # Annotate optional velocity or acceleration streamlines
             # note here x-velocity is in radial so its technically vertical
             # this uses level 0 data for now
-            if annotate_velocity_streamlines and annotate_acceleration_streamlines:
-                raise ValueError("Annotate both velocity and acceleration is not ideal.")
             if annotate_velocity_streamlines:
+                rho = cg0["boxlib", "density"][:, :, 0].to_ndarray()
                 vt = cg0["boxlib", "y_velocity"][:, :, 0].to_ndarray()
                 vr = cg0["boxlib", "x_velocity"][:, :, 0].to_ndarray()
-                ax.streamplot(theta, radial, vt, vr, density=1)
-            elif annotate_acceleration_streamlines and ("boxlib", "pressure") in ds.field_list:
+
+                # Mask out region without low density and high density
+                mask = (rho < 1e-1) | (rho > 1e6)
+                vt = np.ma.array(vt, mask=mask)
+
+                ax.streamplot(theta_arr, r_arr, vt, vr, color="tab:green", linewidth=2, density=1)
+
+            if annotate_acceleration_streamlines and ("boxlib", "pressure") in ds.field_list:
+                rho = cg0["boxlib", "density"][:, :, 0].to_ndarray()
                 at = cg0["boxlib", "Dvt_Dt"][:, :, 0].to_ndarray()
                 ar = cg0["boxlib", "Dvr_Dt"][:, :, 0].to_ndarray()
-                ax.streamplot(theta, radial, at, ar, density=1)
+
+                # Mask out region without low density and high density
+                mask = (rho < 1e-1) | (rho > 1e6)
+                at = np.ma.array(at, mask=mask)
+
+                ax.streamplot(theta_arr, r_arr, at, ar, color="tab:blue", linewidth=2, density=1)
 
             # Plot vertical line to indicate flame front and ash front
             if annotate_front:
-                front_tracking_data = track_front(ds)
                 ash_front_theta = front_tracking_data["ash_theta"]
                 flame_front_theta = front_tracking_data["flame_theta"]
+                flame_tail_theta = front_tracking_data["flame_tail"]
 
+                text_pos = ymin + 0.8*(ymax - ymin)
                 ax.axvline(ash_front_theta, linestyle="-.", color="k", linewidth=1.5)
-                ax.text(ash_front_theta, r[0] + 0.8*(r[1] - r[0]), "Ash\nFront",
+                ax.text(ash_front_theta, text_pos, "Ash\nFront",
                         color="k", fontsize=12, ha="center", va="center", rotation=90)
 
                 ax.axvline(flame_front_theta, linestyle="-.", color="k", linewidth=1.5)
-                ax.text(flame_front_theta, r[0] + 0.8*(r[1] - r[0]), "Flame\nFront",
+                ax.text(flame_front_theta, text_pos, "Flame\nFront",
+                        color="k", fontsize=12, ha="center", va="center", rotation=90)
+
+                ax.axvline(flame_tail_theta, linestyle="-.", color="k", linewidth=1.5)
+                ax.text(flame_tail_theta, text_pos, "Flame\nTail",
                         color="k", fontsize=12, ha="center", va="center", rotation=90)
 
             # Annotate optional AMR grids
@@ -416,8 +463,8 @@ def planar_slice(fnames:list[str], fields:list[str],
 
             ax.set_xlabel(r"$\theta$ [rad]")
             ax.set_ylabel("Radial [km]")
-            ax.set_ylim(r[0], r[1]) # Plot half of the radial dir for now
-            ax.set_xlim(theta.min(), theta.max())
+            ax.set_xlim(xmin, xmax)
+            ax.set_ylim(ymin, ymax)
 
             cb_label = preset["label"]
             if not cb_label:
@@ -455,6 +502,14 @@ if __name__ == "__main__":
                         """)
     parser.add_argument("--figsize", nargs=2, type=float, default=[16, 9],
                         metavar=("WIDTH", "HEIGHT"), help="Figure size in inches.")
+    parser.add_argument("--xmin", type=float, default=None, metavar="THETA",
+                        help="Minimum theta for plot xlim")
+    parser.add_argument("--xmax", type=float, default=None, metavar="THETA",
+                        help="Maximum theta for plot xlim")
+    parser.add_argument("--ymin", type=float, default=None, metavar="R",
+                        help="Minimum r [km] for plot ylim")
+    parser.add_argument("--ymax", type=float, default=None, metavar="R",
+                        help="Maximum r [km] for plot ylim")
     parser.add_argument("--contour-field", default=None,
                         help="Field variable to use for overplotting contour lines (e.g. 'pressure').")
     parser.add_argument("--overplot-fine-levels", action="store_true",
@@ -480,6 +535,10 @@ if __name__ == "__main__":
         fnames                            = args.fnames,
         fields                            = args.fields,
         figsize                           = tuple(args.figsize),
+        xmin                              = args.xmin,
+        xmax                              = args.xmax,
+        ymin                              = args.ymin,
+        ymax                              = args.ymax,
         contour_field                     = args.contour_field,
         overplot_fine_levels              = args.overplot_fine_levels,
         annotate_front                    = args.annotate_front,
