@@ -350,17 +350,15 @@ static void ReadCheckpointFile(const std::string& fileName) {
       is >> fakeAmr.dt_level[i];
     }
 
+    Box          domain(fakeAmr.geom[n].Domain());
+    RealBox prob_domain(fakeAmr.geom[n].ProbDomain());
     coord = fakeAmr.geom[n].Coord();
     if (mode == "theta_extend" && coord != 2) {
         amrex::Abort("theta_extend mode currently only for Spherical 2D geometry");
     }
 
     if (mode == "full_hierarchy") {
-        // Define new level 0 geometry and domain for full_hierarchy mode
-        Box          domain(fakeAmr.geom[n].Domain());
-        RealBox prob_domain(fakeAmr.geom[n].ProbDomain());
-
-        // Define domain for new levels
+        // Coarsen the old coarse level to define domain for new level
         domain.coarsen(ref_ratio);
         fakeAmr.geom[0].define(domain,&prob_domain,coord);
 
@@ -525,9 +523,6 @@ static void ReadCheckpointFile(const std::string& fileName) {
         for(int lev(n-1); lev >= 0; lev--) {
             FakeAmrLevel &falRef = fakeAmr.fakeAmrLevels[lev];
             falRef.level = lev;
-
-            Box          domain(fakeAmr.geom[0].Domain());
-            RealBox prob_domain(fakeAmr.geom[0].ProbDomain());
 
             // This version breaks up the new coarser domain based on the computed max_grid_size
             BoxArray new_grids(domain);
@@ -1204,7 +1199,6 @@ static void ExtendThetaDomain() {
             DistributionMapping new_dm(new_ba);
             falRef.grids = new_ba;
 
-            std::cout << "new boxarray is " << new_ba << std::endl;
             // Now update data
             int nstatetypes = falRef.state.size();
             for (int n = 0; n < nstatetypes; n++) {
