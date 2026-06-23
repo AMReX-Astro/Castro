@@ -1298,7 +1298,7 @@ int main(int argc, char *argv[]) {
 
     // Extend the domain depending on different modes
     if (mode == "full_hierarchy") {
-        if(verbose && ParallelDescriptor::IOProcessor()) {
+        if (verbose && ParallelDescriptor::IOProcessor()) {
             if (star_at_center == 0) cout << "Star at corner " << endl;
             if (star_at_center == 1) cout << "Star at center " << endl;
             cout << " " << std::endl;
@@ -1306,6 +1306,10 @@ int main(int argc, char *argv[]) {
         ConvertData();
     } else {
         ExtendThetaDomain();
+        if (ParallelDescriptor::IOProcessor()) {
+            cout << "Remember to update `amr.n_cell` and `geometry.prob_hi` to the new values "
+                 << " also use `amr.regrid_on_restart=1` when restarting from new chkfile!!" << endl;
+        }
     }
 
     // Write out the new checkpoint directory
