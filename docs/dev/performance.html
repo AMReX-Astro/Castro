@@ -220,12 +220,28 @@ hydrodynamics solver to prevent oversubscription of GPU memory.</p>
 <p>Reactions are often the most time-consuming part of a simulation.  The
 following are some things to try to improve the performance:</p>
 <ul>
-<li><p>Try using the Runge-Kutta-Chebyshev integrator (see the Microphysics
-<a class="reference external" href="https://amrex-astro.github.io/Microphysics/docs/ode_integrators.html">ODE integrators docs</a>.</p>
-<p>This is an explicit integrator that can work with moderately-stiff
+<li><p>Try using a different integrator than the default VODE.</p>
+<ul>
+<li><p>Runge-Kutta-Chebyshev (see the Microphysics
+<a class="reference external" href="https://amrex-astro.github.io/Microphysics/docs/ode_integrators.html">ODE integrators docs</a>.
+is an explicit integrator that can work with moderately-stiff
 networks.  Experience shows that it can work well with flames
 (sometimes being twice as fast as the VODE integrator), but probably
 not very efficiently with detonations.</p>
+<p>To enable this integrator, build with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">INTEGRATOR_DIR</span><span class="o">=</span><span class="n">RKC</span>
+</pre></div>
+</div>
+</li>
+<li><p>Rosenbrock (see the same Microphysics link above) is a 5th order stiffly-accurate
+(A- and L-stable) integrator.  It seems to work very well with problems where the
+burning enters NSE.</p>
+<p>To enable this integrator, build with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">INTEGRATOR_DIR</span><span class="o">=</span><span class="n">Rosenbrock</span>
+</pre></div>
+</div>
+</li>
+</ul>
 </li>
 <li><p>Use the analytic Jacobian (selected via <code class="docutils literal notranslate"><span class="pre">integrator.jacobian=1</span></code>).</p>
 <p>The analytic Jacobian is faster to evaluate than the
