@@ -316,7 +316,7 @@ static void ReadCheckpointFile(const std::string& fileName) {
     if(ParallelDescriptor::IOProcessor()) {
        std::cout << " " << std::endl;
        for (i = n; i <= mx_lev; i++) {
-          std::cout << "Old checkpoint level    " << i-1 << std::endl;
+          std::cout << "Old checkpoint level    " << i-n << std::endl;
           std::cout << " ... domain is       " << fakeAmr.geom[i].Domain() << std::endl;
           std::cout << " ...     dx is       " << fakeAmr.geom[i].CellSize()[0] << std::endl;
 #if AMREX_SPACEDIM == 2
