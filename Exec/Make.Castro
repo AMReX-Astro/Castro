@@ -210,10 +210,6 @@ ifeq ($(USE_REACT), TRUE)
   DEFINES += -DREACTIONS
 endif
 
-ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
-  DEFINES += -DSDC_EVOLVE_ENERGY
-endif
-
 ifeq ($(USE_TRUE_SDC), TRUE)
   Bdirs += Source/sdc
 endif
