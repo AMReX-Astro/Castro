@@ -1195,7 +1195,8 @@ static void ExtendThetaDomain() {
             // Now change the size so that each Box spans over the entire theta
             // this is convenient so that we have access to data along the old theta boundary
             // Once castro restart the simulation, it will resize based on amr.max_grid_size
-            new_ba.maxSize(IntVect(max_grid_size, theta_cells_new_lev));
+            // new_ba.maxSize(IntVect(max_grid_size, theta_cells_new_lev));
+            new_ba.maxSize(IntVect(max_grid_size, max_grid_size));
             DistributionMapping new_dm(new_ba);
             falRef.grids = new_ba;
 
@@ -1226,7 +1227,11 @@ static void ExtendThetaDomain() {
                     new_mf->ParallelCopy(*old_mf, 0, 0, ncomp);
 
                     // Fill in data of the new cells
-                    FillThetaBoundary(*new_mf, old_theta_hi, ncomp);
+                    // FillThetaBoundary(*new_mf, old_theta_hi, ncomp);
+
+                    // We keep new cells with initial values equal to 0.
+                    // Once castro restarts with the new checkpoint file
+                    // the new cells with be filled using problem_initialize_state_data
 
                     // Update the new_data with the updated MultiFab
                     delete old_mf;
@@ -1244,7 +1249,7 @@ static void ExtendThetaDomain() {
                     new_mf->ParallelCopy(*old_mf, 0, 0, ncomp);
 
                     // Fill in data of the new cells
-                    FillThetaBoundary(*new_mf, old_theta_hi, ncomp);
+                    // FillThetaBoundary(*new_mf, old_theta_hi, ncomp);
 
                     delete old_mf;
                     falRef.state[n].old_data = new_mf;
