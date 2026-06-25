@@ -96,11 +96,12 @@ def extract_info(ds,
     if show_full_star:
         # If we want to show the full domain in the background.
         # Change box_widths and center to full star
-        center = [r[1]*np.sin(theta_center), r[1]*np.cos(theta_center)]
         if thetar < 0.5 * np.pi:
             box_widths = (r[2]*np.sin(thetar), r[2]*np.cos(thetal))
+            center = [0.5*box_widths[0], 0.5*box_widths[1]]
         else:
             box_widths = ( r[2], r[2]*(np.abs(np.cos(thetar)) + np.cos(thetal)) )
+            center = [r[1]*np.sin(theta_center), r[1]*np.cos(theta_center)]
 
     elif theta is None:
         # Preset centers for the Top, Mid and Bot panels
