@@ -1280,6 +1280,9 @@ protected:
 #if (AMREX_SPACEDIM <= 2)
     amrex::MultiFab         P_radial;
 #endif
+#if (AMREX_SPACEDIM == 2)
+    amrex::MultiFab         P_theta;
+#endif
 #ifdef RADIATION
     amrex::Vector<std::unique_ptr<amrex::MultiFab> > rad_fluxes;
 #endif
