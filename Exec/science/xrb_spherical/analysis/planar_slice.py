@@ -347,7 +347,7 @@ def planar_slice(fnames:list[str], fields:list[str],
         if ymin is None:
             ymin = r[0].value
         if ymax is None:
-            ymax = 0.5*(r[1].value - r[0].value)
+            ymax = 0.5*(r[1].value + r[0].value)
         if xmin is None:
             xmin = theta[0].value
         if xmax is None:
