@@ -87,7 +87,7 @@ int num_new_levels(1);
 int      ref_ratio(1);
 int   grown_factor(1);
 int star_at_center(-1);
-Real theta_new_hi(0.25);
+Real theta_new_hi;
 int   max_grid_size(4096);
 int blocking_factor(16);
 int   coord(-1);
@@ -1089,38 +1089,6 @@ static void ConvertData() {
 
 // ---------------------------------------------------------------
 
-static void FillThetaBoundary(MultiFab& new_mf,
-                              int old_theta_hi,
-                              int ncomp)
-{
-    // update the non-intersecting zones, i.e. the new theta cells individually.
-    for (MFIter mfi(new_mf); mfi.isValid(); ++mfi) {
-
-        // Loop over all Boxes in MultiFab
-        FArrayBox& dst_fab = new_mf[mfi];
-        const Box& vbx = mfi.validbox();
-
-        // Make sure we only update data to the new cells that we added
-        int jlo = std::max(vbx.smallEnd(1), old_theta_hi + 1);
-        int jhi = vbx.bigEnd(1);
-        if (jhi < jlo) {
-            continue;
-        }
-
-        // Now loop over valid zones and copy data from old theta boundary.
-        // Here I move left 2 zones just in case bad things happen at boundary.
-        for (int j = jlo; j <= jhi; ++j) {
-            for (int i = vbx.smallEnd(0); i <= vbx.bigEnd(0); ++i) {
-                IntVect src(i, old_theta_hi-2);
-                IntVect dst(i, j);
-                for (int n = 0; n < ncomp; ++n) {
-                    dst_fab(dst,n) = dst_fab(src,n);
-                }
-            }
-        }
-    }
-}
-
 static void ExtendThetaDomain() {
     /// Extend level 0 domain only. Finer levels are left untounched.
     /// Except the domain metadata are updated.
@@ -1224,14 +1192,11 @@ static void ExtendThetaDomain() {
                     // Copy data from old_mf starting with src starting component = 0
                     // and destination component = 0 to ncomp. This only copies data
                     // for regions of intersection.
-                    new_mf->ParallelCopy(*old_mf, 0, 0, ncomp);
-
-                    // Fill in data of the new cells
-                    // FillThetaBoundary(*new_mf, old_theta_hi, ncomp);
-
                     // We keep new cells with initial values equal to 0.
                     // Once castro restarts with the new checkpoint file
                     // the new cells with be filled using problem_initialize_state_data
+
+                    new_mf->ParallelCopy(*old_mf, 0, 0, ncomp);
 
                     // Update the new_data with the updated MultiFab
                     delete old_mf;
@@ -1248,18 +1213,21 @@ static void ExtendThetaDomain() {
                     new_mf->setVal(0., 0, ncomp, ngrow);
                     new_mf->ParallelCopy(*old_mf, 0, 0, ncomp);
 
-                    // Fill in data of the new cells
-                    // FillThetaBoundary(*new_mf, old_theta_hi, ncomp);
-
                     delete old_mf;
                     falRef.state[n].old_data = new_mf;
                 }
             }
 
             if (ParallelDescriptor::IOProcessor()) {
-                cout << "Level 0 new domain: " << new_domain << endl;
-                cout << "Level 0 new r_hi (phys): " << new_rb.hi()[0] << endl;
-                cout << "Level 0 new theta_hi (phys): " << new_rb.hi()[1] << endl;
+                cout << "Level 0 old amr.n_cell = " << old_domain.length(0)
+                     << " " << old_domain.length(1) << endl;
+                cout << "Level 0 old geometry.prob_hi = " << old_rb.hi()[0]
+                     << " " << old_rb.hi()[1] << endl;
+
+                cout << "Level 0 new amr.n_cell = " << new_domain.length(0)
+                     << " " << new_domain.length(1) << endl;
+                cout << "Level 0 new geometry.prob_hi = " << new_rb.hi()[0]
+                     << " " << new_rb.hi()[1] << endl;
             }
 
         } else {
@@ -1313,7 +1281,8 @@ int main(int argc, char *argv[]) {
         ExtendThetaDomain();
         if (ParallelDescriptor::IOProcessor()) {
             cout << "Remember to update `amr.n_cell` and `geometry.prob_hi` to the new values "
-                 << " also use `amr.regrid_on_restart=1` when restarting from new chkfile!!" << endl;
+                 << " also use `amr.regrid_on_restart=1` and set `castro.old_theta_ncell` to the number of cells "
+                 << " along the theta-dir in the original domain when restarting from new chkfile!!" << endl;
         }
     }
 
