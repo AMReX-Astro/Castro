@@ -143,6 +143,7 @@
     castro.bndry_func_thread_safe = 1
     castro.grown_factor = 1
     castro.star_at_center = 1
+    castro.old_theta_ncell = -1
     castro.do_scf_initial_model = 0
     castro.scf_maximum_density = -1e+06
     castro.scf_equatorial_radius = -1e+09
