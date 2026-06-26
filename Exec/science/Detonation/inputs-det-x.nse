@@ -96,8 +96,6 @@ amr.refine.tempgrad.field_name = Temp
 
 # Microphysics
 
-integrator.call_eos_in_rhs = 1
-
 integrator.rtol_spec = 1.e-6
 integrator.atol_spec = 1.e-6
 integrator.rtol_enuc = 1.e-6
