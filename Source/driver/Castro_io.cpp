@@ -337,7 +337,11 @@ Castro::restart (Amr&     papa,
                 amrex::ParallelFor(bx,
                 [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
                 {
-                    problem_initialize_state_data(i, j, k, s, geomdata);
+                    // The box might be partially outside of the original domain
+                    // Only fill data for those that are out.
+                    if (j >= old_theta_ncell) {
+                        problem_initialize_state_data(i, j, k, s, geomdata);
+                    }
                 });
             }
         }
