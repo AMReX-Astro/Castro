@@ -861,22 +861,29 @@ the z-axis i.e. cos(theta) r_hat - sin(theta) theta_hat in
 Spherical coordinate.</p></td>
 <td><p>3</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">use_point_mass</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fixed_rotational_latitude</span></code></p></td>
+<td><p>For Spherical 2D, we can optionally allow for rotational
+forces in fixed latitude. This is the standard f-plane
+approximation. This is used to compare the effect of fixed
+rotation.</p></td>
+<td><p>-1.e200</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">use_point_mass</span></code></p></td>
 <td><p>include a central point mass</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">point_mass</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">point_mass</span></code></p></td>
 <td><p>mass of the point mass</p></td>
 <td><p>0.0</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">point_mass_fix_solution</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">point_mass_fix_solution</span></code></p></td>
 <td><p>if we have a central point mass, we can prevent mass from
 building up in the zones adjacent to it by keeping their
 density constant and adding their mass to the point mass
 object</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">gw_dist</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">gw_dist</span></code></p></td>
 <td><p>Distance (in kpc) used for calculation of the gravitational
 wave amplitude (this will be calculated along all three
 coordinate axes). Only relevant if castro.sum_interval &gt; 0
@@ -884,7 +891,7 @@ and if set to a positive number. A standard value in the
 literature is 10.0 (kpc).</p></td>
 <td><p>0.0</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">point_mass_offset_is_true</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">point_mass_offset_is_true</span></code></p></td>
 <td><p>If enabled, shift the point mass away from the coordinate
 origin by point_mass_location_offset. Note that the shift
 is along the negative vertical direction. This is mainly
@@ -893,7 +900,7 @@ applied along the vertical direction:   1D: x-direction
 2D: y-direction   3D: z-direction</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">point_mass_location_offset</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">point_mass_location_offset</span></code></p></td>
 <td><p>Distance of the point mass shifted from the problem center.
 This is to use in conjunction with
 point_mass_offset_is_true.</p></td>
