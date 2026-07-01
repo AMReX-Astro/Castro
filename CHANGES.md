@@ -2,6 +2,8 @@
 
 ## 26.07
 
+  * work around a ROCm 7.2.0 compiler bug (#3350)
+
   * `xrb_spherical` : updates and fixes to some plot scripts (#3343,
     #3358)
 
