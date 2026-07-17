@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -A AST106
 #SBATCH -J testing
-#SBATCH -o %x-%j.out
+#SBATCH -o scaling-%j.out
 #SBATCH -t 00:30:00
 #SBATCH -p batch
 # here N is the number of compute nodes
@@ -11,7 +11,7 @@
 #SBATCH --gpus-per-task=1
 #SBATCH --gpu-bind=closest
 
-EXEC=Castro3d.hip.x86-trento.MPI.HIP.ex
+EXEC=./Castro3d.hip.x86-trento.TPROF.MPI.HIP.ex
 INPUTS=inputs.He.25cm.static.1000Hz
 
 module load cpe
@@ -26,4 +26,5 @@ export OMP_NUM_THREADS=1
 export NMPI_PER_NODE=8
 export TOTAL_NMPI=$(( ${SLURM_JOB_NUM_NODES} * ${NMPI_PER_NODE} ))
 
-srun -n${TOTAL_NMPI} -N${SLURM_JOB_NUM_NODES} --ntasks-per-node=8 --gpus-per-task=1 ./$EXEC $INPUTS max_step=25
+srun -n${TOTAL_NMPI} -N${SLURM_JOB_NUM_NODES} --ntasks-per-node=8 --gpus-per-task=1 $EXEC $INPUTS max_step=25
+mv "scaling-${SLURM_JOB_ID}.out" "scaling-${SLURM_NNODES}nodes-${SLURM_JOB_ID}.out"

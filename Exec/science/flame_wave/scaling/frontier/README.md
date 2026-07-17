@@ -1,11 +1,21 @@
-Frontier scaling on 2025-04-09
+New scaling study done on June 6, 2026.
 
-This uses ROCm 6.3.1
+For the Microphysics repo, I am using this PR:
+https://github.com/AMReX-Astro/Microphysics/pull/1998
 
-A sample submission script is included here.
+Tests were run with several integrators (VODE, Rosenbrock, and RKC) and two
+different inputs files (one for He and one for H/He).
 
-These runs disabled the EXTRACXXFLAGS that disabled inlining with HIP,
-since those are no longer necessary.  But note that has little effect
-on the runtime.
+* He (`inputs.He.25cm.static.1000Hz`)
 
-Note that for 2048
+  * we try two networks: `iso7` and `ase`
+
+* H/He (`inputs.H_He.64cm_x_16cm.static.1000Hz`)
+
+  * we do one network: `cno-he-burn-34am`
+
+  * Rosenbrock does not fit on < 256 nodes (out of memory)
+
+  * RKC does not work at all (lots of retries)
+
+  * VODE with a 32-bit Jacobian seems to work really well
