@@ -583,7 +583,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
                    areay_arr,
                    vol_arr,
                    hdt, hdtdy);
-
       reset_edge_state_thermo(xbx, ql_arr);
 
       reset_edge_state_thermo(xbx, qr_arr);
@@ -626,7 +625,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
                    areax_arr,
                    vol_arr,
                    hdt, hdtdx);
-
       reset_edge_state_thermo(ybx, ql_arr);
 
       reset_edge_state_thermo(ybx, qr_arr);
@@ -708,7 +706,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 #endif
                    qgdnvtmp1_arr,
                    hdt, cdtdx);
-
       reset_edge_state_thermo(tyxbx, qmyx.array());
 
       reset_edge_state_thermo(tyxbx, qpyx.array());
@@ -734,7 +731,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 #endif
                    qgdnvtmp1_arr,
                    hdt, cdtdx);
-
       reset_edge_state_thermo(tzxbx, qmzx.array());
 
       reset_edge_state_thermo(tzxbx, qpzx.array());
@@ -755,7 +751,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
                           qgdnvtmp1_arr,
                           qaux_arr, shk_arr,
                           1, false);
-
       // [lo(1), lo(2), lo(3)-1], [hi(1)+1, hi(2), lo(3)+1]
       const Box& txybx = amrex::grow(xbx, IntVect(AMREX_D_DECL(0,0,1)));
 
@@ -780,7 +775,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 #endif
                    qgdnvtmp1_arr,
                    hdt, cdtdy);
-
       reset_edge_state_thermo(txybx, qmxy.array());
 
       reset_edge_state_thermo(txybx, qpxy.array());
@@ -809,7 +803,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 #endif
                    qgdnvtmp1_arr,
                    hdt, cdtdy);
-
       reset_edge_state_thermo(tzybx, qmzy.array());
 
       reset_edge_state_thermo(tzybx, qpzy.array());
@@ -830,7 +823,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
                           qgdnvtmp1_arr,
                           qaux_arr, shk_arr,
                           2, false);
-
       // [lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, lo(3)]
       const Box& txzbx = amrex::grow(xbx, IntVect(AMREX_D_DECL(0,1,0)));
 
@@ -855,7 +847,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 #endif
                    qgdnvtmp1_arr,
                    hdt, cdtdz);
-
       reset_edge_state_thermo(txzbx, qmxz.array());
 
       reset_edge_state_thermo(txzbx, qpxz.array());
@@ -884,7 +875,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 #endif
                    qgdnvtmp1_arr,
                    hdt, cdtdz);
-
       reset_edge_state_thermo(tyzbx, qmyz.array());
 
       reset_edge_state_thermo(tyzbx, qpyz.array());
