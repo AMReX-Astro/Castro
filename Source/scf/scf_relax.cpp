@@ -145,7 +145,7 @@ Castro::do_hscf_solve()
 
         ReduceOps<ReduceOpMax> reduce_op;
         ReduceData<Real> reduce_data(reduce_op);
-        using ReduceTuple = typename decltype(reduce_data)::Type;
+        using ReduceTuple = decltype(reduce_data)::Type;
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -270,7 +270,7 @@ Castro::do_hscf_solve()
 
             ReduceOps<ReduceOpSum, ReduceOpSum, ReduceOpSum, ReduceOpSum> reduce_op;
             ReduceData<Real, Real, Real, Real> reduce_data(reduce_op);
-            using ReduceTuple = typename decltype(reduce_data)::Type;
+            using ReduceTuple = decltype(reduce_data)::Type;
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -354,7 +354,7 @@ Castro::do_hscf_solve()
 
             ReduceOps<ReduceOpSum> reduce_op;
             ReduceData<Real> reduce_data(reduce_op);
-            using ReduceTuple = typename decltype(reduce_data)::Type;
+            using ReduceTuple = decltype(reduce_data)::Type;
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -455,7 +455,7 @@ Castro::do_hscf_solve()
 
             ReduceOps<ReduceOpMax> reduce_op;
             ReduceData<Real> reduce_data(reduce_op);
-            using ReduceTuple = typename decltype(reduce_data)::Type;
+            using ReduceTuple = decltype(reduce_data)::Type;
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -575,7 +575,7 @@ Castro::do_hscf_solve()
 
             ReduceOps<ReduceOpSum, ReduceOpSum, ReduceOpSum, ReduceOpSum> reduce_op;
             ReduceData<Real, Real, Real, Real> reduce_data(reduce_op);
-            using ReduceTuple = typename decltype(reduce_data)::Type;
+            using ReduceTuple = decltype(reduce_data)::Type;
 
 #ifdef _OPENMP
 #pragma omp parallel
