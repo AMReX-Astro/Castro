@@ -595,6 +595,9 @@ grown_factor                 int           1
 # used with the embiggening routines to determine how to extend the domain
 star_at_center               bool          true
 
+# the number of cells along the theta-dir before the domain was extended
+# determines whether the domain has been extended in the theta direction
+old_theta_ncell              int           -1
 
 #-----------------------------------------------------------------------------
 # category: self-consistent field initialization

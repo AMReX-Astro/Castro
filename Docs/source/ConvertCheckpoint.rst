@@ -214,3 +214,64 @@ Some results:
    grids in yellow, and in the grown figures, the level 3 grids are in
    pink.
 
+Extending Domain Along $\theta$-dir
+===================================
+This is intended to work with the ``xrb_spherical`` problem only for now.
+Given a checkpoint file, chk00100, with an arbitrary levels of refinement
+and a (real) problem domain of ($R_{\mathrm{min}}$, $\theta_{\mathrm{min}}$)
+to ($R_{\mathrm{max}}$, $\theta_{\mathrm{max}}$)
+with (N, M) number of cells at level 0 and a blocking factor of, B.
+
+The inputs file that created this might look like::
+
+  amr.n_cell    = 384 240
+  geometry.prob_lo = 0.5 0
+  geometry.prob_hi = 1.0 0.17
+  amr.blocking_factor = 16
+
+Converting the Checkpoint File
+------------------------------
+Now let's suppose that you want to extend $\theta_{\mathrm{max}}=0.17$ to $\theta_{\mathrm{max}}=0.3$.
+
+Then you need to:
+
+1) First make an executable from the Embiggen.cpp code. Note it only works with
+   2D Spherical geometry for now. So to make an executable from the Embiggen.cpp code do::
+
+    make DIM=2 -j 4
+
+2) Run the embiggening code as follows::
+
+    Embiggen2d.Linux.Intel.Intel.ex mode=theta_extend blocking_factor=16 theta_new_hi=0.3 checkin=chk00100 checkout=chk00100_enlarged
+
+This will create a new checkpoint directory, called chk00100_enlarged, that represents a simulation
+that has the same amr levels, but the domain is extended to have $\theta_{\mathrm{max}} \sim 0.3$.
+Note that even though you asked for $\theta_{\mathrm{max}}=0.3$, the code will automatically change
+$\theta_{\mathrm{max}}$ to some other value
+such that the same resolution is preserved while satisfying the blocking_factor constraint.
+
+Restarting from a Grown Checkpoint File
+---------------------------------------
+You should now be able to restart your calculation using ``chk00100_enlarged``.
+But you need to update the input file. Check the stdout after running the embiggening script,
+it should say something like::
+
+   Level 0 old amr.n_cell = 384 240
+   Level 0 old geometry.prob_hi = 1.0 0.17
+   Level 0 new amr.n_cell = 384 432
+   Level 0 new geometry.prob_hi = 1.0 0.306
+
+Now update the inputs file to something like::
+
+   amr.restart = chk00100_enlarged
+   amr.regrid_on_restart = 1
+   amr.n_cell    = 256 432
+   amr.blocking_factor = 16
+   geometry.prob_lo = 0.5 0
+   geometry.prob_hi = 1.0 0.306
+   castro.old_theta_ncell = 240
+
+Note that you should only set ``castro.old_theta_ncell = 240``
+once after you restart. This parameter tells castro that it needs
+to initialize new zones that are larger than this based on
+``problem_initialize_state_data()``.
