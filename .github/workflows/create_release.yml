@@ -21,7 +21,7 @@ jobs:
       - name: Set release text
         id: release_txt
         run: |
-          python3 .github/workflows/get_release_txt.py ${{ env.VERSION }} >> $GITHUB_ENV
+          python3 .github/workflows/get_release_txt.py ${{ env.VERSION }} > release.txt
 
       - name: Create Release
         id: create_release
@@ -29,8 +29,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          body: ${{ env.RELEASE_TXT }}
+          tag_name: ${{ env.VERSION }}
+          release_name: Release ${{ env.VERSION }}
+          body_path: release.txt
           draft: false
           prerelease: false
