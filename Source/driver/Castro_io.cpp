@@ -820,6 +820,25 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
     }
   jobInfoFile << "\n\n";
 
+  #ifdef STARLIB
+    jobInfoFile << PrettyLine;
+    jobInfoFile << " Deviates for StarLib Rates \n";
+    jobInfoFile << PrettyLine;
+    jobInfoFile << OtherLine;
+
+    jobInfoFile <<
+    std::setw(6) << "index" << SkipSpace <<
+    std::setw(mlen+11) << "name" << SkipSpace <<
+    std::setw(7) << "deviate" <<  "\n";
+
+    for (int i = 1; i <= starlib::NumStarLibRates; i++) {
+      jobInfoFile <<
+      std::setw(6) << i << SkipSpace <<
+      std::setw(mlen+11) << rate_names[i] << SkipSpace <<
+      std::setw(7) << starlib::prand(i) << "\n";
+    }
+    jobInfoFile << "\n\n";
+  #endif
 
   // runtime parameters
   jobInfoFile << PrettyLine;
