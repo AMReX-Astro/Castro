@@ -1,12 +1,12 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step = 20000
-stop_time =  0.035
+stop_time =  0.5
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0 0 0
 geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0     0     0
-geometry.prob_hi     = 4.e7  2500  2500
+geometry.prob_hi     = 5.12e8  2500  2500
 amr.n_cell           = 256   16    16
 
 
@@ -43,9 +43,9 @@ castro.riemann_solver = 1
 # TIME STEP CONTROL
 castro.cfl            = 0.2     # cfl number for hyperbolic system
 castro.init_shrink    = 0.01     # scale back initial timestep
-castro.change_max     = 1.025    # scale back initial timestep
+castro.change_max     = 1.1    # scale back initial timestep
 
-castro.dtnuc_e = 0.1
+#castro.dtnuc_e = 0.1
 
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass
@@ -58,7 +58,7 @@ amr.max_level       = 2       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
 amr.blocking_factor = 16       # block factor in grid generation
-amr.max_grid_size   = 64
+amr.max_grid_size   = 512
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
@@ -67,7 +67,7 @@ amr.check_int       = 1000         # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file       = det_x_plt  # root name of plotfile
-amr.plot_per = 2.5e-4
+amr.plot_per = 1.e-3
 amr.derive_plot_vars = ALL
 
 # problem initialization
@@ -104,11 +104,20 @@ network.small_x = 1.e-10
 integrator.SMALL_X_SAFE = 1.e-10
 
 integrator.rtol_spec = 1.e-5
-integrator.atol_spec = 1.e-5
+integrator.atol_spec = 1.e-10
 integrator.rtol_enuc = 1.e-5
-integrator.atol_enuc = 1.e-8
-integrator.jacobian = 2
+integrator.atol_enuc = 1.e-5
+
+integrator.jacobian = 1
+
+integrator.use_burn_retry = 1
+integrator.ode_max_steps = 10000
 
 integrator.X_reject_buffer = 4.0
 
+nse.nse_molar_independent = 0
+nse.nse_dx_independent = 0
+nse.ase_tol = 0.1
+nse.nse_skip_molar = 0
+nse.solve_nse_e_mode = 2
 
