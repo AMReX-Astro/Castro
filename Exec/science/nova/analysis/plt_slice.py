@@ -1,46 +1,79 @@
+# loop over all of the plotfiles in the current directory
+# and render slices, output into a subdirectory {field}_slices
+
+import argparse
+from pathlib import Path
+
 import yt
-import matplotlib.pyplot as plt
-import numpy as np
-from yt.frontends.boxlib.api import CastroDataset
-import os
-import re
-
-# yt.enable_parallelism()
-
-# set matplotlib formatting to be the same as yt
-plt.rcParams['font.size'] = 14
-plt.rcParams['font.family'] = 'serif'
-plt.rcParams['mathtext.fontset'] = 'stix'
-
-curr_dir = os.getcwd()
-plt_dir = [f.name for f in os.scandir(curr_dir) if (f.is_dir() and re.search("^plt[0-9]{5,8}$",f.name))]
-plt_dir.sort(key=lambda x: int(x[3:]))
-
-out_dir = curr_dir+"/slices/"
-ext_dir = [f.name[13:-4] for f in os.scandir(out_dir) if (f.is_file() and re.search("plt[0-9]{5,8}.png", f.name))]
-# ext_dir.sort(key=lambda x: int(x[3:]))
-
-remaining = [x for x in plt_dir if x not in ext_dir]
-
-ts_04 = yt.DatasetSeries(remaining)
-field = 'magvel'
-text_color = "white"
 
 
-for ds in ts_04.piter():
+def doit(field, basename, is_small_plotfiles):
 
-    sp = yt.SlicePlot(ds, 'z', ('boxlib',field), buff_size=(7680,3840),origin="domain", fontsize="14")
+    curr_dir = Path.cwd()
 
-    if field == "magvel":
-        sp.set_cmap(field, "inferno")
-        sp.set_zlim(('boxlib', field), 1.0e5, 1.0e8)
-    elif field == "enuc":
-        sp.set_log(field, True, linthresh=1.e11)
-        sp.set_zlim(field, 0., 1.e19)
-        sp.set_cmap(field, "plasma")
+    # find all of the plotfiles in the current directory
+    plt = "smallplt" if is_small_plotfiles else "plt"
+    plotfiles = [f for f in Path(".").glob(f"{basename}_{plt}*[0-9]") if f.is_dir()]
 
-    sp.annotate_text((0.05, 0.05), f"time = {float(ds.current_time):8.3f} s", coord_system="axis", text_args={"color": text_color, "fontsize": "14"})
-    sp.set_axes_unit("km")
-    outdir1 = out_dir + f"drive_{field}_{ds.basename}.png"
-    sp.save(outdir1)
-    ds.index.clear_all_data()
+    out_dir = curr_dir / f"{field}_slices"
+    if not out_dir.is_dir():
+        out_dir.mkdir()
+
+    # find any plotfiles we've already processed
+    processed = [f for f in Path(".").glob(f"{basename}_{plt}*[0-9]") if Path(f"{out_dir}/{f}_{field}.png").is_file()]
+    remaining = [f for f in plotfiles if f not in processed]
+
+    ts_04 = yt.DatasetSeries(remaining)
+    text_color = "white"
+
+
+    for pfile in ts_04:
+        ds = yt.load(str(pfile), hint="castro")
+
+        sp = yt.SlicePlot(ds, 'z', field,
+                          buff_size=(7680, 3840),
+                          origin="domain", fontsize="14")
+
+        if field == "magvel":
+            sp.set_cmap(field, "inferno")
+            sp.set_zlim(field, 1.0e5, 1.0e8)
+
+        elif field == "magvort":
+            sp.set_cmap(field, "viridis")
+            sp.set_zlim(field, 1.e-4, 100)
+
+        elif field == "enuc":
+            sp.set_log(field, True, linthresh=1.e9)
+            sp.set_zlim(field, 0., 1.e14)
+            sp.set_cmap(field, "plasma")
+
+        elif field == "Temp":
+            sp.set_zlim(field, 1.e6, 1.e8)
+            sp.set_cmap(field, "plasma")
+
+        sp.annotate_text((0.05, 0.05), f"time = {float(ds.current_time):8.3f} s",
+                         coord_system="axis",
+                         text_args={"color": text_color, "fontsize": "14"})
+        sp.set_axes_unit("km")
+
+        outfile = out_dir / f"{pfile}_{field}.png"
+        sp.save(str(outfile))
+        ds.index.clear_all_data()
+
+if __name__ == "__main__":
+
+    p = argparse.ArgumentParser(description="make slice plots of the suite of nova plotfiles")
+
+    p.add_argument("--field", type=str, default="magvort",
+                   help="field to visualize")
+    p.add_argument("--basename", type=str, default="nova",
+                   help="basename of the plotfiles")
+    p.add_argument("--plt", action="store_true",
+                   help="plotfiles are plt instead of smallplt?")
+    args = p.parse_args()
+
+    is_small_plotfiles = not args.plt
+    field = args.field
+    basename = args.basename
+
+    doit(field, basename, is_small_plotfiles)

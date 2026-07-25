@@ -108,13 +108,30 @@ Reactions
 Reactions are often the most time-consuming part of a simulation.  The
 following are some things to try to improve the performance:
 
-* Try using the Runge-Kutta-Chebyshev integrator (see the Microphysics
-  `ODE integrators docs <https://amrex-astro.github.io/Microphysics/docs/ode_integrators.html>`_.
+* Try using a different integrator than the default VODE.
 
-  This is an explicit integrator that can work with moderately-stiff
-  networks.  Experience shows that it can work well with flames
-  (sometimes being twice as fast as the VODE integrator), but probably
-  not very efficiently with detonations.
+  * Runge-Kutta-Chebyshev (see the Microphysics
+    `ODE integrators docs <https://amrex-astro.github.io/Microphysics/docs/ode_integrators.html>`_.
+    is an explicit integrator that can work with moderately-stiff
+    networks.  Experience shows that it can work well with flames
+    (sometimes being twice as fast as the VODE integrator), but probably
+    not very efficiently with detonations.
+
+    To enable this integrator, build with:
+
+    ::
+
+       INTEGRATOR_DIR=RKC
+
+  * Rosenbrock (see the same Microphysics link above) is a 5th order stiffly-accurate
+    (A- and L-stable) integrator.  It seems to work very well with problems where the
+    burning enters NSE.
+
+    To enable this integrator, build with:
+
+    ::
+
+       INTEGRATOR_DIR=Rosenbrock
 
 * Use the analytic Jacobian (selected via ``integrator.jacobian=1``).
 

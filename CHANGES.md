@@ -1,5 +1,29 @@
 # Changelog
 
+## 26.07
+
+  * work around a ROCm 7.2.0 compiler bug (#3350)
+
+  * `xrb_spherical` : updates and fixes to some plot scripts (#3343,
+    #3358)
+
+  * documentation updates: describe new integrators (#3354)
+
+  * remove an old SDC define from the build system (#3352)
+
+  * `subchandra` : add a network flow plotting script (#3355)
+
+  * bump github checkout action from 6 to 7 (#3356)
+
+  * add new `flame_wave` scaling numbers (#3348)
+
+  * allow for fixed latitude rotation in 2D spherical (#3349)
+
+  * `Sedov` : update analysis scripts (#3347)
+
+  * `nova` : remove unused inputs files + change plotfile frequency
+    (#3346)
+
 ## 26.06
 
   * `xrb_spherical` : add planar slice plot scripts (#3340)

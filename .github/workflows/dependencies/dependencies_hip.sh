@@ -51,7 +51,6 @@ sudo apt-get update
 # other: rocm-dev rocm-utils
 sudo apt-get install -y --no-install-recommends \
     build-essential \
-    gfortran        \
     libnuma-dev     \
     libopenmpi-dev  \
     openmpi-bin     \
