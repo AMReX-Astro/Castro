@@ -146,9 +146,19 @@ endif
 
 CASTRO_AUTO_SOURCE_DIR := $(TmpBuildDir)/castro_sources/$(optionsSuffix).EXE
 
+# for rich output
+ESC := $(shell printf '\033')
+
+define info-green
+$(info $(ESC)[32m$(1)$(ESC)[0m)
+endef
+
+comma := ,
 
 all: build_status check_network $(executable)
 	@echo SUCCESS
+	$(call info-green,Be sure to "make clean" before rebuilding with a different integrator$(comma))
+	$(call info-green,network$(comma) or changing any build options in the GNUmakefile.)
 
 build_status:
 	$(AMREX_HOME)/Tools/C_scripts/describe_sources.py \

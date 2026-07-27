@@ -224,7 +224,8 @@ riemann_state(const int i, const int j, const int k, const int idir,
               Array4<Real const> const& qaux_arr,
               RiemannState& qint,
               const bool special_bnd_lo, const bool special_bnd_hi,
-              GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi) {
+              GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi,
+              const bool do_ppm_temp_fix, const Real temp_guess) {
 
   // just compute the hydrodynamic state on the interfaces
   // don't compute the fluxes
@@ -235,7 +236,7 @@ riemann_state(const int i, const int j, const int k, const int idir,
   // Riemann problems
 
 
-  if (ppm_temp_fix == 2) {
+  if (do_ppm_temp_fix) {
       // recompute the thermodynamics on the interface to make it
       // all consistent
 
@@ -247,7 +248,7 @@ riemann_state(const int i, const int j, const int k, const int idir,
 
       // this is an initial guess for iterations, since we
       // can't be certain what temp is on interfaces
-      eos_state.T = T_guess;
+      eos_state.T = temp_guess;
 
       // minus state
       eos_state.rho = qm(i,j,k,QRHO);

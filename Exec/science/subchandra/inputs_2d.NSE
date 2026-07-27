@@ -1,4 +1,5 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
+
 max_step = 1000000
 stop_time = 10.0
 
@@ -8,7 +9,7 @@ geometry.coord_sys = 1         # r-z coordinates
 geometry.prob_lo   =  0.    0.
 geometry.prob_hi   =  5.12e9 1.024e10
 
-amr.n_cell         = 1280 2560
+amr.n_cell         = 640 1280
 
 castro.lo_bc       =  3 2
 castro.hi_bc       =  2 2
@@ -24,7 +25,7 @@ castro.do_grav  = 1
 castro.do_react = 1
 castro.do_sponge = 1
 
-castro.react_rho_min = 1.0
+castro.react_rho_min = 100.0
 castro.react_T_min = 5.e7
 
 castro.disable_shock_burning = 1
@@ -79,7 +80,7 @@ castro.small_temp   = 1.e5
 
 # gridding
 
-amr.max_level      = 1       # maximum level number allowed
+amr.max_level      = 2       # maximum level number allowed
 
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2   # how often to regrid
@@ -135,19 +136,34 @@ problem.mu_n = -12.0
 
 # tagging
 
-amr.refinement_indicators = tempgrad denerr temperr
+amr.refinement_indicators = tempgrad denerr dencore temperr dencutoff
 
-amr.refine.tempgrad.relative_gradient = 2.0
 amr.refine.tempgrad.field_name = Temp
-amr.refine.tempgrad.max_level = 1
+amr.refine.tempgrad.relative_gradient = 2.0
+amr.refine.tempgrad.max_level = 2
 
-amr.refine.denerr.value_greater = 1.0
 amr.refine.denerr.field_name = density
-amr.refine.denerr.max_level = 1
+amr.refine.denerr.value_greater = 1.0
+amr.refine.denerr.max_level = 2
 
-amr.refine.temperr.value_greater = 1.e8
+# this just refines the very center to capture the convergence of the
+# compression wave
+
+amr.refine.dencore.field_name = density
+amr.refine.dencore.value_greater = 7.5e7
+amr.refine.dencore.max_level = 3
+
+# now we want to refine regions where T > 2.e8 up to the maximum
+# level, but only if rho > 1.e3 -- otherwise, we don't care about
+# following things
+
 amr.refine.temperr.field_name = Temp
+amr.refine.temperr.value_greater = 1.e8
 amr.refine.temperr.max_level = 3
+
+amr.refine.dencutoff.derefine = 1
+amr.refine.dencutoff.field_name = density
+amr.refine.dencutoff.value_less = 1.e4
 
 # Microphysics
 
@@ -156,9 +172,9 @@ integrator.SMALL_X_SAFE = 1.e-30
 integrator.do_species_clip = 0
 
 integrator.rtol_spec = 1.e-5
-integrator.atol_spec = 1.e-5
+integrator.atol_spec = 1.e-8
 integrator.rtol_enuc = 1.e-5
-integrator.atol_enuc = 1.e-8
+integrator.atol_enuc = 1.e-5
 integrator.jacobian = 1
 
 integrator.X_reject_buffer = 4.0
@@ -166,7 +182,10 @@ integrator.X_reject_buffer = 4.0
 # disable jacobian caching in VODE
 integrator.use_jacobian_caching = 0
 
-integrator.ode_max_steps = 500000
+integrator.ode_max_steps = 20000
+
+integrator.use_burn_retry = 1
+integrator.retry_swap_jacobian = 1
 
 nse.nse_dx_independent = 0
 nse.nse_molar_independent = 0

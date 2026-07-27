@@ -28,7 +28,7 @@ EOS_DIR     := helmholtz
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
 NETWORK_DIR := he-burn/he-burn-19am
 
-INTEGRATOR_DIR := VODE
+INTEGRATOR_DIR := Rosenbrock
 
 PROBLEM_DIR ?= ./
 
