@@ -559,7 +559,7 @@ namespace: ``castro``
 
 **embiggening**
 
-.. index:: castro.grown_factor, castro.star_at_center
+.. index:: castro.grown_factor, castro.star_at_center, castro.old_theta_ncell
 
 
 +--------------------------------------------+-------------------------------------------------------------+-----------------------------+
@@ -570,6 +570,10 @@ namespace: ``castro``
 +--------------------------------------------+-------------------------------------------------------------+-----------------------------+
 | ``star_at_center``                         | used with the embiggening routines to determine how to      | true                        |
 |                                            | extend the domain                                           |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``old_theta_ncell``                        | the number of cells along the theta-dir before the domain   | -1                          |
+|                                            | was extended determines whether the domain has been         |                             |
+|                                            | extended in the theta direction                             |                             |
 +--------------------------------------------+-------------------------------------------------------------+-----------------------------+
 
 
