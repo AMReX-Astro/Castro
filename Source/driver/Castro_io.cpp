@@ -843,7 +843,7 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   }
   jobInfoFile << "\n\n";
 
-  AMREX_ASSERT(starlib::NumStarLibRates == idx);
+  AMREX_ASSERT(starlib::NumStarLibRates == idx-1);
 #endif
 
   // runtime parameters
