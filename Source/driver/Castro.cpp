@@ -12,6 +12,7 @@
 #include <ctime>
 #include <memory>
 #include <numbers>
+#include <format>
 
 #include <AMReX_Utility.H>
 #include <AMReX_CONSTANTS.H>
@@ -693,7 +694,7 @@ Castro::Castro (Amr&            papa,
 {
     BL_PROFILE("Castro::Castro()");
 
-    MultiFab::RegionTag amrlevel_tag("AmrLevel_Level_" + std::to_string(lev));
+    MultiFab::RegionTag amrlevel_tag(std::format("AmrLevel_Level_{}", lev));
 
     buildMetrics();
 
@@ -3475,8 +3476,8 @@ Castro::allocOldData ()
 {
     BL_PROFILE("Castro::allocOldData");
 
-    MultiFab::RegionTag amrlevel_tag("AmrLevel_Level_" + std::to_string(level));
-    MultiFab::RegionTag statedata_tag("StateData_Level_" + std::to_string(level));
+    MultiFab::RegionTag amrlevel_tag(std::format("AmrLevel_Level_{}", level));
+    MultiFab::RegionTag statedata_tag(std::format("StateData_Level_{}", level));
     for (int k = 0; k < num_state_type; k++) {
         state[k].allocOldData();
     }
@@ -4240,8 +4241,8 @@ Castro::swap_state_time_levels(const Real dt)
 
     BL_PROFILE("Castro::swap_state_time_levels()");
 
-    MultiFab::RegionTag statedata_tag("StateData_Level_" + std::to_string(level));
-    MultiFab::RegionTag amrlevel_tag("AmrLevel_Level_" + std::to_string(level));
+    MultiFab::RegionTag statedata_tag(std::format("StateData_Level_{}", level));
+    MultiFab::RegionTag amrlevel_tag(std::format("AmrLevel_Level_{}", level));
 
     for (int k = 0; k < num_state_type; k++) {
 

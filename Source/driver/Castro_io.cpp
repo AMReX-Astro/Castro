@@ -5,6 +5,7 @@
 
 #include <iomanip>
 #include <iostream>
+#include <format>
 #include <string>
 #include <ctime>
 
@@ -1071,7 +1072,7 @@ Castro::plotFileOutput(const std::string& dir,
             const DeriveRec* rec = derive_lst.get(name);
             if (rec->numDerive() > 1) {
                 for (int i = 0; i < rec->numDerive(); ++i) {
-                    os << rec->variableName(0) + '_' + std::to_string(i) + '\n';
+                    os << std::format("{}_{}\n", rec->variableName(0), i);
                 }
             }
             else {
@@ -1146,12 +1147,12 @@ Castro::plotFileOutput(const std::string& dir,
     // The name is relative to the directory containing the Header file.
     //
     static const std::string BaseName = "/Cell";
-    std::string Level = "Level_" + std::to_string(level);
+    std::string Level = std::format("Level_{}", level);
     //
     // Now for the full pathname of that directory.
     //
     std::string FullPath = dir;
-    if (!FullPath.empty() && FullPath[FullPath.size()-1] != '/') {
+    if (!FullPath.ends_with('/')) {
       FullPath += '/';
     }
     FullPath += Level;
