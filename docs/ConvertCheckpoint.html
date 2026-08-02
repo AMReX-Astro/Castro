@@ -104,6 +104,11 @@
 <li class="toctree-l3"><a class="reference internal" href="#cylindrical-coordinates">Cylindrical Coordinates</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#extending-domain-along-theta-dir">Extending Domain Along <span class="math notranslate nohighlight">\(\theta\)</span>-dir</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id3">Converting the Checkpoint File</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id4">Restarting from a Grown Checkpoint File</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="self_consistent_field.html">Self-Consistent Field Initialization</a></li>
@@ -323,7 +328,7 @@ we consider the original inputs file to look like:</p>
 </pre></div>
 </div>
 <p>Some results:</p>
-<figure class="align-default" id="id3">
+<figure class="align-default" id="id5">
 <img alt="_images/corner.png" src="_images/corner.png" />
 <figcaption>
 <p><span class="caption-number">Fig. 8 </span><span class="caption-text">Data from checkpoint file before and after the domain has been
@@ -332,10 +337,10 @@ coarsened and grown. This case uses <code class="docutils literal notranslate"><
 2, the second has <code class="docutils literal notranslate"><span class="pre">grown_factor</span></code> = 3. In all figures the level 0
 grids are shown in white, the level 1 grids in red, the level 2
 grids in yellow, and in the grown figures, the level 3 grids are in
-pink.</span><a class="headerlink" href="#id3" title="Link to this image"></a></p>
+pink.</span><a class="headerlink" href="#id5" title="Link to this image"></a></p>
 </figcaption>
 </figure>
-<figure class="align-default" id="id4">
+<figure class="align-default" id="id6">
 <img alt="_images/center.png" src="_images/center.png" />
 <figcaption>
 <p><span class="caption-number">Fig. 9 </span><span class="caption-text">Data from checkpoint file before and after the domain has been
@@ -344,9 +349,73 @@ coarsened and grown. This case uses <code class="docutils literal notranslate"><
 2, the second has <code class="docutils literal notranslate"><span class="pre">grown_factor</span></code> = 3. In all figures the level 0
 grids are shown in white, the level 1 grids in red, the level 2
 grids in yellow, and in the grown figures, the level 3 grids are in
-pink.</span><a class="headerlink" href="#id4" title="Link to this image"></a></p>
+pink.</span><a class="headerlink" href="#id6" title="Link to this image"></a></p>
 </figcaption>
 </figure>
+</section>
+</section>
+<section id="extending-domain-along-theta-dir">
+<h2>Extending Domain Along <span class="math notranslate nohighlight">\(\theta\)</span>-dir<a class="headerlink" href="#extending-domain-along-theta-dir" title="Link to this heading"></a></h2>
+<p>This is intended to work with the <code class="docutils literal notranslate"><span class="pre">xrb_spherical</span></code> problem only for now.
+Given a checkpoint file, chk00100, with an arbitrary levels of refinement
+and a (real) problem domain of (<span class="math notranslate nohighlight">\(R_{\mathrm{min}}\)</span>, <span class="math notranslate nohighlight">\(\theta_{\mathrm{min}}\)</span>)
+to (<span class="math notranslate nohighlight">\(R_{\mathrm{max}}\)</span>, <span class="math notranslate nohighlight">\(\theta_{\mathrm{max}}\)</span>)
+with (N, M) number of cells at level 0 and a blocking factor of, B.</p>
+<p>The inputs file that created this might look like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">n_cell</span>    <span class="o">=</span> <span class="mi">384</span> <span class="mi">240</span>
+<span class="n">geometry</span><span class="o">.</span><span class="n">prob_lo</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="mi">0</span>
+<span class="n">geometry</span><span class="o">.</span><span class="n">prob_hi</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="mf">0.17</span>
+<span class="n">amr</span><span class="o">.</span><span class="n">blocking_factor</span> <span class="o">=</span> <span class="mi">16</span>
+</pre></div>
+</div>
+<section id="id3">
+<h3>Converting the Checkpoint File<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
+<p>Now let’s suppose that you want to extend <span class="math notranslate nohighlight">\(\theta_{\mathrm{max}}=0.17\)</span> to <span class="math notranslate nohighlight">\(\theta_{\mathrm{max}}=0.3\)</span>.</p>
+<p>Then you need to:</p>
+<ol class="arabic">
+<li><p>First make an executable from the Embiggen.cpp code. Note it only works with
+2D Spherical geometry for now. So to make an executable from the Embiggen.cpp code do:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">DIM</span><span class="o">=</span><span class="mi">2</span> <span class="o">-</span><span class="n">j</span> <span class="mi">4</span>
+</pre></div>
+</div>
+</li>
+<li><p>Run the embiggening code as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Embiggen2d</span><span class="o">.</span><span class="n">Linux</span><span class="o">.</span><span class="n">Intel</span><span class="o">.</span><span class="n">Intel</span><span class="o">.</span><span class="n">ex</span> <span class="n">mode</span><span class="o">=</span><span class="n">theta_extend</span> <span class="n">blocking_factor</span><span class="o">=</span><span class="mi">16</span> <span class="n">theta_new_hi</span><span class="o">=</span><span class="mf">0.3</span> <span class="n">checkin</span><span class="o">=</span><span class="n">chk00100</span> <span class="n">checkout</span><span class="o">=</span><span class="n">chk00100_enlarged</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<p>This will create a new checkpoint directory, called chk00100_enlarged, that represents a simulation
+that has the same amr levels, but the domain is extended to have <span class="math notranslate nohighlight">\(\theta_{\mathrm{max}} \sim 0.3\)</span>.
+Note that even though you asked for <span class="math notranslate nohighlight">\(\theta_{\mathrm{max}}=0.3\)</span>, the code will automatically change
+<span class="math notranslate nohighlight">\(\theta_{\mathrm{max}}\)</span> to some other value
+such that the same resolution is preserved while satisfying the blocking_factor constraint.</p>
+</section>
+<section id="id4">
+<h3>Restarting from a Grown Checkpoint File<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
+<p>You should now be able to restart your calculation using <code class="docutils literal notranslate"><span class="pre">chk00100_enlarged</span></code>.
+But you need to update the input file. Check the stdout after running the embiggening script,
+it should say something like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Level</span> <span class="mi">0</span> <span class="n">old</span> <span class="n">amr</span><span class="o">.</span><span class="n">n_cell</span> <span class="o">=</span> <span class="mi">384</span> <span class="mi">240</span>
+<span class="n">Level</span> <span class="mi">0</span> <span class="n">old</span> <span class="n">geometry</span><span class="o">.</span><span class="n">prob_hi</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="mf">0.17</span>
+<span class="n">Level</span> <span class="mi">0</span> <span class="n">new</span> <span class="n">amr</span><span class="o">.</span><span class="n">n_cell</span> <span class="o">=</span> <span class="mi">384</span> <span class="mi">432</span>
+<span class="n">Level</span> <span class="mi">0</span> <span class="n">new</span> <span class="n">geometry</span><span class="o">.</span><span class="n">prob_hi</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="mf">0.306</span>
+</pre></div>
+</div>
+<p>Now update the inputs file to something like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">restart</span> <span class="o">=</span> <span class="n">chk00100_enlarged</span>
+<span class="n">amr</span><span class="o">.</span><span class="n">regrid_on_restart</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">amr</span><span class="o">.</span><span class="n">n_cell</span>    <span class="o">=</span> <span class="mi">256</span> <span class="mi">432</span>
+<span class="n">amr</span><span class="o">.</span><span class="n">blocking_factor</span> <span class="o">=</span> <span class="mi">16</span>
+<span class="n">geometry</span><span class="o">.</span><span class="n">prob_lo</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="mi">0</span>
+<span class="n">geometry</span><span class="o">.</span><span class="n">prob_hi</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="mf">0.306</span>
+<span class="n">castro</span><span class="o">.</span><span class="n">old_theta_ncell</span> <span class="o">=</span> <span class="mi">240</span>
+</pre></div>
+</div>
+<p>Note that you should only set <code class="docutils literal notranslate"><span class="pre">castro.old_theta_ncell</span> <span class="pre">=</span> <span class="pre">240</span></code>
+once after you restart. This parameter tells castro that it needs
+to initialize new zones that are larger than this based on
+<code class="docutils literal notranslate"><span class="pre">problem_initialize_state_data()</span></code>.</p>
 </section>
 </section>
 </section>
