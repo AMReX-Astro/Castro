@@ -2,6 +2,8 @@
 
 ## 26.08
 
+  * output StarLib deviates into the `job_info` file (#3363)
+
   * allow the embiggen tool to extend a 2D spherical grid in the
     theta direction (#3357)
 
