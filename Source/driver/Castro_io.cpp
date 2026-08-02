@@ -857,6 +857,31 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
     }
   jobInfoFile << "\n\n";
 
+#ifdef STARLIB
+  jobInfoFile << PrettyLine;
+  jobInfoFile << " Deviates for StarLib Rates \n";
+  jobInfoFile << PrettyLine;
+
+  jobInfoFile <<
+  std::setw(6) << "index" << SkipSpace <<
+  std::setw(mlen+11) << "name" << SkipSpace <<
+  std::setw(7) << "deviate" <<  "\n";
+  jobInfoFile << OtherLine;
+
+  int idx = 1;
+  for (int i = 1; i <= Rates::NumRates ; i++) {
+    if (rate_names[i].ends_with("_starlib")) {
+      jobInfoFile <<
+      std::setw(6) << idx << SkipSpace <<
+      std::setw(mlen+11) << rate_names[i] << SkipSpace <<
+      std::setw(7) << starlib::prand(idx) << "\n";
+      idx++;
+    }
+  }
+  jobInfoFile << "\n\n";
+
+  AMREX_ALWAYS_ASSERT(starlib::NumStarLibRates == idx-1);
+#endif
 
   // runtime parameters
   jobInfoFile << PrettyLine;
