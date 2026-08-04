@@ -249,6 +249,7 @@
     integrator.nse_include_enu_weak = 1
     integrator.linalg_do_pivoting = 1
     integrator.species_failure_tolerance = 0.01
+    integrator.correct_jacobian_for_const_e = 1
     screening.enable_chabrier1998_quantum_corr = 0
     screening.enable_debye_huckel_skip = 0
     screening.debye_huckel_skip_threshold = 0.01
