@@ -1,5 +1,29 @@
 # Changelog
 
+## 26.08
+
+  * output StarLib deviates into the `job_info` file (#3363)
+
+  * allow the embiggen tool to extend a 2D spherical grid in the
+    theta direction (#3357)
+
+  * update the release CI script to get the changes into the body
+    (#3364)
+
+  * add a note about "make clean" after a successful build (#3369)
+
+  * `subchandra` : switch over to Rosenbrock and sync up the inputs
+    files (#3353) and set `USE_SHOCK_VAR` in `GNUmakefile_nse.net`
+    (#3366)
+
+  * simplify some github actions (#3367)
+
+  * `Detonation` : update the readme and some inputs files (#3359)
+
+  * update the `setup-python` github action from 6 to 7 (#3362)
+
+  * `nova` : clean up the slice script (#3345)
+
 ## 26.07
 
   * work around a ROCm 7.2.0 compiler bug (#3350)
