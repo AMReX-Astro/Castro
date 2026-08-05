@@ -1,6 +1,11 @@
 name: exact Riemann
 
 on: [pull_request]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   exact_riemann:
     runs-on: ubuntu-latest
@@ -35,4 +40,3 @@ jobs:
         run: |
           cd Util/exact_riemann
           diff riemann.out ci-benchmarks/test1-riemann.out
-

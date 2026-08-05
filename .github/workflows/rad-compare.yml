@@ -1,6 +1,11 @@
 name: Rad2Tshock
 
 on: [pull_request]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   Rad2Tshock-1d:
     runs-on: ubuntu-latest
@@ -52,4 +57,3 @@ jobs:
           cd Exec/radiation_tests/Rad2Tshock
           ../../../external/amrex/Tools/Plotfile/fextrema.gnu.ex plt_00025 > fextrema.out
           diff fextrema.out ci-benchmarks/Rad2TShock-1d.out
-

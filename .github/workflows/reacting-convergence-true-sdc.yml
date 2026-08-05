@@ -1,6 +1,11 @@
 name: reacting-convergence-true-sdc
 
 on: [pull_request]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   reacting-convergence-true-sdc:
     runs-on: ubuntu-latest
@@ -42,5 +47,4 @@ jobs:
           ../../../external/amrex/Tools/Plotfile/fextrema.gnu.ex react_converge_128_plt00010 > fextrema.out
           # ignore angular momenta, since 0 and -0 don't compare
           diff -I "^ angular_momentum" fextrema.out ci-benchmarks/react_converge_128_true_sdc.out
-
 
