@@ -209,7 +209,7 @@ span.prompt1:before {
 <code class="docutils literal notranslate"><span class="pre">Castro/.clang-tidy</span></code>.  If you do a parallel build, you should use
 the <code class="docutils literal notranslate"><span class="pre">-O</span></code> flag to ensure that output is not mixed between files.</p>
 <p>You can also use ask it to fix errors automatically via:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">make<span class="w"> </span><span class="nv">USE_CLANG_TIDY</span><span class="o">=</span>TRUE<span class="w"> </span><span class="nv">CLANG_TIDY</span><span class="o">=</span><span class="s2">&quot;clang-tidy --fix-errors&quot;</span></span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">make<span class="w"> </span><span class="nv">USE_CLANG_TIDY</span><span class="o">=</span>TRUE<span class="w"> </span><span class="nv">CLANG_TIDY</span><span class="o">=</span><span class="s2">"clang-tidy --fix-errors"</span></span>
 </pre></div></div><p>and you can treat warnings as errors by adding <code class="docutils literal notranslate"><span class="pre">CLANG_TIDY_WARN_ERROR=TRUE</span></code>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -236,7 +236,7 @@ the <code class="docutils literal notranslate"><span class="pre">contains_nan()<
 <span class="w">  </span><span class="c1">// do some operations on S[mfi]</span>
 
 <span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">S</span><span class="p">[</span><span class="n">mfi</span><span class="p">].</span><span class="n">contains_nan</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="n">amrex</span><span class="o">::</span><span class="n">Abort</span><span class="p">(</span><span class="s">&quot;S has NaNs&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="n">amrex</span><span class="o">::</span><span class="n">Abort</span><span class="p">(</span><span class="s">"S has NaNs"</span><span class="p">)</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
