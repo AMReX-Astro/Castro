@@ -1,6 +1,11 @@
 name: uniform_sphere
 
 on: [pull_request]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   uniform_sphere:
     runs-on: ubuntu-latest
@@ -19,7 +24,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update -y -qq
-          sudo apt-get -qq -y install curl g++>=9.3.0
+          sudo apt-get -qq -y install g++
 
       - name: Compile uniform_sphere
         run: |
