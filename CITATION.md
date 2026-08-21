@@ -9,7 +9,7 @@ describing the capabilities you used.
 If you use Castro, we appreciate you citing the most recent code paper:
 
 ```
-@article{Almgren2020,
+@article{Castro:JOSS,
   doi = {10.21105/joss.02513},
   url = {https://doi.org/10.21105/joss.02513},
   year = {2020},
@@ -17,17 +17,46 @@ If you use Castro, we appreciate you citing the most recent code paper:
   volume = {5},
   number = {54},
   pages = {2513},
-  author = {Ann Almgren and Maria Barrios Sazo and John Bell and Alice Harpole and Max Katz and Jean Sexton and Donald Willcox and Weiqun Zhang and Michael Zingale},
+  author = {Ann Almgren and Maria Barrios Sazo and John Bell and
+            Alice Harpole and Max Katz and Jean Sexton and Donald Willcox and
+            Weiqun Zhang and Michael Zingale},
   title = {CASTRO: A Massively Parallel Compressible Astrophysics Simulation Code},
   journal = {Journal of Open Source Software}
 }
 ```
 
-You are welcome to cite the original code paper as well (which
+We also ask that you cite the [Microphysics
+project](https://github.com/amrex-astro/Microphysics) paper, as Castro
+leverages that heavily:
+
+```
+@article{AMReX-Astro-Microphysics,
+ doi = {10.21105/joss.10422},
+ url = {https://doi.org/10.21105/joss.10422},
+ year = {2026},
+ publisher = {The Open Journal},
+ volume = {11},
+ number = {124},
+ pages = {10422},
+ author = {AMReX-Astro Microphysics Team and
+           Bhargava, Khanak and Bishop, Abigail and Chen, Zhi and
+           Fan, Doreen and Fields, Carl and Jacobs, Adam M. and
+           Johnson, Eric T. and Katz, Max P. and Krumholz, Mark and
+           Malone, Chris and Nonaka, Andy and Sharda, Piyush and
+           Smith Clark, Alexander and Timmes, Frank and Wibking, Ben and
+           Willcox, Don E. and Zingale, Michael},
+ title = {AMReX-Astrophysics Microphysics: A set of microphysics
+          routines for astrophysical simulation codes based on
+          the AMReX library},
+ journal = {Journal of Open Source Software}
+}
+```
+
+You are also encouraged to cite the original code paper (which
 provides some details on the algorithmic implementations):
 
 ```
-    @ARTICLE{2010ApJ...715.1221A,
+    @ARTICLE{Castro:ApJ,
        author = {{Almgren}, A.~S. and {Beckner}, V.~E. and {Bell},
                       J.~B. and {Day}, M.~S. and {Howell}, L.~H. and
                       {Joggerst}, C.~C. and {Lijewski}, M.~J. and
@@ -51,10 +80,6 @@ provides some details on the algorithmic implementations):
     }
 ```
 
-You should also cite the zenodo DOI for the code release.  A bibtex
-entry for the latest release can be found here:
-
-https://doi.org/10.5281/zenodo.2301848
 
 ## Radiation hydrodynamics
 
@@ -147,7 +172,8 @@ For CPU performance numbers, please cite:
              {Beckner}, V.~E. and {Bell}, J.~B. and {Friesen}, B. and
              {Jacobs}, A.~M. and {Katz}, M.~P. and {Malone}, C.~M. and
              {Nonaka}, A.~J. and {Willcox}, D.~E. and {Zhang}, W.},
-            title = "{Meeting the Challenges of Modeling Astrophysical Thermonuclear Explosions: Castro, Maestro, and the AMReX Astrophysics Suite}",
+            title = "{Meeting the Challenges of Modeling Astrophysical Thermonuclear Explosions:
+                      Castro, Maestro, and the AMReX Astrophysics Suite}",
          keywords = {Astrophysics - Instrumentation and Methods for Astrophysics},
         booktitle = {Journal of Physics Conference Series},
              year = 2018,
@@ -175,7 +201,8 @@ For GPU performance, please cite:
              {Zingale}, Michael},
             title = "{Preparing Nuclear Astrophysics for Exascale}",
           journal = {arXiv e-prints},
-         keywords = {Astrophysics - Instrumentation and Methods for Astrophysics, Astrophysics - High Energy Astrophysical Phenomena},
+         keywords = {Astrophysics - Instrumentation and Methods for Astrophysics,
+                     Astrophysics - High Energy Astrophysical Phenomena},
              year = 2020,
             month = jul,
               eid = {arXiv:2007.05218},
@@ -194,11 +221,15 @@ For the 2nd and 4th order SDC coupling of hydro and reactions, please cite:
 
 ```
     @ARTICLE{2019ApJ...886..105Z,
-           author = {{Zingale}, M. and {Katz}, M.~P. and {Bell}, J.~B. and {Minion}, M.~L. and
-             {Nonaka}, A.~J. and {Zhang}, W.},
-            title = "{Improved Coupling of Hydrodynamics and Nuclear Reactions via Spectral Deferred Corrections}",
+           author = {{Zingale}, M. and {Katz}, M.~P. and {Bell}, J.~B. and
+                     {Minion}, M.~L. and {Nonaka}, A.~J. and {Zhang}, W.},
+            title = "{Improved Coupling of Hydrodynamics and Nuclear Reactions via
+                      Spectral Deferred Corrections}",
           journal = {\apj},
-         keywords = {Hydrodynamics, Astrophysical fluid dynamics, Computational methods, Computational astronomy, Astronomy software, Nuclear astrophysics, Nucleosynthesis, Stellar nucleosynthesis, Physics - Computational Physics, Astrophysics - Instrumentation and Methods for Astrophysics},
+         keywords = {Hydrodynamics, Astrophysical fluid dynamics, Computational methods,
+                     Computational astronomy, Astronomy software, Nuclear astrophysics,
+                     Nucleosynthesis, Stellar nucleosynthesis, Physics - Computational Physics,
+                     Astrophysics - Instrumentation and Methods for Astrophysics},
              year = 2019,
             month = dec,
            volume = {886},
@@ -214,3 +245,9 @@ For the 2nd and 4th order SDC coupling of hydro and reactions, please cite:
     }
 ```
 
+## Zenodo
+
+You should also cite the zenodo DOI for the code release.  A bibtex
+entry for the latest release can be found here:
+
+https://doi.org/10.5281/zenodo.2301848
