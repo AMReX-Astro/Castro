@@ -1,5 +1,53 @@
 # Changelog
 
+## 26.08
+
+  * output StarLib deviates into the `job_info` file (#3363)
+
+  * allow the embiggen tool to extend a 2D spherical grid in the
+    theta direction (#3357)
+
+  * update the release CI script to get the changes into the body
+    (#3364)
+
+  * add a note about "make clean" after a successful build (#3369)
+
+  * `subchandra` : switch over to Rosenbrock and sync up the inputs
+    files (#3353) and set `USE_SHOCK_VAR` in `GNUmakefile_nse.net`
+    (#3366)
+
+  * simplify some github actions (#3367)
+
+  * `Detonation` : update the readme and some inputs files (#3359)
+
+  * update the `setup-python` github action from 6 to 7 (#3362)
+
+  * `nova` : clean up the slice script (#3345)
+
+## 26.07
+
+  * work around a ROCm 7.2.0 compiler bug (#3350)
+
+  * `xrb_spherical` : updates and fixes to some plot scripts (#3343,
+    #3358)
+
+  * documentation updates: describe new integrators (#3354)
+
+  * remove an old SDC define from the build system (#3352)
+
+  * `subchandra` : add a network flow plotting script (#3355)
+
+  * bump github checkout action from 6 to 7 (#3356)
+
+  * add new `flame_wave` scaling numbers (#3348)
+
+  * allow for fixed latitude rotation in 2D spherical (#3349)
+
+  * `Sedov` : update analysis scripts (#3347)
+
+  * `nova` : remove unused inputs files + change plotfile frequency
+    (#3346)
+
 ## 26.06
 
   * `xrb_spherical` : add planar slice plot scripts (#3340)

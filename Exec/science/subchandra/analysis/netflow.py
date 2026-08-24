@@ -5,6 +5,8 @@ import sys
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
+
 import numpy as np
 import pynucastro as pyna
 import yt
@@ -58,7 +60,7 @@ def doit(plotfile, reference):
 
     # setup the figure where we will host the image
 
-    fig = plt.figure(figsize=(19.2, 7.2))
+    fig = plt.figure(figsize=(16., 6.))
 
     inch = 0.3
     W, H = fig.get_size_inches()
@@ -68,7 +70,7 @@ def doit(plotfile, reference):
                                 1.0 - 2.0*margin[0], 1.0 - 2.0*margin[1]])
 
     gs = fig.add_gridspec(nrows=1, ncols=2,
-                          width_ratios=[1, 5.0])
+                          width_ratios=[1, 4.75])
 
     ax_img = fig.add_subplot(gs[0, 0])
     gs_flow = gs[0, 1].subgridspec(2, 2, height_ratios=(20, 1))
@@ -78,7 +80,7 @@ def doit(plotfile, reference):
     # we'll use a buffer size that is proportional to the number of zones
     # in the data we are plotting
 
-    domain_frac = 0.22
+    domain_frac = 0.15
 
     xmin = ds.domain_left_edge[0]
     xmax = domain_frac * ds.domain_right_edge[0]
@@ -139,18 +141,21 @@ def doit(plotfile, reference):
     x = np.linspace(extent[0], extent[1], rho_data.shape[1])
     y = np.linspace(extent[2], extent[3], rho_data.shape[0])
     ax_img.contour(x, y, rho_data, levels=[rho_contour],
-                   colors="k", linewidths=1, linestyles="--")
+                   colors="0.5", linewidths=1, linestyles="--")
 
     ax_img.set_xlabel("r [cm]")
     ax_img.set_ylabel("z [cm]")
 
+    ax_img.xaxis.set_major_formatter(mticker.ScalarFormatter(useMathText=True))
+    ax_img.yaxis.set_major_formatter(mticker.ScalarFormatter(useMathText=True))
+
     # keep physical aspect but within the GridSpec cell
     ax_img.set_aspect("equal", adjustable="box")
 
-    ax_img.scatter([loc[0]], [loc[1]], marker="x", color="red")
+    ax_img.scatter([loc[0]], [loc[1]], marker="x", color="blueviolet", s=20)
 
     # and add a colorbar
-    cb = fig.colorbar(im_new, ax=ax_img, orientation="horizontal", shrink=0.8,
+    cb = fig.colorbar(im_new, ax=ax_img, orientation="vertical", shrink=0.8,
                       ticks=[-1.e22, -1.e19, -1.e16,
                              1.e16, 1.e19, 1.e22])
 
@@ -164,6 +169,7 @@ def doit(plotfile, reference):
              rotated=True, hide_xp=True, hide_xalpha=True,
              use_net_rate=True,
              color_nodes_by_abundance=True,
+             Z_range=[1, 29],
              node_size=500, node_font_size="9",
              grid_spec=gs_flow)
 
@@ -173,7 +179,7 @@ def doit(plotfile, reference):
              transform=fig.transFigure, fontsize="10")
 
     # finalize
-    fig.savefig(f"{os.path.basename(plotfile)}_netflow.png")
+    fig.savefig(f"{os.path.basename(plotfile)}_netflow.pdf", bbox_inches="tight")
 
 
 if __name__ == "__main__":

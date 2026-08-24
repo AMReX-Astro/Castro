@@ -169,7 +169,7 @@ integrator.SMALL_X_SAFE = 1.e-30
 integrator.do_species_clip = 0
 
 integrator.rtol_spec = 1.e-5
-integrator.atol_spec = 1.e-5
+integrator.atol_spec = 1.e-8
 integrator.rtol_enuc = 1.e-5
 integrator.atol_enuc = 1.e-5
 integrator.jacobian = 1

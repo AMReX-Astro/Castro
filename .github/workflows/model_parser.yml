@@ -1,13 +1,16 @@
 name: model parser
 
 on: [pull_request]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   model_parser:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
 
       - name: Get submodules
         run: |
@@ -21,7 +24,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update -y -qq
-          sudo apt-get -qq -y install curl cmake jq clang g++>=9.3.0
+          sudo apt-get -qq -y install g++
 
       - name: Compile model_parser test
         run: |

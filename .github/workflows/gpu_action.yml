@@ -11,8 +11,6 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
 
       - name: Get submodules
         run: |
@@ -26,7 +24,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update -y -qq
-          sudo apt-get -qq -y install curl cmake jq clang g++>=9.3.0
+          sudo apt-get -qq -y install curl g++
 
       - name: Install CUDA
         run: .github/workflows/dependencies/dependencies_nvcc.sh 12.9

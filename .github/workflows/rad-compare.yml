@@ -1,13 +1,16 @@
 name: Rad2Tshock
 
 on: [pull_request]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   Rad2Tshock-1d:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
 
       - name: Get submodules
         run: |
@@ -21,7 +24,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update -y -qq
-          sudo apt-get -qq -y install curl cmake jq clang g++>=9.3.0 libopenmpi-dev  openmpi-bin
+          sudo apt-get -qq -y install g++ libopenmpi-dev openmpi-bin
 
       - name: Install hypre
         run: |
@@ -54,4 +57,3 @@ jobs:
           cd Exec/radiation_tests/Rad2Tshock
           ../../../external/amrex/Tools/Plotfile/fextrema.gnu.ex plt_00025 > fextrema.out
           diff fextrema.out ci-benchmarks/Rad2TShock-1d.out
-
