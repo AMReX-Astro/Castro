@@ -1,0 +1,21 @@
+# This used inputs.H_He.25cm.static.1000Hz
+# it was compiled with USE_SINGLE_PRECISION_JACOBIAN=TRUE
+# ROCm 6.3.1
+#
+# EOS: /ccs/home/zingale/Microphysics/EOS/helmholtz
+# NETWORK: /ccs/home/zingale/Microphysics/networks/he-burn/cno-he-burn-34am
+# CONDUCTIVITY: /ccs/home/zingale/Microphysics/conductivity/stellar
+# INTEGRATOR: VODE
+# SCREENING: screen5
+#
+# Castro       git describe: 26.06-2-gb8c2bab45
+# AMReX        git describe: 26.06-10-g61f7201085
+# Microphysics git describe: 26.05-26-gcbc103fe
+#
+# nodes       avg      std-dev
+
+    128     98.7586  0.115939
+    256     52.2095  0.0364017
+    512     40.6136  0.0710177
+   1024     24.2568 0.0392038
+

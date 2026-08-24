@@ -4,6 +4,7 @@ import sys
 import argparse
 import numpy as np
 import pandas as pd
+from yt.frontends.boxlib.api import CastroDataset
 from planar_slice import planar_slice
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
@@ -21,6 +22,14 @@ parser.add_argument('-f', '--fields', nargs='+', type=str,
                     """)
 parser.add_argument("--figsize", nargs=2, type=float, default=[16, 9],
                     metavar=("WIDTH", "HEIGHT"), help="Figure size in inches.")
+parser.add_argument("--xmin", type=float, default=None, metavar="THETA",
+                    help="Minimum theta for plot xlim")
+parser.add_argument("--xmax", type=float, default=None, metavar="THETA",
+                    help="Maximum theta for plot xlim")
+parser.add_argument("--ymin", type=float, default=None, metavar="R",
+                    help="Minimum r [km] for plot ylim")
+parser.add_argument("--ymax", type=float, default=None, metavar="R",
+                    help="Maximum r [km] for plot ylim")
 parser.add_argument("--contour-field", default=None,
                     help="Field variable to use for overplotting contour lines (e.g. 'pressure').")
 parser.add_argument("--overplot-fine-levels", action="store_true",
@@ -34,23 +43,34 @@ parser.add_argument("--annotate-acceleration-streamlines", action="store_true",
                     help="Overlay acceleration streamlines.")
 parser.add_argument("--annotate-grids", action="store_true",
                     help="Overlay AMR grid boundaries colored by level.")
+parser.add_argument("--time-interval", type=float, default=None,
+                     help="Time interval [ms] at which the plot file are divisible by.")
 parser.add_argument('--jobs', '-j', default=1, type=int,
                     help="""Number of workers to plot in parallel""")
 
 args = parser.parse_args()
 
+fnames = args.fnames
+if args.time_interval is not None:
+    fnames = [fname for fname in fnames
+              if np.isclose(CastroDataset(fname).current_time.in_units("ms").value % args.time_interval, 0.0,
+                            rtol=0, atol=1e-3)] # only use atol
+
 # Parallelize the plotting
 with ProcessPoolExecutor(max_workers=args.jobs) as executor:
     future_to_index = {
         executor.submit(planar_slice, [fname], args.fields,
-                        figsize=args.figsize, contour_field=args.contour_field,
+                        figsize=args.figsize,
+                        xmin=args.xmin, xmax=args.xmax,
+                        ymin=args.ymin, ymax=args.ymax,
+                        contour_field=args.contour_field,
                         overplot_fine_levels=args.overplot_fine_levels,
                         annotate_front=args.annotate_front,
                         annotate_velocity_streamlines=args.annotate_velocity_streamlines,
                         annotate_acceleration_streamlines=args.annotate_acceleration_streamlines,
                         annotate_grids=args.annotate_grids,
                         outName=fname+"_planar_slice.png"): i
-        for i, fname in enumerate(args.fnames)
+        for i, fname in enumerate(fnames)
     }
     try:
         for future in as_completed(future_to_index):
