@@ -114,11 +114,11 @@ amr.check_int       = 1000         # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file        = nova_plt        # root name of plotfile
-amr.plot_per         = 4.0        # set a plot every half second
+amr.plot_per         = 5.0        # set a plot every half second
 amr.derive_plot_vars = ALL
 
 amr.small_plot_file        = nova_smallplt        # root name of plotfile
-amr.small_plot_per         =  0.5      # number of seconds between plotfiles
+amr.small_plot_per         =  1.0      # number of seconds between plotfiles
 amr.small_plot_vars = density Temp
 amr.derive_small_plot_vars = abar x_velocity y_velocity X(H1) X(He4) X(C12) X(O16) X(Be7) enuc magvort MachNumber
 
