@@ -28,7 +28,7 @@ EOS_DIR     := helmholtz
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
 NETWORK_DIR := aprox19
 
-INTEGRATOR_DIR := VODE
+INTEGRATOR_DIR := Rosenbrock
 
 MAX_NPTS_MODEL = 65536
 
