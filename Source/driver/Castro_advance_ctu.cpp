@@ -315,7 +315,7 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
         // Check on whether we are going to take too many subcycles.
 
-        int num_subcycles_remaining = int(round(((time + dt) - subcycle_time) / dt_subcycle));
+        int num_subcycles_remaining = static_cast<int>(round(((time + dt) - subcycle_time) / dt_subcycle));
 
         if (num_subcycles_remaining > max_subcycles) {
             amrex::Print() << std::endl
