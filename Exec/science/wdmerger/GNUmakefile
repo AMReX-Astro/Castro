@@ -17,7 +17,7 @@ USE_ROTATION ?= TRUE
 USE_MODEL_PARSER = TRUE
 NUM_MODELS = 2
 
-# Disable burning in shocksa
+# Disable burning in shocks
 USE_SHOCK_VAR = TRUE
 
 # define the location of the CASTRO top directory
@@ -43,7 +43,7 @@ EOS_DIR ?= helmholtz
 
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
 
-NETWORK_DIR ?= aprox13
+NETWORK_DIR ?= he-burn/ase
 
 # If using general_null, make sure we have a reasonable set of isotopes.
 
