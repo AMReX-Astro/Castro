@@ -76,6 +76,15 @@ void src_to_prim(int i, int j, int k, const Real dt,
       (srcQ(i,j,k,QREINT) - q_arr(i,j,k,QREINT) * srcQ(i,j,k,QRHO)*rhoinv) *
       rhoinv + eos_state.dpdr_e * srcQ(i,j,k,QRHO);
 
+#ifdef CONS_SPECIES_HAVE_SOURCES
+    // Do the passive variables, i.e. advected, species, and auxiliary
+
+    for (int ipassive = 0; ipassive < npassive; ipassive++) {
+        const int nc = upassmap(ipassive);
+        const int n = qpassmap(ipassive);
+        srcQ(i,j,k,n) = (srcU[nc] - q_arr(i,j,k,n) * srcQ(i,j,k,QRHO)) * rhoinv;
+    }
+#endif
 }
 
 ///
