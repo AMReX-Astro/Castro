@@ -264,6 +264,10 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                      qm_arr, qp_arr);
             }
 
+            // enforce that the species sum to 1 on interfaces
+
+            enforce_species_sum(ibx[idir], qm_arr, qp_arr);
+
             // get the face-averaged state and flux, <q> and F(<q>),
             // in the idir direction by solving the Riemann problem
             // operate on ibx[idir]
