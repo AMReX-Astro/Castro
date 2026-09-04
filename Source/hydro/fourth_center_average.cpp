@@ -3,9 +3,6 @@
 
 using namespace amrex;
 
-// Note: pretty much all of these routines below assume that dx(1) = dx(2) = dx(3)
-
-
 void
 Castro::make_cell_center(const Box& bx,
                          Array4<Real const> const& U,
