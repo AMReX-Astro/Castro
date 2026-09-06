@@ -53,7 +53,7 @@ Castro::source_flag(int src)
         if (time_integration_method == SpectralDeferredCorrections) {
             return true;
         } else {
-          return false;
+            return false;
         }
 #else
     case thermo_src:
@@ -364,11 +364,9 @@ Castro::construct_new_source(int src, MultiFab& source, MultiFab& state_old, Mul
         construct_new_ext_source(source, state_old, state_new, time, dt);
         break;
 
-#ifdef MHD
     case thermo_src:
         construct_new_thermo_source(source, state_old, state_new, time, dt);
         break;
-#endif
 
     case geom_src:
         construct_new_geom_source(source, state_old, state_new, time, dt);
