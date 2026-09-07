@@ -205,7 +205,8 @@ Real interpolate_3d (const Real* loc, const Real* dx, int var_index, int nsub = 
 AMREX_INLINE
 void establish_hse (Real& mass_want, Real& central_density_want, Real& radius,
                     const Real core_comp[NumSpec], Real temperature, Real dx,
-                    Real envelope_mass, const Real envelope_comp[NumSpec], int model_index = 0)
+                    Real envelope_mass, const Real envelope_comp[NumSpec], int model_index = 0,
+                    Real delta = 0.0_rt)
 {
     // Note that if central_density > 0, then this initial model generator will use it in calculating
     // the model. If mass is also provided in this case, we assume it is an estimate used for the purpose of
@@ -303,123 +304,223 @@ void establish_hse (Real& mass_want, Real& central_density_want, Real& radius,
             model.r(i) = model.r(i-1) + dx;
         }
 
-        // Keep track of the mass enclosed below the current zone.
+        // delta is the input parameter which will determine the width of the transition
+        bool smooth = delta > 0.0_rt && envelope_mass > 0.0_rt && mass_want > 0.0_rt;
 
-        Real rl = 0.0_rt;
-        Real rr = rl + dx;
+        // mass to decide where to start the transition
+        Real transition_mass = mass_want - envelope_mass;
+        Real transition_mass_lo = 0.0_rt;
 
-        Real M_enclosed = (4.0_rt / 3.0_rt) * M_PI * (std::pow(rr, 3) - std::pow(rl, 3)) * model.state(0, model::idens);
-        mass = M_enclosed;
+        // this upper bound needs to be larger than the mass of any model HSE builds
+        // not just the desired final WD mass
+        Real transition_mass_hi = 2.0_rt * C::M_solar;
+        Real transition_offset = 4.0_rt * delta; // same as subchandra
 
-        //-------------------------------------------------------------------------
-        // HSE solve
-        //-------------------------------------------------------------------------
-        for (int i = 1; i < NPTS_MODEL; ++i) {
+        // to check after transition if we get the desired envelope mass
+        Real smooth_env_mass = 0.0_rt;
+        bool envelope_mass_converged = !smooth;
+        const int max_transition_iter = smooth ? 60 : 1;
+        const Real envelope_mass_tol = 1.0e-2_rt;
 
-            rl += dx;
-            rr += dx;
+        // outer iteration until we get desired He mass envelope
+        for (int transition_iter = 1; transition_iter <= max_transition_iter; ++transition_iter) {
 
-            // As the initial guess for the density, use the underlying zone.
+            fluff = false;
+            icutoff = NPTS_MODEL;
 
-            model.state(i, model::idens) = model.state(i-1, model::idens);
+            bool transition = false;
+            Real transition_radius = -1.0_rt;
+            smooth_env_mass = 0.0_rt;
 
-            if (mass_want > 0.0_rt && M_enclosed >= mass_want - envelope_mass) {
-                for (int n = 0; n < NumSpec; ++n) {
-                    model.state(i, model::ispec + n) = envelope_comp[n];
-                    eos_state.xn[n] = model.state(i, model::ispec + n);
+            // Keep track of the mass enclosed below the current zone.
+
+            Real rl = 0.0_rt;
+            Real rr = rl + dx;
+
+            Real M_enclosed = (4.0_rt / 3.0_rt) * M_PI * (std::pow(rr, 3) - std::pow(rl, 3)) * model.state(0, model::idens);
+            mass = M_enclosed;
+
+            //-------------------------------------------------------------------------
+            // HSE solve
+            //-------------------------------------------------------------------------
+
+            for (int i = 1; i < NPTS_MODEL; ++i) {
+
+                rl += dx;
+                rr += dx;
+
+                // As the initial guess for the density, use the underlying zone.
+
+                model.state(i, model::idens) = model.state(i-1, model::idens);
+
+                eos_state.rho = model.state(i, model::idens);
+                eos_state.T = model.state(i, model::itemp);
+
+                // how much He is in the envelope
+
+                Real env_fraction = 0.0_rt;
+
+                // smooth transition when delta is supplied
+                if (smooth) {
+                    if (!transition && M_enclosed >= transition_mass) {
+                        transition_radius = model.r(i);
+                        transition = true;
+                    }
+
+                    if (transition) {
+                        Real f = 0.5_rt * (1.0_rt + std::tanh((model.r(i) - transition_radius - transition_offset) / delta));
+                        env_fraction = f;
+
+                        for (int n = 0; n < NumSpec; ++n) {
+                            model.state(i, model::ispec + n) = (1.0_rt - f) * core_comp[n] + f * envelope_comp[n];
+                            eos_state.xn[n] = model.state(i, model::ispec + n);
+                        }
+                    }
+                    else {
+                        for (int n = 0; n < NumSpec; ++n) {
+                            model.state(i, model::ispec + n) = core_comp[n];
+                            eos_state.xn[n] = model.state(i, model::ispec + n);
+                        }
+                    }
                 }
-            }
-            else {
-                for (int n = 0; n < NumSpec; ++n) {
-                    model.state(i, model::ispec + n) = core_comp[n];
-                    eos_state.xn[n] = model.state(i, model::ispec + n);
+                // retaining the original sharp transition option
+                else {
+                    if (mass_want > 0.0_rt && M_enclosed >= mass_want - envelope_mass) {
+                        for (int n = 0; n < NumSpec; ++n) {
+                            model.state(i, model::ispec + n) = envelope_comp[n];
+                            eos_state.xn[n] = model.state(i, model::ispec + n);
+                        }
+                        env_fraction = 1.0_rt;
+                    }
+                    else {
+                        for (int n = 0; n < NumSpec; ++n) {
+                            model.state(i, model::ispec + n) = core_comp[n];
+                            eos_state.xn[n] = model.state(i, model::ispec + n);
+                        }
+                    }
                 }
-            }
+
 #ifdef AUX_THERMO
-            set_aux_comp_from_X(eos_state);
+    set_aux_comp_from_X(eos_state);
 #endif
 
-            Real g = -C::Gconst * M_enclosed / (std::pow(rl, 2));
+                Real g = -C::Gconst * M_enclosed / (std::pow(rl, 2));
 
+                //----------------------------------------------------------------------
+                // Iteration loop
+                //----------------------------------------------------------------------
 
-            //----------------------------------------------------------------------
-            // Iteration loop
-            //----------------------------------------------------------------------
+                // Start off the Newton loop by assuming that the zone has not converged.
 
-            // Start off the Newton loop by assuming that the zone has not converged.
+                bool converged_hse = false;
 
-            bool converged_hse = false;
+                for (int hse_iter = 1; hse_iter <= max_hse_iter; ++hse_iter) {
 
-            for (int hse_iter = 1; hse_iter <= max_hse_iter; ++hse_iter) {
+                    if (fluff) {
+                        model.state(i, model::idens) = ambient::ambient_state[URHO];
+                        eos_state.rho = ambient::ambient_state[URHO];
+                        break;
+                    }
 
-                if (fluff) {
-                    model.state(i, model::idens) = ambient::ambient_state[URHO];
-                    eos_state.rho = ambient::ambient_state[URHO];
-                    break;
+                    // The core is isothermal, so we just need to constrain
+                    // the density and pressure to agree with the EOS and HSE.
+
+                    // We difference HSE about the interface between the current
+                    // zone and the one just inside.
+
+                    Real rho_avg = 0.5_rt * (model.state(i, model::idens) + model.state(i-1, model::idens));
+                    p_want = model.state(i-1, model::ipres) + dx * rho_avg * g;
+
+                    eos(eos_input_rt, eos_state);
+
+                    drho = (p_want - eos_state.p) / (eos_state.dpdr - 0.5_rt * dx * g);
+
+                    model.state(i, model::idens) =
+                        amrex::max(0.9_rt * model.state(i, model::idens),
+                                   amrex::min(model.state(i, model::idens) + drho,
+                                              1.1_rt * model.state(i, model::idens)));
+
+                    eos_state.rho = model.state(i, model::idens);
+
+                    if (model.state(i, model::idens) < ambient::ambient_state[URHO]) {
+                        icutoff = i;
+                        fluff = true;
+                    }
+
+                    if (std::abs(drho) < model::hse_tol * model.state(i, model::idens)) {
+                        converged_hse = true;
+                        break;
+                    }
                 }
 
-                // The core is isothermal, so we just need to constrain
-                // the density and pressure to agree with the EOS and HSE.
+                if (!converged_hse && (!fluff)) {
 
-                // We difference HSE about the interface between the current
-                // zone and the one just inside.
+                    std::cout << "Error: zone " <<  i << " did not converge in init_hse()" << std::endl;
+                    std::cout << " rho = " << model.state(i, model::idens)
+                              << " temp = " << model.state(i, model::itemp)
+                              << " p_want = " << p_want
+                              << " p = " << eos_state.p
+                              << " drho = " << drho
+                              << " tol * dens = " << model::hse_tol * model.state(i, model::idens)
+                              << std::endl;
+                    amrex::Error("Error: HSE non-convergence.");
 
-                Real rho_avg = 0.5_rt * (model.state(i, model::idens) + model.state(i-1, model::idens));
-                p_want = model.state(i-1, model::ipres) + dx * rho_avg * g;
+                }
+
+                // Call the EOS to establish the final properties of this zone.
 
                 eos(eos_input_rt, eos_state);
 
-                drho = (p_want - eos_state.p) / (eos_state.dpdr - 0.5_rt * dx * g);
+                model.state(i, model::ipres) = eos_state.p;
 
-                model.state(i, model::idens) = amrex::max(0.9_rt * model.state(i, model::idens),
-                                                     amrex::min(model.state(i, model::idens) + drho,
-                                                                1.1_rt * model.state(i, model::idens)));
-                eos_state.rho = model.state(i, model::idens);
+                // Discretize the mass enclosed as (4 pi / 3) * rho * dr * (rl**2 + rl * rr + rr**2).
 
-                if (model.state(i, model::idens) < ambient::ambient_state[URHO]) {
-                    icutoff = i;
-                    fluff = true;
+                Real dM = (4.0_rt / 3.0_rt) * M_PI * model.state(i, model::idens) * dx *
+                    (rr * rr + rl * rr + rl * rl);
+                M_enclosed += dM;
+
+                if (i <= icutoff) {
+                    // Also update the final WD mass if we're not in the ambient material.
+                    mass += dM;
+                    smooth_env_mass += dM * env_fraction; // mass of envelope after smoothing
                 }
 
-                if (std::abs(drho) < model::hse_tol * model.state(i, model::idens)) {
-                    converged_hse = true;
-                    break;
-                }
+            } // End loop over zones
 
+            // here we check if we get the desired envelope mass after smoothing
+            // if not, we try again with an adjusted transition location
+            if (!smooth) {
+                envelope_mass_converged = true;
+                break;
             }
 
-            if (!converged_hse && (!fluff)) {
-
-                std::cout << "Error: zone " <<  i << " did not converge in init_hse()" << std::endl;
-                std::cout << " rho = " << model.state(i, model::idens)
-                          << " temp = " << model.state(i, model::itemp)
-                          << " p_want = " << p_want
-                          << " p = " << eos_state.p
-                          << " drho = " << drho
-                          << " tol * dens = " << model::hse_tol * model.state(i, model::idens)
-                          << std::endl;
-                amrex::Error("Error: HSE non-convergence.");
-
+            if (std::abs(smooth_env_mass - envelope_mass) / envelope_mass < envelope_mass_tol) {
+                envelope_mass_converged = true;
+                break;
             }
 
-            // Call the EOS to establish the final properties of this zone.
-
-            eos(eos_input_rt, eos_state);
-
-            model.state(i, model::ipres) = eos_state.p;
-
-            // Discretize the mass enclosed as (4 pi / 3) * rho * dr * (rl**2 + rl * rr + rr**2).
-
-            Real dM = (4.0_rt / 3.0_rt) * M_PI * model.state(i, model::idens) * dx *
-                      (rr * rr + rl * rr + rl * rl);
-            M_enclosed += dM;
-
-            if (i <= icutoff) {
-                // Also update the final WD mass if we're not in the ambient material.
-                mass += dM;
+            if (smooth_env_mass < envelope_mass) {
+                transition_mass_hi = transition_mass;
+            }
+            else {
+                transition_mass_lo = transition_mass;
             }
 
-        } // End loop over zones
+            transition_mass = 0.5_rt * (transition_mass_lo + transition_mass_hi);
+
+        } // End transition-mass iteration
+
+        if (smooth) {
+            amrex::Print() << "Requested envelope mass = "
+                           << envelope_mass / C::M_solar << " solar masses\n";
+
+            amrex::Print() << "Actual smoothed envelope mass = "
+                           << smooth_env_mass / C::M_solar << " solar masses\n";
+        }
+
+        if (smooth && !envelope_mass_converged) {
+            amrex::Error("ERROR: smoothed envelope mass did not converge.");
+        }
 
         radius = model.r(icutoff);
 
