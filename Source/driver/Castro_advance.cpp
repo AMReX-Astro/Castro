@@ -11,6 +11,7 @@
 
 #include <cmath>
 #include <climits>
+#include <format>
 
 #include <problem_initialize_state_data.H>
 
@@ -48,7 +49,7 @@ Castro::advance (Real time,
 
     wall_time_start = ParallelDescriptor::second();
 
-    MultiFab::RegionTag amrlevel_tag("AmrLevel_Level_" + std::to_string(level));
+    MultiFab::RegionTag amrlevel_tag(std::format("AmrLevel_Level_{}", level));
 
     Real dt_new = dt;
 
