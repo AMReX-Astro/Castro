@@ -406,8 +406,8 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
             status = do_advance_ctu(subcycle_time, dt_subcycle);
 
-            if (in_retry) {
-                in_retry = false;
+            for (int lev = level; lev <= max_level_to_advance; ++lev) {
+                getLevel(lev).in_retry = false;
             }
 
             if (!status.success) {
@@ -443,12 +443,16 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
             if (retry_advance_ctu(dt_subcycle, status)) {
                 do_swap = false;
-                in_retry = true;
+                for (int lev = level; lev <= max_level_to_advance; ++lev) {
+                    getLevel(lev).in_retry = true;
+                }
 
                 continue;
             }
             else {
-                in_retry = false;
+                for (int lev = level; lev <= max_level_to_advance; ++lev) {
+                    getLevel(lev).in_retry = false;
+                }
             }
 
         }
