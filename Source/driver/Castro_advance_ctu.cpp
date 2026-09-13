@@ -456,7 +456,7 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
         subcycle_time += dt_subcycle;
         sub_iteration += 1;
 
-        // Continually record the last timestep we took on this level
+        // Continually record the last timestep we took on each level advanced
         // in case we need it later. We only record it if the subcycle
         // was completed successfully (i.e. we got to this point).
         // Note: this is different from last_dt_subcycle. This variable
@@ -464,7 +464,9 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
         // the other one records the timestep as if it had not been
         // modified by the constraint of matching the final time.
 
-        lastDt = dt_subcycle;
+        for (int lev = level; lev <= max_level_to_advance; ++lev) {
+            getLevel(lev).lastDt = dt_subcycle;
+        }
 
     }
 
