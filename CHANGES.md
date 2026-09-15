@@ -1,5 +1,17 @@
 # Changelog
 
+## 26.09
+
+  * `subchandra` : tweak the netflow plot sizes (#3376)
+
+  * add concurrency groups to github CI (#3374)
+
+  * update `CITATION.md` (#3375)
+
+  * some C++ string modernization (#3372)
+
+  * update CI benchmarks due to Microphysics changes (#3373)
+
 ## 26.08
 
   * output StarLib deviates into the `job_info` file (#3363)

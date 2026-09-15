@@ -29,6 +29,7 @@ ifneq ($(NO_DOXYGEN),TRUE)
 	breathe-apidoc --o source doxy_files/xml -g class,file
 	python3 make_api.py
 endif
+	curl -L -H 'Accept: application/x-bibtex' https://doi.org/10.5281/zenodo.2301848 > source/zenodo.bibtex.txt
 	python parse_changelog.py ../CHANGES.md > source/changelog.md
 	jupyter nbconvert --to rst source/yt_example.ipynb
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)

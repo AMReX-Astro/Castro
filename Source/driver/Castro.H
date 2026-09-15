@@ -1,6 +1,8 @@
 #ifndef CASTRO_H
 #define CASTRO_H
 
+#include <format>
+
 #include <state_indices.H>
 
 // runtime parameters
@@ -1131,7 +1133,7 @@ public:
 ///
     bool oversubscribing() {    // NOLINT(readability-convert-member-functions-to-static)
 #ifdef AMREX_USE_GPU
-        return (amrex::MultiFab::queryMemUsage("AmrLevel_Level_" + std::to_string(level)) >=
+        return (amrex::MultiFab::queryMemUsage(std::format("AmrLevel_Level_{}", level)) >=
                 static_cast<Long>(amrex::Gpu::Device::totalGlobalMem()));
 #else
         return false;

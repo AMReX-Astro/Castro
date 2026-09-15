@@ -68,6 +68,7 @@ https://github.com/amrex-astro/Castro
    :maxdepth: 1
    :caption: References
 
+   citing
    changes
    zreferences
 

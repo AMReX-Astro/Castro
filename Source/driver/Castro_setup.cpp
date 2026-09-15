@@ -1,6 +1,7 @@
 #include <cstdio>
 
 #include <array>
+#include <format>
 
 #include <AMReX_LevelBld.H>
 #include <AMReX_ParmParse.H>
@@ -493,7 +494,7 @@ Castro::variableSetUp ()
     {
       set_scalar_bc(bc, phys_bc);
       bcs[UFA+i] = bc;
-      name[UFA+i] = "adv_" + std::to_string(i);
+      name[UFA+i] = std::format("adv_{}", i);
     }
 
 
@@ -642,7 +643,7 @@ Castro::variableSetUp ()
       }
       else if (castro::time_integration_method == SimplifiedSpectralDeferredCorrections) {
           for (int n = 0; n < sdc_iters+1; n++) {
-              burn_weight_names.emplace_back("burn_weights_iter_" + std::to_string(n+1));
+              burn_weight_names.emplace_back(std::format("burn_weights_iter_{}", n + 1));
           }
       }
   }
@@ -655,7 +656,7 @@ Castro::variableSetUp ()
           replace_inflow_bc(bc);
 
           desc_lst.setComponent(Simplified_SDC_React_Type, i,
-                                "sdc_react_source_" + std::to_string(i),
+                                std::format("sdc_react_source_{}", i),
                                 bc, genericBndryFunc);
       }
   }
@@ -682,7 +683,7 @@ Castro::variableSetUp ()
   }
   else {
       for (int i = 0; i < Radiation::nGroups; i++) {
-        rad_name = "rad" + std::to_string(i);
+        rad_name = std::format("rad{}", i);
         desc_lst
           .setComponent(Rad_Type, i, rad_name, bc,
                         genericBndryFunc);
