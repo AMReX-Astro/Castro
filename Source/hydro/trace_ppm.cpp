@@ -452,9 +452,19 @@ Castro::trace_ppm(const Box& bx,
         const int nc = upassmap(ipassive);
         const int n = qpassmap(ipassive);
 
+        Real Ip_src_passive = 0.0_rt;
+        Real Im_src_passive = 0.0_rt;
+
         load_passive_stencil(U_arr, rho_inv_arr, idir, i, j, k, nc, s);
         ppm_reconstruct(s, flat, sm, sp);
         ppm_int_profile_single(sm, sp, s[i0], un, dtdL, Ip_passive, Im_passive);
+
+        // source tracing for species - KB
+        if (n >= QFS && n < QFS + NumSpec) {
+            load_stencil(srcQ, idir, i, j, k, n, s);
+            ppm_reconstruct(s, flat, sm, sp);
+            ppm_int_profile_single(sm, sp, s[i0], un, dtdL, Ip_src_passive, Im_src_passive);
+        }
 
         // Plus state on face i
 
@@ -471,16 +481,16 @@ Castro::trace_ppm(const Box& bx,
             // wave, so no projection is needed.  Since we are not
             // projecting, the reference state doesn't matter
 
-            qp(i,j,k,n) = Im_passive;
+            qp(i,j,k,n) = Im_passive + hdt * Im_src_passive;
         }
 
         // Minus state on face i+1
         if (idir == 0 && i <= vhi[0]) {
-            qm(i+1,j,k,n) = Ip_passive;
+            qm(i+1,j,k,n) = Ip_passive + hdt * Ip_src_passive;
         } else if (idir == 1 && j <= vhi[1]) {
-            qm(i,j+1,k,n) = Ip_passive;
+            qm(i,j+1,k,n) = Ip_passive + hdt * Ip_src_passive;
         } else if (idir == 2 && k <= vhi[2]) {
-            qm(i,j,k+1,n) = Ip_passive;
+            qm(i,j,k+1,n) = Ip_passive + hdt * Ip_src_passive;
         }
     }
 
