@@ -276,7 +276,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                                 idir, true);
 
             if (do_hydro == 0) {
-                amrex::ParallelFor(nbx, NUM_STATE,
+                amrex::ParallelFor(ibx[idir], NUM_STATE,
                 [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
                 {
                     f_avg_arr(i,j,k,n) = 0.0;
