@@ -55,6 +55,46 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
   GeometryData geomdata = geom.data();
 #endif
 
+  // Match the flux integral to the final SDC correction:
+  // dt * sum_j w_j F_old[j] + sum_m dt_m (F_new[m] - F_old[m]).
+  // Accumulate the old terms on the penultimate sweep and the new terms
+  // on the final sweep, so we do not need to retain fluxes at every node.
+  //
+  // stage_weight is the dimensionless coefficient of this node's flux
+  // evaluation in that integral.  It depends on both the node and sweep;
+  // it is not simply the quadrature weight w_j.  The flux stored below
+  // already includes dt and face area, so no further time factor is needed.
+  // A zero weight means this evaluation does not contribute to the saved
+  // integral.  The same coefficient applies to the dt-scaled radial pressure.
+  Real stage_weight = 0.0_rt;
+  if (time_integration_method == SpectralDeferredCorrections) {
+      const int last_iteration = sdc_order + sdc_extra - 1;
+      const int m = current_sdc_node;
+
+      // dt_sdc contains node times normalized to the full timestep.
+      // interval_weight = dt_m / dt is the fraction of the step from
+      // node m to m+1.  It weights the explicit flux correction at m,
+      // not the quadrature integral.  The endpoint has no following
+      // interval, so its correction weight is zero.
+      const Real interval_weight = m < SDC_NODES - 1 ?
+          dt_sdc[m+1] - dt_sdc[m] : 0.0_rt;
+
+      if (m == 0) {
+          // Node zero is evaluated only once and its correction cancels.
+          // With just one sweep, all old-node RHS values are initialized
+          // from node zero, leaving the explicit subinterval weights.
+          stage_weight = last_iteration == 0 ?
+              interval_weight : node_weights[0];
+      } else if (sdc_iteration == last_iteration - 1) {
+          // F_old[m] contributes to the quadrature and is subtracted
+          // in the explicit correction: (w_m - dt_m/dt) * dt * F_old[m].
+          stage_weight = node_weights[m] - interval_weight;
+      } else if (sdc_iteration == last_iteration) {
+          // F_new[m] supplies the remaining correction: dt_m * F_new[m].
+          stage_weight = interval_weight;
+      }
+  }
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -104,12 +144,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
         // the output of this will be stored in the correct stage MF
         auto source_out_arr = A_update.array(mfi);
-
-        Real stage_weight = 1.0;
-
-        if (time_integration_method == SpectralDeferredCorrections) {
-          stage_weight = node_weights[current_sdc_node];
-        }
 
         // get the flattening coefficient
         flatn.resize(obx, 1);
@@ -678,14 +712,10 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
         }
 
 
-        // Store the fluxes from this advance -- we weight them by the
-        // integrator weight for this stage
-
-        // For SDC, we store node 0 the only time we enter here (the
-        // first iteration) and we store the other nodes only on the
-        // last iteration.
-        if (time_integration_method == SpectralDeferredCorrections &&
-             (current_sdc_node == 0 || sdc_iteration == sdc_order+sdc_extra-1)) {
+        // Fluxes already include dt and face area.  The endpoint flux
+        // contributes on the penultimate sweep, since the final sweep
+        // does not evaluate the last node.
+        if (stage_weight != 0.0_rt) {
 
           for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
