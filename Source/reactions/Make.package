@@ -5,4 +5,3 @@ CEXE_headers += Castro_react.H
 CEXE_headers += sdc_cons_to_burn.H
 
 CEXE_sources += Castro_react.cpp
-CEXE_headers += Castro_react_util.H

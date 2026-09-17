@@ -12,7 +12,7 @@ using namespace amrex;
 
 #ifdef AMREX_PARTICLES
 
-AmrTracerParticleContainer* Castro::TracerPC =  0;
+std::unique_ptr<AmrTracerParticleContainer> Castro::TracerPC;
 
 namespace {
     std::vector<int>  timestamp_indices;
@@ -45,9 +45,9 @@ Castro::init_particles ()
 
     if (do_tracer_particles)
     {
-        BL_ASSERT(TracerPC == 0);
+        BL_ASSERT(TracerPC == nullptr);
 
-        TracerPC = new AmrTracerParticleContainer(parent);
+        TracerPC = std::make_unique<AmrTracerParticleContainer>(parent);
 
         TracerPC->SetVerbose(particles::particle_verbose);
 
@@ -87,9 +87,9 @@ Castro::ParticlePostRestart (const std::string& restart_file)
     {
         if (do_tracer_particles)
         {
-            BL_ASSERT(TracerPC == 0);
+            BL_ASSERT(TracerPC == nullptr);
 
-            TracerPC = new AmrTracerParticleContainer(parent);
+            TracerPC = std::make_unique<AmrTracerParticleContainer>(parent);
 
             TracerPC->SetVerbose(particles::particle_verbose);
             //

@@ -11,6 +11,8 @@
 #include <string>
 #include <ctime>
 #include <memory>
+#include <numbers>
+#include <format>
 
 #include <AMReX_Utility.H>
 #include <AMReX_CONSTANTS.H>
@@ -96,18 +98,18 @@ Vector<Real> Castro::node_weights;
 
 #ifdef GRAVITY
 // the gravity object
-Gravity*     Castro::gravity  = nullptr;
+std::unique_ptr<Gravity> Castro::gravity;
 #endif
 
 #ifdef DIFFUSION
 // the diffusion object
-Diffusion*    Castro::diffusion  = nullptr;
+std::unique_ptr<Diffusion> Castro::diffusion;
 #endif
 
 #ifdef RADIATION
 
 // the radiation object
-Radiation*   Castro::radiation = nullptr;
+std::unique_ptr<Radiation> Castro::radiation;
 #endif
 
 
@@ -159,8 +161,7 @@ Castro::variableCleanUp ()
     if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
       std::cout << "Deleting gravity in variableCleanUp..." << '\n';
     }
-    delete gravity;
-    gravity = nullptr;
+    gravity.reset();
   }
 #endif
 
@@ -169,8 +170,7 @@ Castro::variableCleanUp ()
     if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
       std::cout << "Deleting diffusion in variableCleanUp..." << '\n';
     }
-    delete diffusion;
-    diffusion = nullptr;
+    diffusion.reset();
   }
 #endif
 
@@ -180,8 +180,7 @@ Castro::variableCleanUp ()
       if (report && ParallelDescriptor::IOProcessor()) {
           std::cout << "Deleting radiation in variableCleanUp..." << '\n';
       }
-      delete radiation;
-      radiation = nullptr;
+      radiation.reset();
       if (report && ParallelDescriptor::IOProcessor()) {
           std::cout << "                                        done" << std::endl;
       }
@@ -189,8 +188,7 @@ Castro::variableCleanUp ()
 #endif
 
 #ifdef AMREX_PARTICLES
-  delete TracerPC;
-  TracerPC = 0;
+  TracerPC.reset();
 #endif
 
     desc_lst.clear();
@@ -310,13 +308,13 @@ Castro::read_params ()
           amrex::Error();
         }
 
-        if ( (hi_bc[1] != amrex::PhysBCType::symmetry) && (std::abs(dgeom.ProbHi(1) - M_PI) <= 1.e-4_rt) )
+        if ( (hi_bc[1] != amrex::PhysBCType::symmetry) && (std::abs(dgeom.ProbHi(1) - std::numbers::pi) <= 1.e-4_rt) )
         {
           std::cerr << "ERROR:Castro::read_params: must set theta=pi boundary condition to Symmetry for spherical\n";
           amrex::Error();
         }
 
-        if ( (dgeom.ProbLo(1) < 0.0_rt) && (dgeom.ProbHi(1) > M_PI) )
+        if ( (dgeom.ProbLo(1) < 0.0_rt) && (dgeom.ProbHi(1) > std::numbers::pi) )
         {
           amrex::Abort("ERROR:Castro::read_params: Theta must be within [0, Pi] for spherical coordinate system in 2D");
         }
@@ -381,9 +379,9 @@ Castro::read_params ()
 #endif
 
 #ifdef TRUE_SDC
-    int max_level;
-    ppa.query("max_level", max_level);
-    if (max_level > 0) {
+    int max_level_tmp;
+    ppa.query("max_level", max_level_tmp);
+    if (max_level_tmp > 0) {
         amrex::Error("True SDC does not work with AMR.");
     }
 #endif
@@ -515,6 +513,9 @@ Castro::read_params ()
         amrex::Error();
     }
 #endif
+
+    AMREX_ALWAYS_ASSERT(rot_axis >= 1 && rot_axis <= 3);
+
 #endif
 
 #ifdef SPONGE
@@ -622,7 +623,7 @@ Castro::read_params ()
         if (ppr.countval("max_level") > 0) {
             int max_level;
             ppr.get("max_level", max_level);
-            BL_ASSERT(max_level <= MAX_LEV);
+            BL_ASSERT(max_level < MAX_LEV);
             info.SetMaxLevel(max_level);
         } else {
             // the default max_level of AMRErrorTagInfo is 1000, but make sure
@@ -693,7 +694,7 @@ Castro::Castro (Amr&            papa,
 {
     BL_PROFILE("Castro::Castro()");
 
-    MultiFab::RegionTag amrlevel_tag("AmrLevel_Level_" + std::to_string(lev));
+    MultiFab::RegionTag amrlevel_tag(std::format("AmrLevel_Level_{}", lev));
 
     buildMetrics();
 
@@ -720,7 +721,7 @@ Castro::Castro (Amr&            papa,
     if (do_grav == 1) {
       // gravity is a static object, only alloc if not already there
       if (gravity == nullptr) {
-        gravity = new Gravity(parent,parent->finestLevel(),&phys_bc, URHO);
+        gravity = std::make_unique<Gravity>(parent, parent->finestLevel(), &phys_bc, URHO);
       }
 
       // Passing numpts_1d at level 0
@@ -751,7 +752,7 @@ Castro::Castro (Amr&            papa,
 #ifdef DIFFUSION
       // diffusion is a static object, only alloc if not already there
       if (diffusion == nullptr) {
-        diffusion = new Diffusion(parent,&phys_bc);
+        diffusion = std::make_unique<Diffusion>(parent, &phys_bc);
       }
 
       diffusion->install_level(level,this,volume,area.data());
@@ -761,8 +762,8 @@ Castro::Castro (Amr&            papa,
     if (do_radiation) {
       if (radiation == nullptr) {
         // radiation is a static object, only alloc if not already there
-        radiation = new Radiation(parent, this);
-        global::the_radiation_ptr = radiation;
+        radiation = std::make_unique<Radiation>(parent, this);
+        global::the_radiation_ptr = radiation.get();
       }
       radiation->regrid(level, grids, dmap);
 
@@ -2233,7 +2234,7 @@ Castro::post_restart ()
 #ifdef DIFFUSION
       // diffusion is a static object, only alloc if not already there
       if (diffusion == nullptr) {
-          diffusion = new Diffusion(parent,&phys_bc);
+          diffusion = std::make_unique<Diffusion>(parent, &phys_bc);
       }
 
       if (level == 0) {
@@ -3359,7 +3360,7 @@ Castro::check_for_negative_density ()
 #ifndef AMREX_USE_GPU
                         std::cout << "Invalid X[" << n << "] = " << X << " in zone "
                                   << i << ", " << j << ", " << k
-                                  << " with density = " << rho << "\n";
+                                  << " with density = " << rho << std::endl;
 #elif defined(ALLOW_GPU_PRINTF)
                         AMREX_DEVICE_PRINTF("Invalid X[%d] = %g in zone (%d,%d,%d) with density = %g\n",
                                             n, X, i, j, k, rho);
@@ -3475,8 +3476,8 @@ Castro::allocOldData ()
 {
     BL_PROFILE("Castro::allocOldData");
 
-    MultiFab::RegionTag amrlevel_tag("AmrLevel_Level_" + std::to_string(level));
-    MultiFab::RegionTag statedata_tag("StateData_Level_" + std::to_string(level));
+    MultiFab::RegionTag amrlevel_tag(std::format("AmrLevel_Level_{}", level));
+    MultiFab::RegionTag statedata_tag(std::format("StateData_Level_{}", level));
     for (int k = 0; k < num_state_type; k++) {
         state[k].allocOldData();
     }
@@ -4240,8 +4241,8 @@ Castro::swap_state_time_levels(const Real dt)
 
     BL_PROFILE("Castro::swap_state_time_levels()");
 
-    MultiFab::RegionTag statedata_tag("StateData_Level_" + std::to_string(level));
-    MultiFab::RegionTag amrlevel_tag("AmrLevel_Level_" + std::to_string(level));
+    MultiFab::RegionTag statedata_tag(std::format("StateData_Level_{}", level));
+    MultiFab::RegionTag amrlevel_tag(std::format("AmrLevel_Level_{}", level));
 
     for (int k = 0; k < num_state_type; k++) {
 
@@ -4332,7 +4333,12 @@ Castro::define_new_center(const MultiFab& S, Real time)
     }
 #endif
 
-    // Find the position of the "center" by interpolating from data at cell centers
+    // Find the position of the "center" by interpolating from data at
+    // cell centers We only define a single 3x3 (or 3x3x3) box around
+    // max_index above, so this MultiFab should have a single local
+    // FAB.
+    AMREX_ALWAYS_ASSERT(mf.local_size() == 1);
+
     for (MFIter mfi(mf); mfi.isValid(); ++mfi)
     {
 

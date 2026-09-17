@@ -1,7 +1,39 @@
 ----------------------------------------------------
-Instructions:
+Currently supports two different Embiggen modes:
+1. full_hierarchy
 
-Let's say you have a checkpoint file, chk00100,  say, with 5 levels of refinement 
+   Grow the computational domain by creating a new coarse level.
+   Existing AMR levels are shifted up by one level
+   (old level 0 -> new level 1, old level 1 -> new level 2, ...).
+   A new level 0 is created and initialized during restart
+   where the extended regions at level 0 are initialized according to
+   problem_initialize_state_data() and the regions overlapping
+   the original coarse level, or the new level 1 is initialized
+   by averaging down the data from the new level 1 grids.
+
+   Required parameters:
+       ref_ratio
+       grown_factor
+       star_at_center
+
+2. theta_extend
+
+   Extend the existing level 0 domain in the theta direction
+   without adding a new AMR level. Existing data are preserved
+   and copied into the enlarged domain. Newly added cells are
+   initialized during restart via problem_initialize_state_data().
+   This is designed for 2D Spherical Geometry specifically.
+   It needs the new theta upper boundary in radian and the
+   blocking factor used for running the simulation
+
+   Required parameters:
+       theta_new_hi
+       blocking_factor
+
+----------------------------------------------------
+Instructions for full_hierarchy:
+
+Let's say you have a checkpoint file, chk00100,  say, with 5 levels of refinement
 and a (real) problem domain size P and (integer) domain size D at level 0.
 
 The inputs file that created this might look like:
@@ -22,8 +54,8 @@ geometry.prob_hi = P P
 
 Now let's suppose that:
 
-1) The star is centered in the corner, i.e. you're only modeling an octant, and 
-2) you want to grow the domain by a factor of 8,  and 
+1) The star is centered in the corner, i.e. you're only modeling an octant, and
+2) you want to grow the domain by a factor of 8,  and
 3) you want to cover that new larger domain with a level that is a factor of 2 coarser than the existing level 0 grids.
 
 Then you need to:
@@ -76,7 +108,7 @@ IMPORTANT:
 
 1) You must set max_level to be one greater than before.
 
-2) Set amr.regrid_on_restart = 1 to make sure that the gridding is as you want it 
+2) Set amr.regrid_on_restart = 1 to make sure that the gridding is as you want it
 before you take any timesteps.  The first plotfile generated will show the new grids.
 
 2) You must set amr.n_cell = (grown_factor / ref_ratio) times the previous n_cell.
@@ -108,7 +140,7 @@ max_denerr_lev accordingly as well.
 Now let's suppose that:
 
 1) The star is centered in the **center** of the domain
-2) you want to grow the domain by a factor of 2,  and 
+2) you want to grow the domain by a factor of 2,  and
 3) you want to cover that new larger domain with a level that is a factor of 2 coarser than the existing level 0 grids.
 
 Then you must modify your call to Embiggen by setting star_at_center = 1 (it defaults to 0), i.e., do
@@ -143,14 +175,14 @@ In this case grown_factor can be either 2 or 3.
 NOTE: don't forget to set castro.star_at_center in your inputs file when you restart.
 
 NOTE: when star_at_center = 1, MAKE SURE that you have defined the center of the star
-in your subroutine PROBINIT to be 
+in your subroutine PROBINIT to be
 
      center(1) = problo(1) + 0.5d0 * (probhi(1)-problo(1))
      center(2) = problo(2) + 0.5d0 * (probhi(2)-problo(2))
 
 i.e. don't assume that problo is zero.
 
-Also -- in subroutine ca_initdata, make sure that you set 
+Also -- in subroutine ca_initdata, make sure that you set
 
          x = xlo(1) + (dble(i-lo(1)) + 0.5d0) * delta(1) - center(1)
          y = xlo(2) + (dble(j-lo(2)) + 0.5d0) * delta(2) - center(2)
@@ -162,7 +194,79 @@ so that you get the correct values for x and y when prob_lo is not 0.
 There appears to be a problem with the PathScale compiler on Franklin in optimized (non-DEBUG)
 mode.   The error reveals itself as this process not working on multiple processors.  To get around
 this I have added the line
-DEFINES += -DBL_USEOLDREADS 
+DEFINES += -DBL_USEOLDREADS
 to the GNUmakefile.
+
 ----------------------------------------------------
+Instructions for theta_extend:
+
+This is intended to work with the `xrb_spherical` problem only for now.
+Given a checkpoint file, chk00100, with an arbitrary levels of refinement
+and a (real) problem domain of (R_min, Θ_min) to (R_max, Θ_max)
+with (N, M) number of cells at level 0 and a blocking factor of, B.
+
+The inputs file that created this might look like:
+
+****************************************************
+amr.n_cell    = 384 240
+
+geometry.prob_lo = 0.5 0
+geometry.prob_hi = 1.0 0.17
+
+amr.blocking_factor = 16
+****************************************************
+
+Now let's suppose that you want to extend Θ_max=0.17 to Θ_max=0.3.
+
+Then you need to:
+
+1) First make an executable from the Embiggen.cpp code. Note it only works with
+   2D Spherical geometry for now. So to make an executable from the Embiggen.cpp code do:
+
+    ``make DIM=2 -j 4``
+
+2) Run the embiggening code as follows:
+
+   Embiggen2d.Linux.Intel.Intel.ex mode=theta_extend blocking_factor=16 theta_new_hi=0.3 checkin=chk00100 checkout=chk00100_enlarged
+
+   This will create a new checkpoint directory, called chk00100_enlarged, that represents a simulation
+   that has the same amr levels, but the domain is extended to have Θ_max ~ 0.3.
+   Note that even though you asked for Θ_max=0.3, the code will automatically change Θ_max to some other value
+   such that the same resolution is preserved while satisfying the blocking_factor constraint.
+
+3) Finally ...
+
+   You should now be able to restart your calculation using chk00100_enlarged.
+   But you need to update the input file. Check the stdout after running the embiggening script,
+   it should say something like
+
+   ```
+   Level 0 old amr.n_cell = 384 240
+   Level 0 old geometry.prob_hi = 1.0 0.17
+   Level 0 new amr.n_cell = 384 432
+   Level 0 new geometry.prob_hi = 1.0 0.306
+   ```
+
+   Now update the inputs file to something like:
+
+****************************************************
+   amr.restart = chk00100_enlarged
+
+   amr.regrid_on_restart = 1
+
+   amr.n_cell    = 256 432
+   amr.blocking_factor = 16
+
+   geometry.prob_lo = 0.5 0
+   geometry.prob_hi = 1.0 0.306
+
+   castro.old_theta_ncell = 240
+
+****************************************************
+
+Note that you should only set `castro.old_theta_ncell = 240`
+once after you restart. This parameter tells castro that it needs
+to initialize new zones that are larger than this based on
+`problem_initialize_state_data()`.
+
 ----------------------------------------------------

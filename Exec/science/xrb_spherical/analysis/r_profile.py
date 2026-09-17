@@ -21,7 +21,6 @@ ds = CastroDataset(plotfile)
 rmin = ds.domain_left_edge[0]
 rmax = rmin + 5000.0*cm
 #rmax = ds.domain_right_edge[0]
-print(ds.domain_left_edge[1])
 fig, _ax = plt.subplots(2,2)
 
 axes = list(itertools.chain(*_ax))

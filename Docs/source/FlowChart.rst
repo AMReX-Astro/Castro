@@ -417,7 +417,7 @@ In the code, the objective is to evolve the state from the old time,
 
    G. [``GRAVITY``] gravity:
 
-      For full Poisson gravity, we solve for for gravity using:
+      For full Poisson gravity, we solve for gravity using:
 
       .. math::
 
@@ -616,11 +616,11 @@ depending on the desired temporal order of accuracy), and iteratively
 updates the solution from node :math:`m` to :math:`m+1` as:
 
 .. math::
-   \begin{align}
+
    \avg{\Ub}^{m+1,(k+1)} = \avg{\Ub}^{m,(k+1)} &+ \Delta t \left [ \avg{{\bf A}(\Ub)}^{m,(k+1)} - \avg{{\bf A}(\Ub)}^{m,(k)} \right ] \\
                                    &+ \Delta t \left [ \avg{{\bf R}(\Ub)}^{m+1,(k+1)} - \avg{{\bf R}(\Ub)}^{m+1,(k)} \right ] \\
                                    &+ \int_{t^m}^{t^{m+1}} \left [ \avg{{\bf A}(\Ub)}^{(k)} + \avg{{\bf R}(\Ub)}^{(k)} \right ] dt
-   \end{align}
+
 
 
 .. index:: castro.sdc_order, castro.sdc_quadrature
@@ -857,7 +857,7 @@ summarize those differences.
    where :math:`\Sb^n` does not have an iteration subscript, since we always have the
    same old time state.
 
-   Applying this corrector to the the source at time :math:`n`, will give
+   Applying this corrector to the source at time :math:`n` will give
    us a source that is time-centered,
 
    .. math::

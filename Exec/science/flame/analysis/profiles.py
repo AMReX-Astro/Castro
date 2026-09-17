@@ -108,7 +108,8 @@ def doit(pfiles, limitlabels, xmin, xmax):
         ax_T.set_xlim(xmin, xmax)
 
     max_enuc = np.abs(enuc).max()
-    ax_e.set_yscale("symlog", linthresh=1.e-6 * max_enuc)
+    if max_enuc > 0:
+        ax_e.set_yscale("symlog", linthresh=1.e-6 * max_enuc)
     ax_e.set_ylabel(r"$S_\mathrm{nuc}$ (erg/g/s)")
 
     if xmax > 0:

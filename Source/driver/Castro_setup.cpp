@@ -1,5 +1,8 @@
 #include <cstdio>
 
+#include <array>
+#include <format>
+
 #include <AMReX_LevelBld.H>
 #include <AMReX_ParmParse.H>
 #include <Castro.H>
@@ -31,8 +34,7 @@ namespace {
     // Components are:
     //  Interior, Inflow, Outflow,  Symmetry,     SlipWall,     NoSlipWall
     //
-    int scalar_bc[] =
-    {
+    constexpr std::array<int, 6> scalar_bc{
         amrex::BCType::int_dir,
         amrex::BCType::ext_dir,
         amrex::BCType::foextrap,
@@ -41,8 +43,7 @@ namespace {
         amrex::BCType::reflect_even
     };
 
-    int norm_vel_bc[] =
-    {
+    constexpr std::array<int, 6> norm_vel_bc{
         amrex::BCType::int_dir,
         amrex::BCType::ext_dir,
         amrex::BCType::foextrap,
@@ -51,8 +52,7 @@ namespace {
         amrex::BCType::reflect_odd
     };
 
-    int tang_vel_bc[] =
-    {
+    constexpr std::array<int, 6> tang_vel_bc{
         amrex::BCType::int_dir,
         amrex::BCType::ext_dir,
         amrex::BCType::foextrap,
@@ -62,8 +62,7 @@ namespace {
     };
 
 #ifdef MHD
-    int mag_field_bc[] =
-    {
+    constexpr std::array<int, 6> mag_field_bc{
         amrex::BCType::int_dir,
         amrex::BCType::ext_dir,
         amrex::BCType::foextrap,
@@ -292,7 +291,7 @@ Castro::variableSetUp ()
   // for TRUE_SDC, we don't support retry
   if (use_retry) {
     amrex::Warning("use_retry = 1 is not supported with true SDC.  Disabling");
-    use_retry = 0;
+    use_retry = false;
   }
 #endif
 #endif
@@ -387,17 +386,20 @@ Castro::variableSetUp ()
 
   store_in_checkpoint = true;
   int source_ng = 0;
-  if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
+  if (time_integration_method == CornerTransportUpwind ||
+      time_integration_method == SimplifiedSpectralDeferredCorrections) {  // NOLINT(bugprone-branch-clone)
       source_ng = NUM_GROW_SRC;
-  }
-  else if (time_integration_method == SpectralDeferredCorrections) {
-    if (sdc_order == 2 && use_pslope) {
+  } else if (time_integration_method == SpectralDeferredCorrections) {
+#ifdef SHOCK_VAR
       source_ng = NUM_GROW_SRC;
-    } else {
-      source_ng = 1;
-    }
-  }
-  else {
+#else
+      if (sdc_order == 2 && use_pslope) {
+          source_ng = NUM_GROW_SRC;
+      } else {
+          source_ng = 1;
+      }
+#endif
+  } else {
       amrex::Error("Unknown time_integration_method");
   }
   desc_lst.addDescriptor(Source_Type, IndexType::TheCellType(),
@@ -492,7 +494,7 @@ Castro::variableSetUp ()
     {
       set_scalar_bc(bc, phys_bc);
       bcs[UFA+i] = bc;
-      name[UFA+i] = "adv_" + std::to_string(i);
+      name[UFA+i] = std::format("adv_{}", i);
     }
 
 
@@ -641,7 +643,7 @@ Castro::variableSetUp ()
       }
       else if (castro::time_integration_method == SimplifiedSpectralDeferredCorrections) {
           for (int n = 0; n < sdc_iters+1; n++) {
-              burn_weight_names.emplace_back("burn_weights_iter_" + std::to_string(n+1));
+              burn_weight_names.emplace_back(std::format("burn_weights_iter_{}", n + 1));
           }
       }
   }
@@ -654,7 +656,7 @@ Castro::variableSetUp ()
           replace_inflow_bc(bc);
 
           desc_lst.setComponent(Simplified_SDC_React_Type, i,
-                                "sdc_react_source_" + std::to_string(i),
+                                std::format("sdc_react_source_{}", i),
                                 bc, genericBndryFunc);
       }
   }
@@ -681,7 +683,7 @@ Castro::variableSetUp ()
   }
   else {
       for (int i = 0; i < Radiation::nGroups; i++) {
-        rad_name = "rad" + std::to_string(i);
+        rad_name = std::format("rad{}", i);
         desc_lst
           .setComponent(Rad_Type, i, rad_name, bc,
                         genericBndryFunc);

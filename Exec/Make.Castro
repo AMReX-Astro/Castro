@@ -107,6 +107,7 @@ ifeq ($(USE_TRUE_SDC), TRUE)
   else
     USERSuffix = .TRUESDC
   endif
+  EXTERN_CORE += $(MICROPHYSICS_HOME)/util/hybrj
 endif
 
 USE_MLMG = FALSE
@@ -145,9 +146,19 @@ endif
 
 CASTRO_AUTO_SOURCE_DIR := $(TmpBuildDir)/castro_sources/$(optionsSuffix).EXE
 
+# for rich output
+ESC := $(shell printf '\033')
+
+define info-green
+$(info $(ESC)[32m$(1)$(ESC)[0m)
+endef
+
+comma := ,
 
 all: build_status check_network $(executable)
 	@echo SUCCESS
+	$(call info-green,Be sure to "make clean" before rebuilding with a different integrator$(comma))
+	$(call info-green,network$(comma) or changing any build options in the GNUmakefile.)
 
 build_status:
 	$(AMREX_HOME)/Tools/C_scripts/describe_sources.py \
@@ -207,10 +218,6 @@ endif
 ifeq ($(USE_REACT), TRUE)
   Bdirs += Source/reactions
   DEFINES += -DREACTIONS
-endif
-
-ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
-  DEFINES += -DSDC_EVOLVE_ENERGY
 endif
 
 ifeq ($(USE_TRUE_SDC), TRUE)

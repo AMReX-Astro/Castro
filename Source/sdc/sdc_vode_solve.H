@@ -1,5 +1,5 @@
-#ifndef VODE_RHS_TRUE_SDC_H
-#define VODE_RHS_TRUE_SDC_H
+#ifndef SDC_VODE_SOLVE_H
+#define SDC_VODE_SOLVE_H
 
 #include <network.H>
 #include <burn_type.H>
@@ -11,7 +11,6 @@
 #include <actual_network.H>
 #include <actual_rhs.H>
 #endif
-#include <Castro_react_util.H>
 #include <sdc_cons_to_burn.H>
 #include <burner.H>
 
@@ -114,4 +113,3 @@ sdc_vode_solve(const Real dt_m,
 }
 
 #endif
-

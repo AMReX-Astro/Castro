@@ -119,7 +119,7 @@ uslope(const Real* q, const Real flatn,
 /// @param rho          Real[nslp] giving the density in zones i-2, i-1, i, i+1, i+2
 /// @param p           Real[nslp] giving the pressure in zones i-2, i-1, i, i+1, i+2
 /// @param src         Real[nslp] the source in the velocity equation (e.g. g) in zones
-///                    i-2, i-1, i, i+2, i+2
+///                    i-2, i-1, i, i+1, i+2
 /// @param flatn       flattening coefficient
 /// @param lo_bc_test  true if a physical boundary is just to the left of this zone
 /// @param hi_bc_test  true if a physical boundary is just to the right of this zone

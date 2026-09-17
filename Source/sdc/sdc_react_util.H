@@ -3,6 +3,44 @@
 
 #include <burn_type.H>
 #include <sdc_cons_to_burn.H>
+#include <numerical_jacobian.H>
+
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
+bool
+okay_to_burn(const int i, const int j, const int k,
+             Array4<const Real> const& state) {
+
+    if (state(i,j,k,UTEMP) < react_T_min || state(i,j,k,UTEMP) > react_T_max ||
+        state(i,j,k,URHO) < react_rho_min || state(i,j,k,URHO) > react_rho_max) {
+        return false;
+    }
+
+#ifdef SHOCK_VAR
+    if (state(i,j,k,USHK) > 0.0_rt && disable_shock_burning == 1) {
+        return false;
+    }
+#endif
+
+    return true;
+}
+
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
+bool
+okay_to_burn(GpuArray<Real, NUM_STATE> const& state) {
+
+    if (state[UTEMP] < react_T_min || state[UTEMP] > react_T_max ||
+        state[URHO] < react_rho_min || state[URHO] > react_rho_max) {
+        return false;
+    }
+
+#ifdef SHOCK_VAR
+    if (state[USHK] > 0.0_rt && disable_shock_burning == 1) {
+        return false;
+    }
+#endif
+
+    return true;
+}
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
@@ -22,7 +60,7 @@ single_zone_react_source(burn_t& burn_state,
     burn_state.e = burn_state.y[SEINT] * rhoInv;
 
     for (int n = 0; n < NumSpec; ++n) {
-       burn_state.xn[n] = amrex::max(amrex::min(burn_state.y[SFS+n] * rhoInv, 1.0_rt), small_x);
+       burn_state.xn[n] = amrex::Clamp(burn_state.y[SFS+n] * rhoInv, small_x, 1.0_rt);
     }
 
 #if NAUX_NET > 0
@@ -30,6 +68,8 @@ single_zone_react_source(burn_t& burn_state,
        burn_state.aux[n] = burn_state.y[SFX+n] * rhoInv;
     }
 #endif
+
+    static_assert(NAUX_NET == 0, "Error: aux data not currently supported in true SDC");
 
     // Ensure that the temperature going in is consistent with the internal energy.
     eos(eos_input_re, burn_state);
@@ -74,10 +114,10 @@ single_zone_react_source(const int i, const int j, const int k,
     }
 }
 
+template <typename T>
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
-single_zone_jac(burn_t& burn_state, const Real dt,
-                JacNetArray2D& Jac) {
+single_zone_jac(burn_t& burn_state, const Real dt, T& Jac) {
 
 #ifdef SIMPLIFIED_SDC
 #ifndef AMREX_USE_GPU
@@ -95,6 +135,10 @@ single_zone_jac(burn_t& burn_state, const Real dt,
 
         jac_info_t jac_info;
         jac_info.h = dt;
+
+        // note: numerical Jacobian works directly off of
+        // burn_state.T, burn_state.e, and burn_state.xn[]
+
         numerical_jac(burn_state, jac_info, Jac);
 
     } else {
@@ -121,18 +165,11 @@ single_zone_jac(burn_t& burn_state, const Real dt,
         // now correct the species derivatives
         // this constructs dy/dX_k |_e = dy/dX_k |_T - e_{X_k} |_T dy/dT / c_v
 
-        // TODO: I think that this can be accomplished via burn_state directly!
+        // we are assuming here that the burn_state is
+        // thermodynamically consistent.  This will be true if we
+        // called single_zone_react_source first.
 
-        eos_re_extra_t eos_state;
-        eos_state.rho = burn_state.rho;
-        eos_state.T = burn_state.T;
-        eos_state.e = burn_state.e;
-        for (int n = 0; n < NumSpec; n++) {
-            eos_state.xn[n] = burn_state.xn[n];
-        }
-
-        eos(eos_input_re, eos_state);
-        eos_xderivs_t eos_xderivs = composition_derivatives(eos_state);
+        eos_xderivs_t eos_xderivs = composition_derivatives(burn_state);
 
         for (int m = 1; m <= neqs; m++) {
             for (int n = 1; n <= NumSpec; n++) {

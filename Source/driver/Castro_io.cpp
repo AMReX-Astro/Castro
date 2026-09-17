@@ -5,6 +5,7 @@
 
 #include <iomanip>
 #include <iostream>
+#include <format>
 #include <string>
 #include <ctime>
 
@@ -311,26 +312,63 @@ Castro::restart (Amr&     papa,
       getLevel(0).avgDown();
     }
 
+    // Special Restart with theta extension for Spherical 2D specifically
+#if AMREX_SPACEDIM == 2
+    if (old_theta_ncell > 0 && level == 0 && geom.Coord() == 2) {
+        if (verbose && ParallelDescriptor::IOProcessor()) {
+            std::cout << "Doing special restart with extended theta domain "
+                      << "where the old level 0 domain has " << old_theta_ncell
+                      << " cells along theta-dir" << std::endl;
+        }
+
+        MultiFab& S_new = get_new_data(State_Type);
+
+        // Determine the original domain.
+        // User should provide the old number of cells along theta-dir: theta_cell_old
+        // Then the new upper index along theta dir is then theta_cell_old - 1
+        Box orig_domain = geom.Domain();
+        orig_domain.setBig(1, old_theta_ncell-1);
+
+        // Initialize data based on initial condition on grid
+        for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+            const Box& bx = mfi.tilebox();
+            if (!orig_domain.contains(bx)) {
+                auto s = S_new[mfi].array();
+                auto geomdata = geom.data();
+                amrex::ParallelFor(bx,
+                [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+                {
+                    // The box might be partially outside of the original domain
+                    // Only fill data for those that are out.
+                    if (j >= old_theta_ncell) {
+                        problem_initialize_state_data(i, j, k, s, geomdata);
+                    }
+                });
+            }
+        }
+    }
+#endif
+
 #ifdef GRAVITY
     if (do_grav && level == 0) {
        BL_ASSERT(gravity == nullptr);
-       gravity = new Gravity(parent,parent->finestLevel(),&phys_bc, URHO);
+       gravity = std::make_unique<Gravity>(parent, parent->finestLevel(), &phys_bc, URHO);
     }
 #endif
 
 #ifdef DIFFUSION
     if (level == 0) {
-       BL_ASSERT(diffusion == 0);
-       diffusion = new Diffusion(parent,&phys_bc);
+       BL_ASSERT(diffusion == nullptr);
+       diffusion = std::make_unique<Diffusion>(parent, &phys_bc);
     }
 #endif
 
 #ifdef RADIATION
     if (do_radiation) {
-      if (radiation == 0) {
+      if (radiation == nullptr) {
         // radiation is a static object, only alloc if not already there
         int rad_restart = 1; // disables quasi-steady initialization
-        radiation = new Radiation(parent, this, rad_restart);
+        radiation = std::make_unique<Radiation>(parent, this, rad_restart);
       }
       radiation->regrid(level, grids, dmap);
       radiation->restart(level, grids, dmap, parent->theRestartFile(), is);
@@ -701,9 +739,9 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
 
   // these names correspond to the integer flags setup in the
   // Castro_setup.cpp
-  const char* names_bc[] =
-    { "interior", "inflow", "outflow",
-      "symmetry", "slipwall", "noslipwall" };
+  constexpr std::array<std::string_view, 6> names_bc{
+      "interior", "inflow", "outflow",
+      "symmetry", "slipwall", "noslipwall"};
 
 
   jobInfoFile << "   -x: " << names_bc[lo_bc_out[0]] << "\n";
@@ -820,6 +858,31 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
     }
   jobInfoFile << "\n\n";
 
+#ifdef STARLIB
+  jobInfoFile << PrettyLine;
+  jobInfoFile << " Deviates for StarLib Rates \n";
+  jobInfoFile << PrettyLine;
+
+  jobInfoFile <<
+  std::setw(6) << "index" << SkipSpace <<
+  std::setw(mlen+11) << "name" << SkipSpace <<
+  std::setw(7) << "deviate" <<  "\n";
+  jobInfoFile << OtherLine;
+
+  int idx = 1;
+  for (int i = 1; i <= Rates::NumRates ; i++) {
+    if (rate_names[i].ends_with("_starlib")) {
+      jobInfoFile <<
+      std::setw(6) << idx << SkipSpace <<
+      std::setw(mlen+11) << rate_names[i] << SkipSpace <<
+      std::setw(7) << starlib::prand(idx) << "\n";
+      idx++;
+    }
+  }
+  jobInfoFile << "\n\n";
+
+  AMREX_ALWAYS_ASSERT(starlib::NumStarLibRates == idx-1);
+#endif
 
   // runtime parameters
   jobInfoFile << PrettyLine;
@@ -1034,7 +1097,7 @@ Castro::plotFileOutput(const std::string& dir,
             const DeriveRec* rec = derive_lst.get(name);
             if (rec->numDerive() > 1) {
                 for (int i = 0; i < rec->numDerive(); ++i) {
-                    os << rec->variableName(0) + '_' + std::to_string(i) + '\n';
+                    os << std::format("{}_{}\n", rec->variableName(0), i);
                 }
             }
             else {
@@ -1109,12 +1172,12 @@ Castro::plotFileOutput(const std::string& dir,
     // The name is relative to the directory containing the Header file.
     //
     static const std::string BaseName = "/Cell";
-    std::string Level = "Level_" + std::to_string(level);
+    std::string Level = std::format("Level_{}", level);
     //
     // Now for the full pathname of that directory.
     //
     std::string FullPath = dir;
-    if (!FullPath.empty() && FullPath[FullPath.size()-1] != '/') {
+    if (!FullPath.ends_with('/')) {
       FullPath += '/';
     }
     FullPath += Level;
