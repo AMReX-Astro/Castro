@@ -528,25 +528,26 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
               apply_av(nbx, idir, div_arr, uin_arr, flux_arr);
 
             } else {
-              // we are not doing hydro, so simply zero out the fluxes
-              const Box& nbx = amrex::surroundingNodes(bx, idir);
-              const Box& gbx = amrex::grow(nbx, 1);
+                // we are not doing hydro, so simply zero out the fluxes
+                const Box& nbx = amrex::surroundingNodes(bx, idir);
+                const Box& gbx = amrex::grow(nbx, 1);
 
-              Array4<Real> const flux_arr = (flux[idir]).array();
-              Array4<Real> const qe_arr = (qe[idir]).array();
-              const int nstate = NUM_STATE;
+                Array4<Real> const flux_arr = (flux[idir]).array();
+                Array4<Real> const qe_arr = (qe[idir]).array();
 
-              AMREX_HOST_DEVICE_FOR_4D(gbx, nstate, i, j, k, n,
-                                       {
-                                         flux_arr(i,j,k,n) = 0.e0;
-                                       });
+                amrex::ParallelFor(nbx, NUM_STATE,
+                [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
+                {
+                    flux_arr(i,j,k,n) = 0.e0;
+                });
 
-              const int ncomp = NGDNV;
+                amrex::ParallelFor(gbx, NGDNV,
+                [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
+                {
 
-              AMREX_HOST_DEVICE_FOR_4D(gbx, ncomp, i, j, k, n,
-                                       {
-                                         qe_arr(i,j,k,n) = 0.e0;
-                                       });
+                    qe_arr(i,j,k,n) = 0.e0;
+                });
+
             } // end do_hydro
 
 #ifdef DIFFUSION
