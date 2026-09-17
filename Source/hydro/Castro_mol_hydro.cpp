@@ -666,15 +666,15 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           // get the scaled radial pressure -- we need to treat this specially
 
           if (idir == 0 && !mom_flux_has_p(0, 0, coord)) {
-            Array4<Real> const qex_arr = qe[idir].array();
+              Array4<Real> const qex_arr = qe[idir].array();
 
-            amrex::ParallelFor(nbx,
-            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
-            {
-                pradial_fab(i,j,k) = qex_arr(i,j,k,GDPRES) * dt;
-            });
-#endif
+              amrex::ParallelFor(nbx,
+              [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+              {
+                  pradial_fab(i,j,k) = qex_arr(i,j,k,GDPRES) * dt;
+              });
           }
+#endif
         }
 
 
