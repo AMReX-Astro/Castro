@@ -649,7 +649,12 @@ Castro::finalize_advance()
     }
 #endif
 
-    // Record how many zones we have advanced.
+    // Each level is finalized separately, even when advanced together.
+    // Count only this level's zones in the cumulative performance statistic.
+
+    num_zones_advanced += static_cast<Real>(grids.numPts()) / static_cast<Real>(getLevel(0).grids.numPts());
+
+    // For the per-advance timing report, count all levels advanced together.
 
     int max_level_to_advance = level;
 
@@ -662,8 +667,6 @@ Castro::finalize_advance()
     for (int lev = level; lev <= max_level_to_advance; ++lev) {
         num_pts_advanced += getLevel(lev).grids.numPts();
     }
-
-    num_zones_advanced += static_cast<Real>(num_pts_advanced) / static_cast<Real>(getLevel(0).grids.numPts());
 
     Real wall_time = ParallelDescriptor::second() - wall_time_start;
 
