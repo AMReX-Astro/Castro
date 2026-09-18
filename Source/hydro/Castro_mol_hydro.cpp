@@ -276,7 +276,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                                 idir, true);
 
             if (do_hydro == 0) {
-                amrex::ParallelFor(nbx, NUM_STATE,
+                amrex::ParallelFor(ibx[idir], NUM_STATE,
                 [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
                 {
                     f_avg_arr(i,j,k,n) = 0.0;
@@ -529,19 +529,20 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
                 Array4<Real> const flux_arr = (flux[idir]).array();
                 Array4<Real> const qe_arr = (qe[idir]).array();
-                const int nstate = NUM_STATE;
 
-                AMREX_HOST_DEVICE_FOR_4D(gbx, nstate, i, j, k, n,
-                                       {
-                                           flux_arr(i,j,k,n) = 0.e0;
-                                       });
+                amrex::ParallelFor(nbx, NUM_STATE,
+                [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
+                {
+                    flux_arr(i,j,k,n) = 0.e0;
+                });
 
-                const int ncomp = NGDNV;
+                amrex::ParallelFor(gbx, NGDNV,
+                [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
+                {
 
-                AMREX_HOST_DEVICE_FOR_4D(gbx, ncomp, i, j, k, n,
-                                       {
-                                           qe_arr(i,j,k,n) = 0.e0;
-                                       });
+                    qe_arr(i,j,k,n) = 0.e0;
+                });
+
             } // end do_hydro
 
 #ifdef DIFFUSION
@@ -666,15 +667,15 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           // get the scaled radial pressure -- we need to treat this specially
 
           if (idir == 0 && !mom_flux_has_p(0, 0, coord)) {
-            Array4<Real> const qex_arr = qe[idir].array();
+              Array4<Real> const qex_arr = qe[idir].array();
 
-            amrex::ParallelFor(nbx,
-            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
-            {
-                pradial_fab(i,j,k) = qex_arr(i,j,k,GDPRES) * dt;
-            });
-#endif
+              amrex::ParallelFor(nbx,
+              [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+              {
+                  pradial_fab(i,j,k) = qex_arr(i,j,k,GDPRES) * dt;
+              });
           }
+#endif
         }
 
 
