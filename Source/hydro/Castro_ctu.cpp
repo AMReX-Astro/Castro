@@ -314,7 +314,6 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
   }
 }
 
-
 void
 Castro::add_sdc_source_to_states(const Box& bx, const int idir, const Real dt,
                                  Array4<Real> const& qleft,
@@ -326,60 +325,196 @@ Castro::add_sdc_source_to_states(const Box& bx, const int idir, const Real dt,
     [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
 
-        // of the state variables, only pressure, rhoe, and
-        // composition have source terms
+        int isrc = i;
+        int jsrc = j;
+        int ksrc = k;
 
+        // for left face, move one cell left in that dir
+        if (idir == 0) {
+            isrc -= 1;
+        } else if (idir == 1) {
+            jsrc -= 1;
+        } else {
+            ksrc -= 1;
+        }
+
+        const Real half_dt = 0.5_rt * dt;
+        const Real rhoe_floor = small_dens * small_ener; // floor for rhoe in castro
+
+        // no damping is default unless needed
+        Real damping_factor_left = 1.0_rt;
+        Real damping_factor_right = 1.0_rt;
+
+        int limiting_comp_left = -1;
+        int limiting_comp_right = -1;
+
+        // helper function to update the current damping factor to keep the
+        // smallest allowed value only
+        auto update_damping = [] AMREX_GPU_DEVICE (Real& damping_factor,
+                                                   int& limiting_comp,
+                                                   Real trial,
+                                                   int comp) noexcept
+        {
+            if (trial < damping_factor) {
+                damping_factor = trial;
+                limiting_comp = comp;
+            }
+        };
+
+        // current state pressure and rhoe
         Real p_old = qleft(i,j,k,QPRES);
         Real rhoe_old = qleft(i,j,k,QREINT);
 
-        if (idir == 0) {
-            qleft(i,j,k,QPRES) += 0.5 * dt * sdc_src(i-1,j,k,QPRES);
-            qleft(i,j,k,QREINT) += 0.5 * dt * sdc_src(i-1,j,k,QREINT);
-        } else if (idir == 1) {
-            qleft(i,j,k,QPRES) += 0.5 * dt * sdc_src(i,j-1,k,QPRES);
-            qleft(i,j,k,QREINT) += 0.5 * dt * sdc_src(i,j-1,k,QREINT);
-        } else {
-            qleft(i,j,k,QPRES) += 0.5 * dt * sdc_src(i,j,k-1,QPRES);
-            qleft(i,j,k,QREINT) += 0.5 * dt * sdc_src(i,j,k-1,QREINT);
+        // source terms 
+        Real p_src = half_dt * sdc_src(isrc,jsrc,ksrc,QPRES);
+        Real rhoe_src = half_dt * sdc_src(isrc,jsrc,ksrc,QREINT);
+
+        // damping factor for pressure source term if needed
+        if (p_src < 0.0_rt) {
+            Real trial = amrex::max(0.0_rt, (p_old - small_pres) / (-p_src));
+            update_damping(damping_factor_left, limiting_comp_left, trial, QPRES);
         }
 
-        if (qleft(i,j,k,QPRES) < small_pres || qleft(i,j,k,QREINT) < small_dens * small_ener) {
-            qleft(i,j,k,QPRES) = p_old;
-            qleft(i,j,k,QREINT) = rhoe_old;
+        // damping factor for rho source term if needed
+        if (rhoe_src < 0.0_rt) {
+            Real trial = amrex::max(0.0_rt, (rhoe_old - rhoe_floor) / (-rhoe_src));
+            update_damping(damping_factor_left, limiting_comp_left, trial, QREINT);
         }
 
+        for (int n = 0; n < NumSpec; ++n) {
+            Real X_old = qleft(i,j,k,QFS+n);
+            Real X_src = half_dt * sdc_src(isrc,jsrc,ksrc,QFS+n);
+
+            // daping factor for species source term if needed 
+            if (X_src < 0.0_rt) {
+                Real trial = amrex::max(0.0_rt, X_old / (-X_src));
+                update_damping(damping_factor_left, limiting_comp_left, trial, QFS+n);
+            } else if (X_src > 0.0_rt) {
+                Real trial = amrex::max(0.0_rt, (1.0_rt - X_old) / X_src);
+                update_damping(damping_factor_left, limiting_comp_left, trial, QFS+n);
+            }
+        }
+
+        damping_factor_left = amrex::Clamp(damping_factor_left, 0.0_rt, 1.0_rt);
+
+        // new state with the damping factor for left face
+        qleft(i,j,k,QPRES) = p_old + damping_factor_left * p_src;
+        qleft(i,j,k,QREINT) = rhoe_old + damping_factor_left * rhoe_src;
+
+        // we apply the same mechanisms to the right face
         p_old = qright(i,j,k,QPRES);
         rhoe_old = qright(i,j,k,QREINT);
 
-        qright(i,j,k,QPRES) += 0.5 * dt * sdc_src(i,j,k,QPRES);
-        qright(i,j,k,QREINT) += 0.5 * dt * sdc_src(i,j,k,QREINT);
+        p_src = half_dt * sdc_src(i,j,k,QPRES);
+        rhoe_src = half_dt * sdc_src(i,j,k,QREINT);
 
-        if (qright(i,j,k,QPRES) < small_pres || qright(i,j,k,QREINT) < small_dens * small_ener) {
-            qright(i,j,k,QPRES) = p_old;
-            qright(i,j,k,QREINT) = rhoe_old;
+        if (p_src < 0.0_rt) {
+            Real trial = amrex::max(0.0_rt, (p_old - small_pres) / (-p_src));
+            update_damping(damping_factor_right, limiting_comp_right, trial, QPRES);
         }
+
+        if (rhoe_src < 0.0_rt) {
+            Real trial = amrex::max(0.0_rt, (rhoe_old - rhoe_floor) / (-rhoe_src));
+            update_damping(damping_factor_right, limiting_comp_right, trial, QREINT);
+        }
+
+        for (int n = 0; n < NumSpec; ++n) {
+            Real X_old = qright(i,j,k,QFS+n);
+            Real X_src = half_dt * sdc_src(i,j,k,QFS+n);
+
+            if (X_src < 0.0_rt) {
+                Real trial = amrex::max(0.0_rt, X_old / (-X_src));
+                update_damping(damping_factor_right, limiting_comp_right, trial, QFS+n);
+            } else if (X_src > 0.0_rt) {
+                Real trial = amrex::max(0.0_rt, (1.0_rt - X_old) / X_src);
+                update_damping(damping_factor_right, limiting_comp_right, trial, QFS+n);
+            }
+        }
+
+        damping_factor_right = amrex::Clamp(damping_factor_right, 0.0_rt, 1.0_rt);
+
+        qright(i,j,k,QPRES) = p_old + damping_factor_right * p_src;
+        qright(i,j,k,QREINT) = rhoe_old + damping_factor_right * rhoe_src;
 
 
         for (int ipassive = 0; ipassive < npassive; ipassive++) {
-
             int n = qpassmap(ipassive);
 
-            if (idir == 0) {
-                qleft(i,j,k,n) += 0.5 * dt * sdc_src(i-1,j,k,n);
-            } else if (idir == 1) {
-                qleft(i,j,k,n) += 0.5 * dt * sdc_src(i,j-1,k,n);
-            } else {
-                qleft(i,j,k,n) += 0.5 * dt * sdc_src(i,j,k-1,n);
-            }
-            qright(i,j,k,n) += 0.5 * dt * sdc_src(i,j,k,n);
+            qleft(i,j,k,n) += damping_factor_left * half_dt * sdc_src(isrc,jsrc,ksrc,n);
+            qright(i,j,k,n) += damping_factor_right * half_dt * sdc_src(i,j,k,n);
 
-            if (n >= QFS && n <= QFS-1+NumSpec) {
-                // mass fractions should be in [0, 1]
+            if (n >= QFS && n < QFS + NumSpec) {
                 qleft(i,j,k,n) = amrex::Clamp(qleft(i,j,k,n), 0.0_rt, 1.0_rt);
                 qright(i,j,k,n) = amrex::Clamp(qright(i,j,k,n), 0.0_rt, 1.0_rt);
             }
         }
 
+        Real X_sum_left = 0.0_rt;
+        Real X_sum_right = 0.0_rt;
+
+        for (int n = 0; n < NumSpec; ++n) {
+            X_sum_left += qleft(i,j,k,QFS+n);
+            X_sum_right += qright(i,j,k,QFS+n);
+        }
+
+        if (X_sum_left > 0.0_rt) {
+            Real X_sum_inv = 1.0_rt / X_sum_left;
+            for (int n = 0; n < NumSpec; ++n) {
+                qleft(i,j,k,QFS+n) *= X_sum_inv;
+            }
+        }
+
+        if (X_sum_right > 0.0_rt) {
+            Real X_sum_inv = 1.0_rt / X_sum_right;
+            for (int n = 0; n < NumSpec; ++n) {
+                qright(i,j,k,QFS+n) *= X_sum_inv;
+            }
+        }
+
+        // printing only for debug
+#ifndef AMREX_USE_GPU
+        if (damping_factor_left < 1.0_rt) {
+            std::cout << "SDC damping applied on LEFT face: "
+                      << "idir=" << idir
+                      << " face=(" << i << "," << j << "," << k << ")"
+                      << " src=(" << isrc << "," << jsrc << "," << ksrc << ")"
+                      << " damping_factor=" << damping_factor_left
+                      << " limiting_comp=" << limiting_comp_left
+                      << " rho=" << qleft(i,j,k,QRHO)
+                      << " p=" << qleft(i,j,k,QPRES)
+                      << " rhoe=" << qleft(i,j,k,QREINT)
+                      << std::endl;
+        }
+
+        if (damping_factor_right < 1.0_rt) {
+            std::cout << "SDC damping applied on RIGHT face: "
+                      << "idir=" << idir
+                      << " face=(" << i << "," << j << "," << k << ")"
+                      << " src=(" << i << "," << j << "," << k << ")"
+                      << " damping_factor=" << damping_factor_right
+                      << " limiting_comp=" << limiting_comp_right
+                      << " rho=" << qright(i,j,k,QRHO)
+                      << " p=" << qright(i,j,k,QPRES)
+                      << " rhoe=" << qright(i,j,k,QREINT)
+                      << std::endl;
+        }
+#elif defined(ALLOW_GPU_PRINTF)
+        if (damping_factor_left < 1.0_rt) {
+            AMREX_DEVICE_PRINTF(
+                "SDC damping LEFT idir=%d face=(%d,%d,%d) src=(%d,%d,%d) damping_factor=%g limiting_comp=%d rho=%g p=%g rhoe=%g\n",
+                idir, i, j, k, isrc, jsrc, ksrc, damping_factor_left, limiting_comp_left,
+                qleft(i,j,k,QRHO), qleft(i,j,k,QPRES), qleft(i,j,k,QREINT));
+        }
+
+        if (damping_factor_right < 1.0_rt) {
+            AMREX_DEVICE_PRINTF(
+                "SDC damping RIGHT idir=%d face=(%d,%d,%d) src=(%d,%d,%d) damping_factor=%g limiting_comp=%d rho=%g p=%g rhoe=%g\n",
+                idir, i, j, k, i, j, k, damping_factor_right, limiting_comp_right,
+                qright(i,j,k,QRHO), qright(i,j,k,QPRES), qright(i,j,k,QREINT));
+        }
+#endif
+
     });
 
 }
+
