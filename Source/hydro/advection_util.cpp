@@ -272,9 +272,9 @@ Castro::divu(const Box& bx,
         if (i == 0) {
             ux = 0.0_rt;
         } else {
-            Real rl = (i - 0.5_rt) * dx[0] + problo[0];
-            Real rr = (i + 0.5_rt) * dx[0] + problo[0];
-            Real rc = (i) * dx[0] + problo[0];
+            Real rl = (static_cast<Real>(i) - 0.5_rt) * dx[0] + problo[0];
+            Real rr = (static_cast<Real>(i) + 0.5_rt) * dx[0] + problo[0];
+            Real rc = static_cast<Real>(i) * dx[0] + problo[0];
 
             // These are transverse averages in the y-direction
             Real ul = 0.5_rt * (q_arr(i-1,j,k,QU) + q_arr(i-1,j-1,k,QU));
@@ -294,14 +294,14 @@ Castro::divu(const Box& bx,
 
         // Spherical R-Theta
 
-        Real rl = (i - 0.5_rt) * dx[0] + problo[0];
-        Real rr = (i + 0.5_rt) * dx[0] + problo[0];
-        Real rc = (i) * dx[0] + problo[0];
+        Real rl = (static_cast<Real>(i) - 0.5_rt) * dx[0] + problo[0];
+        Real rr = (static_cast<Real>(i) + 0.5_rt) * dx[0] + problo[0];
+        Real rc = static_cast<Real>(i) * dx[0] + problo[0];
 
         // cell-centered sin(theta) of top, bot cell and face-centered
-        Real sint = std::sin((j + 0.5_rt) * dx[1] + problo[1]);
-        Real sinb = std::sin((j - 0.5_rt) * dx[1] + problo[1]);
-        Real sinc = std::sin(j  * dx[1] + problo[1]);
+        Real sint = std::sin((static_cast<Real>(j) + 0.5_rt) * dx[1] + problo[1]);
+        Real sinb = std::sin((static_cast<Real>(j) - 0.5_rt) * dx[1] + problo[1]);
+        Real sinc = std::sin(static_cast<Real>(j)  * dx[1] + problo[1]);
 
         // These are transverse averages in the y-direction
         Real ul = 0.5_rt * (q_arr(i-1,j,k,QU) + q_arr(i-1,j-1,k,QU));

@@ -22,7 +22,7 @@ Castro::pointmass_update(Real time, Real dt)
 
         ReduceOps<ReduceOpSum> reduce_op;
         ReduceData<Real> reduce_data(reduce_op);
-        using ReduceTuple = typename decltype(reduce_data)::Type;
+        using ReduceTuple = decltype(reduce_data)::Type;
 
 #ifdef _OPENMP
 #pragma omp parallel

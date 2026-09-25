@@ -1248,7 +1248,7 @@ Gravity::average_fine_ec_onto_crse_ec(int level, int is_new)
         crse_gphi_fine[n] = std::make_unique<MultiFab>(eba,dmap[level+1],1,0);
     }
 
-    auto& grad_phi = (is_new) ? grad_phi_curr : grad_phi_prev;
+    auto& grad_phi = is_new ? grad_phi_curr : grad_phi_prev;
 
     amrex::average_down_faces(amrex::GetVecOfConstPtrs(grad_phi[level+1]),
                                amrex::GetVecOfPtrs(crse_gphi_fine),
@@ -3222,7 +3222,7 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
         {
             ReduceOps<ReduceOpSum> reduce_op;
             ReduceData<Real> reduce_data(reduce_op);
-            using ReduceTuple = typename decltype(reduce_data)::Type;
+            using ReduceTuple = decltype(reduce_data)::Type;
 
             reduce_op.eval(n1d, reduce_data,
             [=] AMREX_GPU_DEVICE (int i) -> ReduceTuple
@@ -3271,7 +3271,7 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
             {
                 for (int n = 0; n < ratio; n++)
                 {
-                    mass_summed[ratio*i+n] += 1./double(ratio) * lev_mass[i];
+                    mass_summed[ratio*i+n] += 1./static_cast<Real>(ratio) * lev_mass[i];
                 }
             });
         }
@@ -3281,7 +3281,7 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
     {
         ReduceOps<ReduceOpSum> reduce_op;
         ReduceData<Real> reduce_data(reduce_op);
-        using ReduceTuple = typename decltype(reduce_data)::Type;
+        using ReduceTuple = decltype(reduce_data)::Type;
 
         reduce_op.eval(n1d, reduce_data,
         [=] AMREX_GPU_DEVICE (int i) -> ReduceTuple
@@ -3331,7 +3331,7 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
             {
                 for (int n = 0; n < ratio; n++)
                 {
-                    vol_summed[ratio*i+n]  += 1./double(ratio) * lev_vol[i];
+                    vol_summed[ratio*i+n]  += 1./static_cast<Real>(ratio) * lev_vol[i];
                 }
             });
         }
@@ -3373,7 +3373,7 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
             [=] AMREX_GPU_DEVICE (int i) noexcept
             {
                 for (int n = 0; n < ratio; n++) {
-                    pres_summed[ratio*i+n] += 1./double(ratio) * lev_pres[i];
+                    pres_summed[ratio*i+n] += 1./static_cast<Real>(ratio) * lev_pres[i];
                 }
             });
         }
