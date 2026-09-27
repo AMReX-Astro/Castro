@@ -871,10 +871,10 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
 
   int idx = 1;
   for (int i = 1; i <= Rates::NumRates ; i++) {
-    if (rate_names[i].ends_with("_starlib")) {
+    if (Rates::rate_names[i].ends_with("_starlib")) {
       jobInfoFile <<
       std::setw(6) << idx << SkipSpace <<
-      std::setw(mlen+11) << rate_names[i] << SkipSpace <<
+      std::setw(mlen+11) << Rates::rate_names[i] << SkipSpace <<
       std::setw(7) << starlib::prand(idx) << "\n";
       idx++;
     }
