@@ -15,10 +15,24 @@ Castro::construct_old_sponge_source(MultiFab& source, MultiFab& state_in,
 {
     // We do not apply any sponge at the old time.
 
-    amrex::ignore_unused(source);
-    amrex::ignore_unused(state_in);
     amrex::ignore_unused(time);
-    amrex::ignore_unused(dt);
+
+    if (!do_sponge ||
+        time_integration_method != SpectralDeferredCorrections) {
+        return;
+    }
+
+    if (sponge_implicit) {
+        amrex::Error("true-SDC/MOL requires sponge_implicit = 0");
+    }
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(state_in, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+        apply_sponge(mfi.tilebox(), state_in.array(mfi),
+                     source.array(mfi), dt);
+    }
 
 }
 
