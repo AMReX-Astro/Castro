@@ -99,15 +99,23 @@ Castro::ppm_mhd(const Box& bx,
       evecz(leig, reig, as, q_zone);
     }
 
-    // do the parabolic reconstruction and compute the integrals under
-    // the characteristic waves
+    // do the parabolic reconstruction and compute the reference states.
+    //
+    // The wave integrals Ip[n][ii] / Im[n][ii] used to be materialised here as
+    // two NEIGN x NEIGN thread-local arrays (98 doubles).  Every element was
+    // written once and read once; they existed only to carry values across the
+    // n <-> ii loop-order flip into the characteristic projection below, and at
+    // that size they live in the local-memory stack frame, not in registers.
+    // Instead we cache the parabola edges per variable (14 doubles) and form
+    // each integral as a scalar at its point of use.  The call count is
+    // unchanged and no arithmetic is added.
     Real s[nslp];
     Real flat = flatn(i,j,k);
     Real sm;
     Real sp;
 
-    Real Ip[NEIGN][NEIGN];  // first component is var, second is wave
-    Real Im[NEIGN][NEIGN];
+    Real smc[NEIGN];
+    Real spc[NEIGN];
 
     Real q_ref_left[NEIGN];
     Real q_ref_right[NEIGN];
@@ -120,35 +128,13 @@ Castro::ppm_mhd(const Box& bx,
       load_stencil(q_arr, idir, i, j, k, v, s);
       ppm_reconstruct(s, flat, sm, sp);
 
+      smc[n] = sm;
+      spc[n] = sp;
+
       Real Ipt = 0.0;
       Real Imt = 0.0;
 
-      // loop over waves and integrate under the parabola
-      for (int ii = 0; ii < NEIGN; ii++) {
-        Real speed = lam(ii);
-
-        ppm_int_profile_single(sm, sp, s[i0], speed, dtdx, Ipt, Imt);
-
-        // we do a special correction here for waves that are not
-        // moving toward the interface.  It doesn't make sense to
-        // integrate under the parabola in this case, so we simply
-        // create a piecewise linear slope here.  See Stone et al. Eq
-        // 44 and 45
-        if (lam(ii) >= 0.0_rt) {
-          Ip[n][ii] = Ipt;
-        } else {
-          Ip[n][ii] = 0.5_rt * dtdx * (sp - sm);
-        }
-
-        if (lam(ii) <= 0.0_rt) {
-          Im[n][ii] = Imt;
-        } else {
-          Im[n][ii] = 0.5_rt * dtdx * (sp - sm);
-        }
-
-      }
-
-      // and now the reference states
+      // the reference states
 
       // q_{i+1/2, L} uses the fastest wave moving to the right
       Real lambda_max = amrex::max(lam(NEIGN-1), 0.0_rt);
@@ -204,32 +190,60 @@ Castro::ppm_mhd(const Box& bx,
     // Perform the characteristic projection.  Since we are using
     // Using HLLD, we sum over all eigenvalues -- see the discussion
     // after Eq. 31
-
-    // right state at i-1/2
-
-    // Im is the integral from the left edge, so we take as the
-    // reference state the fastest wave moving to the left
+    //
+    // Both interfaces are projected in one sweep over the waves:
+    //   right state at i-1/2, from Im, referenced to the fastest left-moving wave
+    //   left  state at i+1/2, from Ip, referenced to the fastest right-moving wave
+    // Each LdQ still sums over n in ascending order, and each summ_* still
+    // accumulates over ii in ascending order, so the floating point result is
+    // unchanged.  Reading leig/reig once instead of once per interface halves
+    // their traffic out of the local-memory stack frame.
 
     Real summ_m[NEIGN] = {0.0_rt};
+    Real summ_p[NEIGN] = {0.0_rt};
 
     // loop over the waves
     for (int ii = 0; ii < NEIGN; ii++) {
 
-      Real LdQ = 0.0_rt;
+      Real LdQ_m = 0.0_rt;
+      Real LdQ_p = 0.0_rt;
 
-      // loop over variables in Im[n][ii]
+      // these depend on the wave only, not on the variable
+      const bool m_toward = lam(ii) <= 0.0_rt;
+      const bool p_toward = lam(ii) >= 0.0_rt;
+      const Real m_slope_w = lam(0) - lam(ii);
+      const Real p_slope_w = lam(NEIGN-1) - lam(ii);
+
+      // loop over variables
       for (int n = 0; n < NEIGN; n++) {
-        if (lam(ii) <= 0.0_rt) {
-          LdQ += leig(ii,n) * (q_ref_right[n] - Im[n][ii]);
-        } else {
-          // in this case, the integral Im is a slope
-          LdQ += (lam(0) - lam(ii)) * leig(ii,n) * Im[n][ii];
-        }
+
+        Real Ipt = 0.0;
+        Real Imt = 0.0;
+
+        // q_zone(cvars[n]) is the cell-centre value s[i0] of variable n's
+        // stencil; evals() and evec*() take q_zone by reference but never
+        // write it, so it still holds the value load_stencil() read
+        ppm_int_profile_single(smc[n], spc[n], q_zone(cvars[n]), lam(ii), dtdx, Ipt, Imt);
+
+        // for waves not moving toward the interface it makes no sense to
+        // integrate under the parabola, so use a piecewise linear slope
+        // instead.  See Stone et al. Eq 44 and 45
+        const Real slope = 0.5_rt * dtdx * (spc[n] - smc[n]);
+
+        const Real L = leig(ii,n);
+
+        LdQ_m += m_toward ? L * (q_ref_right[n] - Imt)
+                          : m_slope_w * L * slope;
+
+        LdQ_p += p_toward ? L * (q_ref_left[n] - Ipt)
+                          : p_slope_w * L * slope;
       }
 
       // add the contribution of this wave to each variable
       for (int n = 0; n < NEIGN; n++) {
-        summ_m[n] += LdQ * reig(n,ii);
+        const Real R = reig(n,ii);
+        summ_m[n] += LdQ_m * R;
+        summ_p[n] += LdQ_p * R;
       }
     }
 
@@ -258,33 +272,7 @@ Castro::ppm_mhd(const Box& bx,
     }
 
 
-    // left state at i+1/2
-
-    // Ip is the integral from the right edge, so we take as the
-    // reference state the fastest wave moving to the right
-
-    Real summ_p[NEIGN] = {0.0_rt};
-
-    // loop over the waves
-    for (int ii = 0; ii < NEIGN; ii++) {
-
-      Real LdQ = 0.0_rt;
-
-      // loop over variables in Im[n][ii]
-      for (int n = 0; n < NEIGN; n++) {
-        if (lam(ii) >= 0.0_rt) {
-          LdQ += leig(ii,n) * (q_ref_left[n] - Ip[n][ii]);
-        } else {
-          // in this case, the integral Ip is a slope
-          LdQ += (lam(NEIGN-1) - lam(ii)) * leig(ii,n) * Ip[n][ii];
-        }
-      }
-
-      // add the contribution of this wave to each variable
-      for (int n = 0; n < NEIGN; n++) {
-        summ_p[n] += LdQ * reig(n,ii);
-      }
-    }
+    // left state at i+1/2 -- summ_p was accumulated in the wave sweep above
 
     if (idir == 0) {
       qleft(i+1,j,k,QRHO) = amrex::max(small_dens,
