@@ -45,3 +45,20 @@ footer span.commit code, footer span.commit .rst-content tt, .rst-content footer
 /* Generic admonition titles */
 .wy-alert-title, .rst-content .admonition-title {
     background: #277CB4; }
+
+
+
+/* Not a color contrast change but a quality of life for sphinx-rtd-theme */
+/* Workaround for https://github.com/executablebooks/sphinx-togglebutton/issues/75
+ * Remove when fixed */
+
+button.toggle-button::before {
+  vertical-align: top;
+  color: white;
+}
+
+.tb-icon {
+  height: 1.1em;
+  width: 1.1em;
+  color: white;
+}
