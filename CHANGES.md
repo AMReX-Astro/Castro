@@ -1,5 +1,24 @@
 # Changelog
 
+## 26.10
+
+  * fix StarLib deviates output in ``job_info`` (#3409)
+
+  * fix double-counting of refined zones in perf states w/o subcycling
+    (#3388)
+
+  * propagate ``in_retry`` to all levels when not subcycling (#3387)
+
+  * fix zeroing of fluxes in SDC4 w/ ``do_hydro=0`` (#3404)
+
+  * fix SDC bound issue if ``do_hydro=0`` (#3403)
+
+  * remove old comment in 4th order averaging (#3378)
+
+  * fix 3D MOL compilation (#3402)
+
+  * when not subcycling, store dt for all levels advanced (#3386)
+
 ## 26.09
 
   * `subchandra` : tweak the netflow plot sizes (#3376)
