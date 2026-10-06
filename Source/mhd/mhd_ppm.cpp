@@ -217,8 +217,13 @@ Castro::ppm_mhd(const Box& bx,
 
       Real LdQ = 0.0_rt;
 
-      // loop over variables in Im[n][ii]
+      // loop over variables in Im[n][ii].  The MHD eigenvectors are
+      // structurally sparse (same zero pattern in all directions), so we
+      // skip the exact-zero (0.0) entries here
       for (int n = 0; n < NEIGN; n++) {
+        if (n == IEIGN_RHO && ii != 3) { continue; }                      // leig RHO-col zero except entropy
+        if ((ii == 1 || ii == 5) && n == IEIGN_P) { continue; }           // Alfven decouples from P
+        if (ii == 3 && n != IEIGN_RHO && n != IEIGN_P) { continue; }      // entropy: only RHO,P nonzero
         if (lam(ii) <= 0.0_rt) {
           LdQ += leig(ii,n) * (q_ref_right[n] - Im[n][ii]);
         } else {
@@ -229,6 +234,8 @@ Castro::ppm_mhd(const Box& bx,
 
       // add the contribution of this wave to each variable
       for (int n = 0; n < NEIGN; n++) {
+        if (ii == 3 && n != IEIGN_RHO) { continue; }                            // entropy feeds only RHO
+        if ((ii == 1 || ii == 5) && (n == IEIGN_RHO || n == IEIGN_P)) { continue; }  // Alfven: no RHO,P
         summ_m[n] += LdQ * reig(n,ii);
       }
     }
@@ -270,8 +277,12 @@ Castro::ppm_mhd(const Box& bx,
 
       Real LdQ = 0.0_rt;
 
-      // loop over variables in Im[n][ii]
+      // loop over variables in Im[n][ii].  Same structural sparsity as the
+      // summ_m block above, skipping the exact-zero eigenvector entries.
       for (int n = 0; n < NEIGN; n++) {
+        if (n == IEIGN_RHO && ii != 3) { continue; }                      // leig RHO-col zero except entropy
+        if ((ii == 1 || ii == 5) && n == IEIGN_P) { continue; }           // Alfven decouples from P
+        if (ii == 3 && n != IEIGN_RHO && n != IEIGN_P) { continue; }      // entropy: only RHO,P nonzero
         if (lam(ii) >= 0.0_rt) {
           LdQ += leig(ii,n) * (q_ref_left[n] - Ip[n][ii]);
         } else {
@@ -282,6 +293,8 @@ Castro::ppm_mhd(const Box& bx,
 
       // add the contribution of this wave to each variable
       for (int n = 0; n < NEIGN; n++) {
+        if (ii == 3 && n != IEIGN_RHO) { continue; }                            // entropy feeds only RHO
+        if ((ii == 1 || ii == 5) && (n == IEIGN_RHO || n == IEIGN_P)) { continue; }  // Alfven: no RHO,P
         summ_p[n] += LdQ * reig(n,ii);
       }
     }
