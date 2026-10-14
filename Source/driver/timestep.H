@@ -48,14 +48,18 @@ namespace timestep {
     estdt (const amrex::GeometryData& geomdata,
            const amrex::MultiFab& maskMF,
            const amrex::MultiFab& stateMF,
+           const amrex::MultiFab& reactMF,
            const MFs&... mfs)
     {
         amrex::ignore_unused(maskMF, mfs...);
+        amrex::ignore_unused(reactMF);
 
         constexpr std::size_t N_mfs = sizeof...(MFs);
 
         auto const& ua = stateMF.const_arrays();
-
+#ifdef REACTIONS
+        auto const& ra = reactMF.const_arrays();
+#endif
         bool mask_covered_zones = maskMF.isDefined();
 
         MultiArray4<Real const> empty_arr{};
@@ -362,6 +366,7 @@ namespace timestep {
 
                 Array4<Real const> const& S = ua[box_no];
                 Array4<Real const> const& mask = ma[box_no];
+                Array4<Real const> const& react_src = ra[box_no];
 
                 IntVect idx(AMREX_D_DECL(i,j,k));
 
@@ -408,6 +413,10 @@ namespace timestep {
                 // But we will call in (rho, T) mode, which is inexpensive.
 
                 Real rhoInv = 1.0_rt / S(i,j,k,URHO);
+
+                // regardless if we are going to use the instantaneous
+                // reaction source or the average, we fill the burn
+                // state in case we need to evaluate NSE later
 
                 burn_t burn_state;
 
@@ -458,13 +467,33 @@ namespace timestep {
 
                 eos(eos_input_rt, burn_state);
 
-                Array1D<Real, 1, neqs> ydot;
-                actual_rhs(burn_state, ydot);
+                Real dXdt[NumSpec]{derivative_floor};
+                Real dedt{derivative_floor};
 
-                Real dedt = ydot(net_ienuc);
-                Real dXdt[NumSpec];
-                for (int n = 0; n < NumSpec; ++n) {
-                    dXdt[n] = ydot(n+1) * aion[n];
+                if (! castro::dtnuc_use_average) {
+                    // use the instantaneous energy generation rate
+                    // for the limiter
+
+                    Array1D<Real, 1, neqs> ydot;
+                    actual_rhs(burn_state, ydot);
+
+                    dedt = ydot(net_ienuc);
+                    for (int n = 0; n < NumSpec; ++n) {
+                        dXdt[n] = ydot(n+1) * aion[n];
+                    }
+                } else {
+                    // use the average energy generation over the last
+                    // step or SDC iteration for the limiter
+
+                    // react_src(0) is rho S
+                    // react_src(1:) is rho omegadot -- only defined if store_omegadot = 1
+
+                    dedt = react_src(i,j,k,0) / burn_state.rho;
+                    if (castro::store_omegadot) {
+                        for (int n = 0; n < NumSpec; ++n) {
+                            dXdt[n] = react_src(i,j,k,n+1);
+                        }
+                    }
                 }
 
                 // Apply a floor to the derivatives. This ensures that we don't
