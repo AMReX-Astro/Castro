@@ -93,7 +93,9 @@ onemg_wd_o_frac                 real                  0.60e0_rt                y
 onemg_wd_ne_frac                real                  0.35e0_rt                y
 onemg_wd_mg_frac                real                  0.05e0_rt                y
 
+# Transition between core and he shell 
 
+delta                           real                  0.0e0_rt                 y
 
 # Parameters for interpolation from 1D model to 3D model
 
