@@ -17,6 +17,11 @@ jobs:
           sudo apt-get update -y -qq
           sudo apt-get -qq -y install g++
 
+      - name: versions
+        run: |
+          g++ --version
+          ldd --version
+
       - name: compiler diagnostics
         run: |
           g++ --version >> compiler.out
