@@ -21,6 +21,7 @@ jobs:
         run: |
           g++ --version
           ldd --version
+          g++ -Q -O3 --help=target | grep -E 'march=|mtune=|mfma|mavx'
 
       - name: compiler diagnostics
         run: |
