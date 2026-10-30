@@ -291,6 +291,8 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
         auto save_flux = [&] (MultiFab& flux) {
             working_fluxes.push_back(&flux);
+            // total is a separate accumulator for this array's accepted
+            // subcycle fluxes; it survives resets of the working array.
             auto total = std::make_unique<MultiFab>(flux.boxArray(), flux.DistributionMap(),
                                                   flux.nComp(), flux.nGrow());
             total->setVal(0.0);
@@ -300,6 +302,9 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
         for (int lev = level; lev <= max_level_to_advance; ++lev) {
             auto& L = getLevel(lev);
             for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+                // L.fluxes[dir] is the level-owned flux array used to populate
+                // the AMReX flux registers via FluxRegCrseInit()/FluxRegFineAdd().
+                // save_flux stores a pointer to that same array in working_fluxes.
                 save_flux(*L.fluxes[dir]);
             }
 #if (AMREX_SPACEDIM <= 2)
