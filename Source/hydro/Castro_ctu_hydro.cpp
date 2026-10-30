@@ -1465,7 +1465,12 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
   }
 #endif
 
-  // Perform reflux (for non-subcycling advances).
+  // Populate the flux registers for advances without level subcycling.
+  // These calls read the level's stored flux arrays; for simplified SDC the
+  // driver clears them before each iteration and we fill them above. The
+  // actual Castro::reflux(..., false) call occurs in do_advance_ctu(), after
+  // hydro has populated the registers on every participating level and before
+  // new-time sources and burning. Do not use full-step accumulated fluxes here.
 
   if (parent->subcyclingMode() == "None") {
       if (do_reflux == 1) {

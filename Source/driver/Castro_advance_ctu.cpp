@@ -93,7 +93,12 @@ Castro::do_advance_ctu (Real time, Real dt)  // NOLINT(readability-convert-membe
     }
 
     // We can perform the reflux immediately if there's no subcycling
-    // above this level.
+    // above this level. Each hydro call has populated the flux registers via
+    // FluxRegCrseInit() and FluxRegFineAdd(). For simplified SDC these contain
+    // only the current iteration's fluxes. Passing in_post_timestep = false
+    // makes Castro::reflux() correct S_new and the stored coarse fluxes before
+    // we evaluate new-time sources and burn below, rather than recomputing
+    // sources as part of a post-timestep synchronization.
 
     if (do_reflux && level < max_level_to_advance) {
         reflux(level, max_level_to_advance, false);
@@ -272,6 +277,11 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
     // accumulated fluxes of earlier subcycles. Keep accepted totals separate
     // and commit only the final iteration of a successful subcycle. A retry
     // can then discard the working fluxes without losing accepted history.
+    //
+    // working_fluxes points to the existing level-owned arrays read by
+    // FluxRegCrseInit()/FluxRegFineAdd() and updated by Castro::reflux(). No
+    // alternate flux-register or reflux path is needed: accepted_fluxes is
+    // private bookkeeping and is never passed to the immediate reflux.
 
     Vector<MultiFab*> working_fluxes;
     Vector<std::unique_ptr<MultiFab>> accepted_fluxes;
@@ -433,6 +443,9 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
         for (int n = 0; n < num_sub_iters; ++n) {
 
+            // Hydro will fill these arrays and rebuild the flux registers
+            // for this iteration. Clear all participating levels before any
+            // hydro call so no earlier iteration or subcycle enters reflux.
             for (auto* flux : working_fluxes) {
                 flux->setVal(0.0);
             }
@@ -500,8 +513,12 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
         }
 
-        // The working fluxes include this iteration's immediate reflux
-        // correction. Failed attempts reach continue above and never commit.
+        // Castro::reflux(..., false) adds the coarse/fine correction back to
+        // the coarse flux arrays as well as applying it to S_new. Thus these
+        // working fluxes already include the final iteration's reflux and
+        // represent the accepted state update. Commit only now: sources or
+        // burning can fail after reflux, in which case continue above discards
+        // this attempt without changing the accepted totals.
 
         for (int i = 0; i < static_cast<int>(working_fluxes.size()); ++i) {
             MultiFab::Add(*accepted_fluxes[i], *working_fluxes[i],
