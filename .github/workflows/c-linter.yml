@@ -10,7 +10,7 @@ jobs:
   cpp-linter:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -30,10 +30,10 @@ jobs:
 
       - name: Install hypre
         run: |
-          wget -q https://github.com/hypre-space/hypre/archive/refs/tags/v2.28.0.tar.gz
-          tar xfz v2.28.0.tar.gz
-          cd hypre-2.28.0/src
-          ./configure --with-cxxstandard=17 --without-MPI
+          wget -q https://github.com/hypre-space/hypre/archive/refs/tags/v2.33.0.tar.gz
+          tar xfz v2.33.0.tar.gz
+          cd hypre-2.33.0/src
+          ./configure --with-cxxstandard=20 --without-MPI
           make -j 4
           make install
           cd ../../
