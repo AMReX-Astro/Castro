@@ -1,5 +1,7 @@
 # Changelog
 
+## 26.11
+
 ## 26.10
 
   * fix StarLib deviates output in ``job_info`` (#3409)
