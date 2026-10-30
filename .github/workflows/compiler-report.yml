@@ -1,0 +1,30 @@
+name: compiler-report
+
+on: [pull_request]
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.head_ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  compiler-report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -y -qq
+          sudo apt-get -qq -y install g++
+
+      - name: compiler diagnostics
+        run: |
+          g++ --version >> compiler.out
+          g++ -Q -O3 --help=optimizers >> compiler.out
+
+      - name: Archive clang tidy report
+        uses: actions/upload-artifact@v7
+        with:
+          name: compiler.out
+          path: compiler.out
+
