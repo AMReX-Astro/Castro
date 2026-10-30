@@ -268,6 +268,45 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
         max_level_to_advance = parent->finestLevel();
     }
 
+    // Immediate reflux needs the fluxes of each SDC iteration, not the
+    // accumulated fluxes of earlier subcycles. Keep accepted totals separate
+    // and commit only the final iteration of a successful subcycle. A retry
+    // can then discard the working fluxes without losing accepted history.
+
+    Vector<MultiFab*> working_fluxes;
+    Vector<std::unique_ptr<MultiFab>> accepted_fluxes;
+
+    if (time_integration_method == SimplifiedSpectralDeferredCorrections &&
+        do_reflux && level < max_level_to_advance) {
+
+        auto save_flux = [&] (MultiFab& flux) {
+            working_fluxes.push_back(&flux);
+            auto total = std::make_unique<MultiFab>(flux.boxArray(), flux.DistributionMap(),
+                                                  flux.nComp(), flux.nGrow());
+            total->setVal(0.0);
+            accepted_fluxes.push_back(std::move(total));
+        };
+
+        for (int lev = level; lev <= max_level_to_advance; ++lev) {
+            auto& L = getLevel(lev);
+            for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+                save_flux(*L.fluxes[dir]);
+            }
+#if (AMREX_SPACEDIM <= 2)
+            if (!L.Geom().IsCartesian()) {
+                save_flux(L.P_radial);
+            }
+#endif
+#ifdef RADIATION
+            if (Radiation::rad_hydro_combined) {
+                for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+                    save_flux(*L.rad_fluxes[dir]);
+                }
+            }
+#endif
+        }
+    }
+
     // Subcycle until we've reached the target time.
     // Compare against a slightly smaller number to
     // avoid roundoff concerns.
@@ -394,6 +433,10 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
         for (int n = 0; n < num_sub_iters; ++n) {
 
+            for (auto* flux : working_fluxes) {
+                flux->setVal(0.0);
+            }
+
             if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
                 for (int lev = level; lev <= max_level_to_advance; ++lev) {
                     getLevel(lev).sdc_iteration = n;
@@ -457,6 +500,14 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
         }
 
+        // The working fluxes include this iteration's immediate reflux
+        // correction. Failed attempts reach continue above and never commit.
+
+        for (int i = 0; i < static_cast<int>(working_fluxes.size()); ++i) {
+            MultiFab::Add(*accepted_fluxes[i], *working_fluxes[i],
+                          0, 0, working_fluxes[i]->nComp(), working_fluxes[i]->nGrow());
+        }
+
         subcycle_time += dt_subcycle;
         sub_iteration += 1;
 
@@ -476,6 +527,14 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
     if (verbose) {
         amrex::Print() << "  Subcycling complete" << std::endl << std::endl;
+    }
+
+    // Expose the full accepted integral to callers of the level advance.
+    // mass_fluxes remains the last subcycle's flux for source evaluation.
+
+    for (int i = 0; i < static_cast<int>(working_fluxes.size()); ++i) {
+        MultiFab::Copy(*working_fluxes[i], *accepted_fluxes[i],
+                      0, 0, working_fluxes[i]->nComp(), working_fluxes[i]->nGrow());
     }
 
     // Record the number of subcycles we took for diagnostic purposes.

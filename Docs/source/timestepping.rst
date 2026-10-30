@@ -182,6 +182,11 @@ set via ``amr.subcycling_mode``.
     the level with the strictest :math:`dt`. Note that this is
     identical to the deprecated command ``amr.nosub = 1``.
 
+    For simplified SDC with reflux enabled, each SDC iteration uses its
+    own fluxes to synchronize the levels before evaluating new-time sources
+    and reactions. Only the final iteration of each successful retry
+    subcycle contributes to the stored full-timestep flux integral.
+
   * If ``amr.subcycling_mode`` = ``Manual``: the code will subcycle
     according to the values supplied by ``amr.subcycling_iterations``.
 

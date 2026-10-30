@@ -1279,13 +1279,19 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
             });
         }
 #endif
-        // Store the fluxes from this advance. For simplified SDC integration we
-        // only need to do this on the last iteration.
+        // Store the fluxes from this advance. With immediate multilevel reflux,
+        // every SDC iteration needs its own fluxes before sources and burning.
+        // The driver clears these working buffers between iterations and saves
+        // only accepted final-iteration fluxes in the full-step totals.
+        // With level subcycling, only the last SDC iteration is stored.
 
         bool add_fluxes = true;
 
+        const bool immediate_reflux = do_reflux &&
+            parent->subcyclingMode() == "None" && parent->finestLevel() > 0;
+
         if (time_integration_method == SimplifiedSpectralDeferredCorrections &&
-            sdc_iteration != sdc_iters - 1) {
+            !immediate_reflux && sdc_iteration != sdc_iters - 1) {
             add_fluxes = false;
         }
 

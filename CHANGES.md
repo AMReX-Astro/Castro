@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+  * use current-iteration fluxes for simplified-SDC immediate AMR reflux,
+    preserving accepted flux totals across retry subcycles (PR pending)
+
 ## 26.10
 
   * fix StarLib deviates output in ``job_info`` (#3409)
