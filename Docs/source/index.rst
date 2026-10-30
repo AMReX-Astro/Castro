@@ -65,8 +65,11 @@ https://github.com/amrex-astro/Castro
 .. namespacelist
 
 .. toctree::
+   :maxdepth: 1
    :caption: References
 
+   citing
+   changes
    zreferences
 
 Indices and tables

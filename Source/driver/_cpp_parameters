@@ -269,7 +269,7 @@ sdc_quadrature               int           0
 # for true SDC.
 sdc_extra                    int           0
 
-# which SDC nonlinear solver to use?  1 = Newton, 2 = VODE, 3 = VODE for first iter
+# which SDC nonlinear solver to use?  1 = Newton, 2 = VODE, 3 = VODE for first iter, 4 = hybrid Powell
 sdc_solver                   int           1
 
 # Do we include geometry source terms due to local unit vectors in non-Cartesian Coord?
@@ -501,6 +501,11 @@ implicit_rotation_update     bool           1                  ROTATION
 # i.e. cos(theta) r_hat - sin(theta) theta_hat in Spherical coordinate.
 rot_axis                     int           3                  ROTATION
 
+# For Spherical 2D, we can optionally allow for rotational forces
+# in fixed latitude. This is the standard f-plane approximation.
+# This is used to compare the effect of fixed rotation.
+fixed_rotational_latitude    Real          -1.e200            ROTATION
+
 # include a central point mass
 use_point_mass               bool           0                  GRAVITY
 
@@ -590,6 +595,9 @@ grown_factor                 int           1
 # used with the embiggening routines to determine how to extend the domain
 star_at_center               bool          true
 
+# the number of cells along the theta-dir before the domain was extended
+# determines whether the domain has been extended in the theta direction
+old_theta_ncell              int           -1
 
 #-----------------------------------------------------------------------------
 # category: self-consistent field initialization

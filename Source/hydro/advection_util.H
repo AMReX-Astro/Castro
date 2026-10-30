@@ -86,9 +86,9 @@ void src_to_prim(int i, int j, int k, const Real dt,
 /// @param j         y index
 /// @param k         z index
 /// @param uin       input conserved state
-/// @param Bx        x-component of magentic field (if USE_MHD=TRUE)
-/// @param By        y-component of magentic field (if USE_MHD=TRUE)
-/// @param Bz        z-component of magentic field (if USE_MHD=TRUE)
+/// @param Bx        x-component of magnetic field (if USE_MHD=TRUE)
+/// @param By        y-component of magnetic field (if USE_MHD=TRUE)
+/// @param Bz        z-component of magnetic field (if USE_MHD=TRUE)
 /// @param Erin      radiation energy (if USE_RAD=TRUE)
 /// @param lam       radiation flux limiter (if USE_RAD=TRUE)
 /// @param q         output primitive state

@@ -60,6 +60,7 @@ Castro::trans_single(const Box& bx,
                         vol,
 #endif
                         hdt, cdtdx);
+
 }
 
 
@@ -107,7 +108,37 @@ Castro::actual_trans_single(const Box& bx,  // NOLINT(readability-convert-member
 
     bool reset_density = transverse_reset_density;
     bool reset_rhoe = transverse_reset_rhoe;
+    bool use_eos = transverse_use_eos;
     Real small_p = small_pres;
+    Real temp_guess = T_guess;
+    Real abundance_tol = abundance_failure_tolerance;
+
+    int ilo = 0;
+    int jlo = 0;
+    int klo = 0;
+
+    int ihi = 0;
+    int jhi = 0;
+    int khi = 0;
+
+    if (idir_t == 0) {
+        ihi = 1;
+    } else if (idir_t == 1) {
+        jhi = 1;
+    } else {
+        khi = 1;
+    }
+
+    if (idir_n == 0) {
+        ilo += d;
+        ihi += d;
+    } else if (idir_n == 1) {
+        jlo += d;
+        jhi += d;
+    } else {
+        klo += d;
+        khi += d;
+    }
 
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
@@ -117,48 +148,13 @@ Castro::actual_trans_single(const Box& bx,  // NOLINT(readability-convert-member
         // (i, i+1) in the x-direction, and similarly for
         // the y- and z- directions.
 
-        int il = i;
-        int jl = j;  // NOLINT(misc-confusable-identifiers)
-        int kl = k;
+        const int il = i + ilo;
+        const int jl = j + jlo;  // NOLINT(misc-confusable-identifiers)
+        const int kl = k + klo;
 
-        int ir = i;
-        int jr = j;
-        int kr = k;
-
-        // set the face indices in the transverse direction
-
-        if (idir_t == 0) {
-          ir = i+1;
-          jr = j;
-          kr = k;
-
-        } else if (idir_t == 1) {
-          ir = i;
-          jr = j+1;
-          kr = k;
-
-        } else {
-          ir = i;
-          jr = j;
-          kr = k+1;
-        }
-
-        // We're handling both the plus and minus states;
-        // for the minus state we're shifting one zone to
-        // the left in our chosen direction.
-
-        if (idir_n == 0) {
-          il += d;
-          ir += d;
-
-        } else if (idir_n == 1) {
-          jl += d;
-          jr += d;
-
-        } else {
-          kl += d;
-          kr += d;
-        }
+        const int ir = i + ihi;
+        const int jr = j + jhi;
+        const int kr = k + khi;
 
         // Update all of the passively-advected quantities with the
         // transverse term and convert back to the primitive quantity.
@@ -384,8 +380,8 @@ Castro::actual_trans_single(const Box& bx,  // NOLINT(readability-convert-member
         // Reset to original value if adding transverse terms made any mass fraction invalid.
 
         for (int n = 0; n < NumSpec; ++n) {
-            if (qo_arr(i,j,k,n+QFS) > 1.0_rt + castro::abundance_failure_tolerance ||
-                qo_arr(i,j,k,n+QFS) < -castro::abundance_failure_tolerance) {
+            if (qo_arr(i,j,k,n+QFS) > 1.0_rt + abundance_tol ||
+                qo_arr(i,j,k,n+QFS) < -abundance_tol) {
                 rrnewn = rrn;
                 runewn = run;
                 rvnewn = rvn;
@@ -443,13 +439,13 @@ Castro::actual_trans_single(const Box& bx,  // NOLINT(readability-convert-member
             // Pretend QREINT has been fixed
             // We can get pressure update via eos or using p-evolution equation
 
-            if (transverse_use_eos) {
+            if (use_eos) {
 
                 // With the EOS route:
                 eos_rep_t eos_state;
                 eos_state.rho = rrnewn;
                 eos_state.e = qo_arr(i,j,k,QREINT) * rhoinv;
-                eos_state.T = T_guess;
+                eos_state.T = temp_guess;
 
                 for (int n = 0; n < NumSpec; n++) {
                     eos_state.xn[n] = qo_arr(i,j,k,QFS+n);
@@ -581,7 +577,10 @@ Castro::actual_trans_final(const Box& bx,  // NOLINT(readability-convert-member-
 
     bool reset_density = transverse_reset_density;
     bool reset_rhoe = transverse_reset_rhoe;
+    bool use_eos = transverse_use_eos;
     Real small_p = small_pres;
+    Real temp_guess = T_guess;
+    Real abundance_tol = abundance_failure_tolerance;
 
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
@@ -860,8 +859,8 @@ Castro::actual_trans_final(const Box& bx,  // NOLINT(readability-convert-member-
         // Reset to original value if adding transverse terms made any mass fraction invalid.
 
         for (int n = 0; n < NumSpec; ++n) {
-            if (qo_arr(i,j,k,n+QFS) > 1.0_rt + castro::abundance_failure_tolerance ||
-                qo_arr(i,j,k,n+QFS) < -castro::abundance_failure_tolerance) {
+            if (qo_arr(i,j,k,n+QFS) > 1.0_rt + abundance_tol ||
+                qo_arr(i,j,k,n+QFS) < -abundance_tol) {
                 rrnewn = rrn;
                 runewn = run;
                 rvnewn = rvn;
@@ -914,13 +913,13 @@ Castro::actual_trans_final(const Box& bx,  // NOLINT(readability-convert-member-
             // Pretend QREINT has been fixed
             // We can get pressure update via eos or using p-evolution equation
 
-            if (transverse_use_eos) {
+            if (use_eos) {
 
                 // With the EOS route:
                 eos_rep_t eos_state;
                 eos_state.rho = rrnewn;
                 eos_state.e = qo_arr(i,j,k,QREINT) / rrnewn;
-                eos_state.T = T_guess;
+                eos_state.T = temp_guess;
 
                 for (int n = 0; n < NumSpec; n++) {
                     eos_state.xn[n] = qo_arr(i,j,k,QFS+n);

@@ -1,6 +1,8 @@
 #ifndef ROTATION_H
 #define ROTATION_H
 
+#include <numbers>
+
 #include <AMReX_Array.H>
 #include <Castro_math.H>
 #include <Castro_util.H>
@@ -18,7 +20,7 @@ Real get_omega()
     // shut off the source term by setting omega = 0.
 
     if (castro::rotational_period > 0.0_rt) {
-        omega = 2.0_rt * M_PI / castro::rotational_period;
+        omega = 2.0_rt * std::numbers::pi / castro::rotational_period;
     }
 
     return omega;
@@ -42,7 +44,12 @@ GpuArray<Real, 3> get_omega_vec(const GeometryData& geomdata,
     // If coord == 2, i.e. Spherical2D, then it is assumed that rotational axis is in z-axis
     // then we convert back to r and theta direction.
     if (coord == 2) {
-        Real theta = problo + (static_cast<Real>(j) + 0.5_rt) * dtheta;
+        Real theta;
+        if (castro::fixed_rotational_latitude >= 0.0_rt) {
+            theta = castro::fixed_rotational_latitude;
+        } else {
+            theta = problo + (static_cast<Real>(j) + 0.5_rt) * dtheta;
+        }
         omega_vec[0] = std::cos(theta) * omega;
         omega_vec[1] = -std::sin(theta) * omega;
     } else {
@@ -94,9 +101,6 @@ rotational_acceleration(const GpuArray<Real, 3>& r, const GpuArray<Real, 3>& v,
 
   auto r_vec = r;
 
-  GpuArray<Real, 3> omega_cross_v;
-  cross_product(omega, v, omega_cross_v);
-
   if (c1) {
       // For Spherical coordinate, the physical position vector is just r rhat,
       // but the input r will be in the format of (r,theta,0). So change it to (r,0,0)
@@ -117,6 +121,8 @@ rotational_acceleration(const GpuArray<Real, 3>& r, const GpuArray<Real, 3>& v,
   }
 
   if (c2) {
+      GpuArray<Real, 3> omega_cross_v;
+      cross_product(omega, v, omega_cross_v);
       for (int idir = 0; idir < 3; idir++) {
           Sr[idir] -= 2.0_rt * omega_cross_v[idir];
       }

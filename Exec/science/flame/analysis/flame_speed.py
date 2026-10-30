@@ -6,11 +6,11 @@ import matplotlib
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import yt
-import sys
 import numpy as np
 from scipy.optimize import brentq
 
 yt.funcs.mylog.setLevel(50)
+
 
 class Profile:
     """read a plotfile using yt and store the 1d profile for T and enuc"""
@@ -41,14 +41,14 @@ class Profile:
         """ given a profile x(T), find the x_0 that corresponds to T_0 """
 
         # our strategy here assumes that the hot ash is in the early
-        # part of the profile.  We then fit a quartic conservative interpolant
+        # part of the profile.  We then fit a cubic conservative interpolant
         # through the 4 zones surrounding the desired temperature and root find to
         # find the x that corresponds to the T
 
         # find the index of the first point where T drops below T_0
         idx = np.where(self.T < T_0)[0][0]
 
-        # the 4 points for our quartic will then be: idx-2, idx-1, idx, and idx+1
+        # the 4 points for our cubic will then be: idx-2, idx-1, idx, and idx+1
         T1 = self.T[idx-2]
         x1 = self.x[idx-2]
 
@@ -88,6 +88,10 @@ if __name__ == "__main__":
 
     p.add_argument("--skip", type=int, default=1,
                    help="interval between plotfiles")
+    p.add_argument("--temp0", type=float, default=1.5e9,
+                   help="midpoint in T used to define flame position")
+    p.add_argument("--dtemp", type=float, default=0.5e9,
+                   help="delta T, to give temp0 +/- dtemp as alternate T used to define flame position")
     p.add_argument("plotfiles", type=str, nargs="+",
                    help="list of plotfiles to plot")
 
@@ -95,6 +99,10 @@ if __name__ == "__main__":
 
     prefix = args.plotfiles[0].split("plt")[0] + "plt"
     plot_nums = sorted([p.split("plt")[1] for p in args.plotfiles], key=int)
+
+    T1 = args.temp0 - args.dtemp
+    T2 = args.temp0
+    T3 = args.temp0 + args.dtemp
 
     t = []
     v = []
@@ -105,19 +113,37 @@ if __name__ == "__main__":
     x2_old = None
     x3_old = None
 
+    time_old = None
+    width_old = None
+
     for n in range(0, len(plot_nums), args.skip):
 
         pfile = f"{prefix}{plot_nums[n]}"
         p = Profile(pfile)
 
-        x1 = p.find_x_for_T(T_0=1.5e9)
-        x2 = p.find_x_for_T(T_0=1.e9)
-        x3 = p.find_x_for_T(T_0=2.e9)
+        try:
+            x1 = p.find_x_for_T(T_0=T1)
+        except IndexError:
+            # we are at the edge of the domain
+            continue
+
+        try:
+            x2 = p.find_x_for_T(T_0=T2)
+        except IndexError:
+            # we are at the edge of the domain
+            continue
+
+        try:
+            x3 = p.find_x_for_T(T_0=T3)
+        except IndexError:
+            # we are at the edge of the domain
+            continue
+
         width = p.find_flame_width()
 
         if x1_old is not None:
 
-            # difference with the previous file to find the det speed
+            # difference with the previous file to find the flamem speed
             # note: the corresponding time is centered in the interval
             v1 = (x1 - x1_old)/(p.time - time_old)
             v2 = (x2 - x2_old)/(p.time - time_old)

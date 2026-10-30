@@ -1,5 +1,7 @@
 #include <iomanip>
 
+#include <numbers>
+
 #include <Castro.H>
 #include <Castro_util.H>
 
@@ -329,6 +331,8 @@ Castro::gwstrain (Real time,
         return;
     }
 
+    constexpr amrex::Real c_light_4 = amrex::Math::powi<4>(C::c_light);
+
     GeometryData geomdata = geom.data();
 
     MultiFab& S_new = get_new_data(State_Type);
@@ -465,11 +469,11 @@ Castro::gwstrain (Real time,
                 // We also need to then divide by the volume by 2*pi since
                 // it has already been integrated out.
 
-                dM /= (2.0_rt * M_PI);
+                dM /= (2.0_rt * std::numbers::pi);
 
-                dQtt(0,0) += dM * (2.0_rt * M_PI) * (inertial_vel[1] * inertial_vel[1] + pos[1] * inertial_g[1]);
-                dQtt(1,1) += dM * M_PI * (inertial_vel[0] * inertial_vel[0] + pos[0] * g[0]);
-                dQtt(2,2) += dM * M_PI * (inertial_vel[0] * inertial_vel[0] + pos[0] * g[0]);
+                dQtt(0,0) += dM * (2.0_rt * std::numbers::pi) * (inertial_vel[1] * inertial_vel[1] + pos[1] * inertial_g[1]);
+                dQtt(1,1) += dM * std::numbers::pi * (inertial_vel[0] * inertial_vel[0] + pos[0] * g[0]);
+                dQtt(2,2) += dM * std::numbers::pi * (inertial_vel[0] * inertial_vel[0] + pos[0] * g[0]);
 
             }
 
@@ -572,7 +576,7 @@ Castro::gwstrain (Real time,
 
         for (int j = 0; j < 3; ++j) {   // NOLINT(modernize-loop-convert)
             for (int i = 0; i < 3; ++i) {
-                h[j][i] *= 2.0_rt * C::Gconst / (std::pow(C::c_light, 4) * r);
+                h[j][i] *= 2.0_rt * C::Gconst / (c_light_4 * r);
             }
         }
 

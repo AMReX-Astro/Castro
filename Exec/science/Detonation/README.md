@@ -32,22 +32,52 @@ shockwave (as seen in the pressure field).
 Note: if the domain is too small, then the burning will decouple from
 the shock wave, and you will not get a detonation.
 
+## Stopping condition
+
+The runtime parameter `problem.det_domain_abort` can be used to
+abort the simulation when the detonation reaches a particular fraction
+of the way through the domain.  E.g., setting this to `0.95` will stop
+the calculation when the detonation is 95% of the way through the
+domain.  This works by finding the location of the peak energy
+generation rate in the domain.
+
+Set it to a value > 1 to disable this feature.
+
 ## Inputs files
 
 Some important inputs files
-
-* `inputs-det-x.nse` : this produces a nice detonation that gets hot
-  enough for the ash to be in NSE.
 
 * `inputs-det-x.subch_base` : this produces a He4 detonation using the
   same initial condition in the shell burning stage of the subchandra
   problem.
 
-* `inputs-collision` : this is the inputs file used for the 1D collision
-  simulations from Katz & Zingale, 2019, ApJ, 874, 169
+  This is usually built with one of the `he-burn` networks, like
+  `ase-iron`.
+
+  Note that this uses a very high resolution---much higher than we
+  would use in a multi-d simulation.
+
+* `inputs-det-x.nse` : this produces a nice detonation that gets hot
+  enough for the ash to be in NSE.
+
+  This is meant to be run with the NSE table, compiled with:
+  `NETWORK_DIR=aprox19 USE_NSE_TABLE=TRUE`
+
+* `inputs-det-x.nse_net` : this produces a He detonation that
+  transitions to NSE with the self-consistent NSE solver.  It is meant
+  to be built with one of the "ase" networks (`ase` or `ase-iron`) and
+  with `USE_NSE_NET=TRUE`.
 
 * `inputs-det-x.ONe` : this creates an O-Ne detonation.  It should be
-  build with `USE_NSE_NET=TRUE NETWORK_DIR=he-burn/ase-iron`
+  built with `USE_NSE_NET=TRUE NETWORK_DIR=he-burn/ase-iron`
+
+  As with `inputs-det-x.subch_base`, this uses a very high resolution.
+
+  This is also designed to be used with the self-consistent NSE
+  solver.
+
+* `inputs-collision` : this is the inputs file used for the 1D
+  collision simulations from Katz & Zingale, 2019, ApJ, 874, 169
 
 Inputs files used in the regression test suite:
 

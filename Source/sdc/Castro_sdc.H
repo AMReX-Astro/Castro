@@ -1,6 +1,8 @@
 #ifndef CASTRO_SDC_H
 #define CASTRO_SDC_H
 
+#include <AMReX_REAL.H>
+
 #ifndef AMREX_USE_GPU
 void do_sdc_update(int m_start, int m_end, amrex::Real dt);
 #endif
@@ -28,6 +30,7 @@ void construct_old_react_source(amrex::MultiFab& U_state,
                                 const bool input_is_average);
 #endif
 
+static
 void ca_sdc_update_advection_o2_lobatto(const amrex::Box& bx,
                                         amrex::Real dt_m, amrex::Real dt,
                                         amrex::Array4<const amrex::Real> const& k_m,
@@ -37,6 +40,7 @@ void ca_sdc_update_advection_o2_lobatto(const amrex::Box& bx,
                                         amrex::Array4<const amrex::Real> const& A_1_old,
                                         int m_start);
 
+static
 void ca_sdc_update_advection_o2_radau(const amrex::Box& bx,
                                       amrex::Real dt_m, amrex::Real dt,
                                       amrex::Array4<const amrex::Real> const& k_m,
@@ -47,6 +51,7 @@ void ca_sdc_update_advection_o2_radau(const amrex::Box& bx,
                                       amrex::Array4<const amrex::Real> const& A_2_old,
                                       int m_start);
 
+static
 void ca_sdc_update_advection_o4_lobatto(const amrex::Box& bx,
                                         amrex::Real dt_m, amrex::Real dt,
                                         amrex::Array4<const amrex::Real> const& k_m,
@@ -57,6 +62,7 @@ void ca_sdc_update_advection_o4_lobatto(const amrex::Box& bx,
                                         amrex::Array4<const amrex::Real> const& A_2_old,
                                         int m_start);
 
+static
 void ca_sdc_update_advection_o4_radau(const amrex::Box& bx,
                                       amrex::Real dt_m, amrex::Real dt,
                                       amrex::Array4<const amrex::Real> const& k_m,
@@ -68,6 +74,7 @@ void ca_sdc_update_advection_o4_radau(const amrex::Box& bx,
                                       amrex::Array4<const amrex::Real> const& A_3_old,
                                       int m_start);
 #ifdef REACTIONS
+static
 void ca_sdc_compute_C2_lobatto(const amrex::Box& bx,
                                amrex::Real dt_m, amrex::Real dt,
                                amrex::Array4<const amrex::Real> const& A_m,
@@ -78,6 +85,7 @@ void ca_sdc_compute_C2_lobatto(const amrex::Box& bx,
                                amrex::Array4<amrex::Real> const& C,
                                int m_start);
 
+static
 void ca_sdc_compute_C2_radau(const amrex::Box& bx,
                              amrex::Real dt_m, amrex::Real dt,
                              amrex::Array4<const amrex::Real> const& A_m,
@@ -90,6 +98,7 @@ void ca_sdc_compute_C2_radau(const amrex::Box& bx,
                              amrex::Array4<amrex::Real> const& C,
                              int m_start);
 
+static
 void ca_sdc_compute_C4_lobatto(const amrex::Box& bx,
                                amrex::Real dt_m, amrex::Real dt,
                                amrex::Array4<const amrex::Real> const& A_m,
@@ -102,6 +111,7 @@ void ca_sdc_compute_C4_lobatto(const amrex::Box& bx,
                                amrex::Array4<amrex::Real> const& C,
                                int m_start);
 
+static
 void ca_sdc_compute_C4_radau(const amrex::Box& bx,
                              amrex::Real dt_m, amrex::Real dt,
                              amrex::Array4<const amrex::Real> const& A_m,
@@ -116,6 +126,7 @@ void ca_sdc_compute_C4_radau(const amrex::Box& bx,
                              amrex::Array4<amrex::Real> const& C,
                              int m_start);
 
+static
 void ca_sdc_conservative_update(const amrex::Box& bx, amrex::Real const dt_m,
                                 amrex::Array4<const amrex::Real> const& U_old,
                                 amrex::Array4<amrex::Real> const& U_new,
@@ -123,17 +134,19 @@ void ca_sdc_conservative_update(const amrex::Box& bx, amrex::Real const dt_m,
                                 amrex::Array4<const amrex::Real> const& R_new);
 #endif
 
+static
 void ca_sdc_compute_initial_guess(const amrex::Box& bx,
                                   amrex::Array4<const amrex::Real> const& U_old,
                                   amrex::Array4<const amrex::Real> const& U_new,
-                                  amrex::Array4<const amrex::Real> const& A_old,
-                                  amrex::Array4<const amrex::Real> const& R_old,
+                                  amrex::Array4<const amrex::Real> const& Adv_old,
+                                  amrex::Array4<const amrex::Real> const& React_old,
                                   amrex::Array4<amrex::Real> const& U_guess,
-                                  amrex::Real const dt_m, int const sdc_iteration);
+                                  amrex::Real const dt_m, int const sdc_iter);
 
 #ifdef REACTIONS
+static
 void ca_store_reaction_state(const amrex::Box& bx,
-                             amrex::Array4<const amrex::Real> const& R_old,
+                             amrex::Array4<const amrex::Real> const& React_old,
                              amrex::Array4<amrex::Real> const& R_store);
 #endif
 

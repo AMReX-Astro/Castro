@@ -75,7 +75,7 @@ Diffusion::make_mg_bc ()
             } else {
                 mlmg_lobc[idim] = MLLinOp::BCType::Neumann;
             }
-            if (phys_bc->hi(idim) == amrex::PhysBCType::symmetry) {
+            if (phys_bc->hi(idim) == amrex::PhysBCType::inflow) {
                 mlmg_hibc[idim] = MLLinOp::BCType::Dirichlet;
             } else {
                 mlmg_hibc[idim] = MLLinOp::BCType::Neumann;

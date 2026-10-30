@@ -31,12 +31,10 @@ The ideal MHD equations we solve appear as:
 
 .. math::
 
-   \begin{align}
    \frac{\partial \rho X_k}{\partial t} + \frac{\partial}{\partial x_j} ( \rho U_j X_k) &= \rho \omegadot_k \\
    \frac{\partial \rho U_j}{\partial t} + \frac{\partial}{\partial x_j} (\rho U_i U_j + p \delta_{ij} - B_j B_i) &= S_{\rho U_j} \\
    \frac{\partial \rho E}{\partial t} + \frac{\partial}{\partial x_j} \left [ U_j (\rho E + p) - B_j B_i u_i \right ] &= S_{\rho E} + \rho H_\mathrm{nuc} \\
    \frac{\partial B_i}{\partial t} &= -\frac{\partial}{\partial x_j} (U_j B_i - B_j U_i)
-   \end{align}
 
 where
 

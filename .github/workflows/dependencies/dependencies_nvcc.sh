@@ -17,7 +17,6 @@ sudo apt-get install -y \
     ca-certificates     \
     cmake               \
     g++                 \
-    gfortran            \
     gnupg               \
     libopenmpi-dev      \
     openmpi-bin         \

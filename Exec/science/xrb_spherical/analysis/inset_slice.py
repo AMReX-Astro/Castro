@@ -67,7 +67,7 @@ def single_slice(ds, field:str,
 
 
     # Plot each field parameter
-    sp = yt.SlicePlot(ds, 'phi', field, width=box_widths, fontsize=28)
+    sp = yt.SlicePlot(ds, 'phi', field, width=box_widths, fontsize=24)
     sp.set_center(center)
 
     sp.set_cmap(field, "viridis")
@@ -186,7 +186,7 @@ if __name__ == "__main__":
     )
 
     # Increase inset ax tick label size
-    inset_ax.tick_params(labelsize=16)
+    inset_ax.tick_params(labelsize=14)
 
     # Add back annotation lines, i.e. latitude lines
     for line in fig_zoom.axes[0].lines:

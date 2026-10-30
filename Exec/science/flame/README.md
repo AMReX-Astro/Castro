@@ -1,4 +1,4 @@
-# Problem Description
+# `flame`
 
 This is a simple 1-d flame problem.  It sets up a fuel and ash region
 with a smooth transition in temperature and composition.  The density
@@ -6,9 +6,18 @@ is computed such that the domain is at constant pressure initially.
 Thermal diffusion heats the fuel to the point of ignition and a flame
 ignites and propagates to the right.
 
+## Stopping condition
 
+The runtime parameter `problem.det_domain_abort` can be used to
+abort the simulation when the detonation reaches a particular fraction
+of the way through the domain.  E.g., setting this to `0.95` will stop
+the calculation when the detonation is 95% of the way through the
+domain.  This works by finding the location of the peak energy
+generation rate in the domain.
 
-# Usage
+Set it to a value > 1 to disable this feature.
+
+## Inputs files
 
 The different inputs files setup different fuels or solvers.
 
@@ -28,9 +37,9 @@ The different inputs files setup different fuels or solvers.
 
 * `inputs.C` : a pure C flame at a density of 5.e8 g/cc, appropriate
   for SN Ia.  This is a very small domain and the resolution
-  requirements are very dependent on the density---this uses a resolution
-  of about 2.e-5 cm.  It takes about 5.e-9 s to get established and has a speed
-  of about 6e6 cm/s.
+  requirements are very dependent on the density---this uses a
+  resolution of about 2.e-5 cm.  It takes about 5.e-9 s to get
+  established and has a speed of about 6e6 cm/s.
 
 ## Analysis
 
@@ -41,7 +50,7 @@ include:
   from a sequence of plotfiles, evenly spaced in time.  There are
   several options---do `./profiles.py -h` to see them.
 
-  To change the interval between plotfiles plotted, use ``--dt``,
+  To change the interval between plotfiles plotted, use `--dt`,
   like:
 
   ```
@@ -56,8 +65,15 @@ include:
 * `snapshot.py` : for a single plotfile, show the temperature,
   energy generation, and composition as a function of position.
   This will focus on only the most abundant nuclei.
-  
-# Publications
+
+* `flame_speed.py` : this loop over all the files and use a cubic
+  interpolant to find the position of the flame where the temperature
+  is T0, T0 +/- dT0, and then difference in time across files to find
+  the flame speed (with uncertainty).  T0 and dT0 can be set via
+  runtime parameters, and should be temperatures where the flame
+  profile is very steep.  The flame width is also computed.
+
+## Publications
 
 The SDC inputs files were used for a demonstration of a 4th order
 accurate flame in

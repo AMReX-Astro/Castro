@@ -148,7 +148,6 @@ A separate type, ``eos_xderivs_t`` provides access to derivatives with respect t
 
    .. math::
 
-      \begin{align}
       p_{X_k} &= \left .\frac{\partial p}{\partial \bar{A}} \right |_{\rho, T, \bar{Z}}
                 \frac{\partial \bar{A}}{\partial X_k} +
                 \left . \frac{\partial p}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}
@@ -157,13 +156,11 @@ A separate type, ``eos_xderivs_t`` provides access to derivatives with respect t
                 \left .\frac{\partial p}{\partial \bar{A}} \right |_{\rho, T, \bar{Z}} +
                 \frac{\bar{A}}{A_k} \left (Z_k - \bar{Z} \right )
                 \left . \frac{\partial p}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}
-      \end{align}
 
 -  ``eos_xderivs.dedX[NumSpec]``: the derivative of the specific internal energy with respect to mass fraction:
 
    .. math::
 
-      \begin{align}
       e_{X_k} &= \left . \frac{\partial e }{\partial \bar{A}} \right |_{\rho, T, \bar{Z}}
               \frac{\partial \bar{A}}{\partial X_k} +
               \left .\frac{\partial e}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}
@@ -172,6 +169,5 @@ A separate type, ``eos_xderivs_t`` provides access to derivatives with respect t
               \left . \frac{\partial e }{\partial \bar{A}} \right |_{\rho, T, \bar{Z}} +
               \frac{\bar{A}}{A_k} \left (Z_k - \bar{Z}\right )
               \left .\frac{\partial e}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}
-      \end{align}
 
 (see :cite:`maestro:III`, Appendix A).

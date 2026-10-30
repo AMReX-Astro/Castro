@@ -112,7 +112,7 @@ To enable this, compile with::
 
       CUDA_ARCH=89
 
-   to the ``make`` line or ``GNUmakefile``.
+   to the ``make`` line.
 
 .. note::
 

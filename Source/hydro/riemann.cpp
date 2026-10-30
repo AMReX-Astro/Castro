@@ -66,6 +66,9 @@ Castro::cmpflx_plus_godunov(const Box& bx,
     const auto domlo = geom.Domain().loVect3d();
     const auto domhi = geom.Domain().hiVect3d();
 
+    const bool do_ppm_temp_fix = ppm_temp_fix == 2;
+    const Real temp_guess = T_guess;
+
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
@@ -82,7 +85,8 @@ Castro::cmpflx_plus_godunov(const Box& bx,
                           qm, qp, qaux_arr,
                           qint,
                           special_bnd_lo, special_bnd_hi,
-                          domlo, domhi);
+                          domlo, domhi,
+                          do_ppm_temp_fix, temp_guess);
 
             // now use the interface state to compute and store the flux
 

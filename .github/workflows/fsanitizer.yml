@@ -10,7 +10,7 @@ jobs:
   fsanitizer:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Get submodules
         run: |
@@ -24,7 +24,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update -y -qq
-          sudo apt-get -qq -y install curl cmake jq clang g++>=9.3.0
+          sudo apt-get -qq -y install g++
 
       - name: Compile subchandra
         run: |

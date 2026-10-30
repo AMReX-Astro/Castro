@@ -24,8 +24,11 @@ EOS_DIR     := helmholtz
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
 NETWORK_DIR := nova
 
-# Thi sets the conductivity EOS directory in $(MICROPHYSICS_HOME)/conductivity
+# This sets the conductivity EOS directory in $(MICROPHYSICS_HOME)/conductivity
 CONDUCTIVITY_DIR := stellar
+
+# RKC performs very well with the nova networks
+INTEGRATOR_DIR := RKC
 
 Bpack   := ./Make.package
 Blocs   := .

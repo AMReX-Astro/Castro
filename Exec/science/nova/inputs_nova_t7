@@ -1,7 +1,6 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-#max_step = 2732918
-stop_time = 1700.0
-max_step = 300
+stop_time = 2000.0
+max_step = 30000000
 
 # PROBLEM SIZE & GEOMETRY
 
@@ -63,7 +62,9 @@ castro.use_flattening = 1
 castro.small_temp = 5.0e5
 castro.small_dens = 5.0e-6
 castro.limit_fluxes_on_small_dens = 1
+
 castro.retry_small_density_cutoff = 5.0e-5
+
 castro.use_retry = 1
 castro.max_subcycles = 16
 
@@ -80,12 +81,12 @@ castro.drive_initial_convection_reinit_period = 2
 castro.drive_initial_convection_tmax = 50
 
 # TIME STEP CONTROL
-castro.cfl            = 0.7     # cfl number for hyperbolic system
+castro.cfl            = 0.85     # cfl number for hyperbolic system
 castro.init_shrink    = 0.01     # scale back initial timestep
 castro.change_max     = 1.1     # max time step growth
 
 # DIAGNOSTICS & VERBOSITY
-castro.sum_interval   = 1       # timesteps between computing mass
+castro.sum_interval   = 25       # timesteps between computing mass
 castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
 
@@ -101,20 +102,27 @@ amr.regrid_int      = 2 2         # how often to regrid
   amr.grid_eff        = 0.7
   amr.n_error_buf     = 4 2         # number of buffer cells in error est
 #elif AMREX_SPACEDIM == 2
-  amr.max_grid_size   = 256
-  amr.blocking_factor = 64
+  amr.max_grid_size   = 512
+  amr.blocking_factor = 32
   amr.n_error_buf     = 4 2         # number of buffer cells in error est
 #endif
 
 # CHECKPOINT FILES
-amr.check_file      = chk        # root name of checkpoint file
-amr.check_per       = 0.5        # size of timestep between checkpoints
-amr.check_int       = 100         # number of timesteps between checkpoints
+amr.check_file      = nova_chk        # root name of checkpoint file
+amr.check_per       = -1        # size of timestep between checkpoints
+amr.check_int       = 1000         # number of timesteps between checkpoints
 
 # PLOTFILES
-amr.plot_file        = plt        # root name of plotfile
-amr.plot_per         = 0.5        # set a plot every half second
+amr.plot_file        = nova_plt        # root name of plotfile
+amr.plot_per         = 5.0        # set a plot every half second
 amr.derive_plot_vars = ALL
+
+amr.small_plot_file        = nova_smallplt        # root name of plotfile
+amr.small_plot_per         =  1.0      # number of seconds between plotfiles
+amr.small_plot_vars = density Temp
+amr.derive_small_plot_vars = abar x_velocity y_velocity X(H1) X(He4) X(C12) X(O16) X(Be7) enuc magvort MachNumber
+
+amr.file_name_digits = 7          # pad step number with zeros if needed
 
 # DATA LOG
 amr.data_log = log
@@ -135,8 +143,10 @@ problem.width_ratio = 1.8
 
 integrator.jacobian = 1
 integrator.rtol_spec = 1.e-6
-integrator.atol_spec = 1.e-6
+integrator.atol_spec = 1.e-10
 integrator.rtol_enuc = 1.e-6
+
+integrator.use_burn_retry = 1
 
 # refinement
 

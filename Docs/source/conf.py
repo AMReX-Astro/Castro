@@ -59,6 +59,7 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx_rtd_theme',
               'sphinx_copybutton',
               'sphinx_prompt',
+              'sphinx_mdinclude',
               'breathe',
               'sphinx_rtd_theme_ext_color_contrast',
               'IPython.sphinxext.ipython_console_highlighting']
@@ -107,7 +108,7 @@ language = "en"
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
-exclude_patterns = ['**.ipynb_checkpoints']
+exclude_patterns = ['**.ipynb_checkpoints', "changelog.md"]
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'

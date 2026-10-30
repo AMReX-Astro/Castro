@@ -96,7 +96,7 @@ void set_hybrid_momentum_source(const GpuArray<Real, 3>& loc,
 /// @param idir           coordinate direction for flux computation (0 = x, 1 = y, 2 = z)
 /// @param i              x zone index
 /// @param j              y zone index
-/// @param k              z zone indxe
+/// @param k              z zone index
 /// @param flux           hydrodynamic flux in direction idir
 /// @param cell_centered  is this a cell-centered flux or an interface flux?
 ///

@@ -442,6 +442,14 @@ namespace timestep {
                     return {ValLocPair<Real, IntVect>{dt_tmp, idx}};
                 }
 
+                // Don't consider zones with shocks if we disabled
+                // burning in shocks
+#ifdef SHOCK_VAR
+                if (S(i,j,k,USHK) > 0.0_rt && castro::disable_shock_burning == 1) {
+                    return {ValLocPair<Real, IntVect>{dt_tmp, idx}};
+                }
+#endif
+
                 Real e = burn_state.e;
                 Real X[NumSpec];
                 for (int n = 0; n < NumSpec; ++n) {

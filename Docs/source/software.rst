@@ -178,10 +178,10 @@ pointer to a data buffer. The real floating point data are stored as
 one-dimensional arrays in ``FArrayBox`` es. The associated ``Box`` can be
 used to reshape the 1D array into multi-dimensional arrays to be used
 by Fortran subroutines. The key part of the C++ AMReX data
-structures is that this data buffer can be cast a a DIM+1 dimensional array that
+structures is that this data buffer can be cast as a DIM+1 dimensional array that
 we can easily fill in C++ kernels.
 
-.. note:: Castro is complied for a specific dimensionality.
+.. note:: Castro is compiled for a specific dimensionality.
 
 ``MultiFab``
 ------------
@@ -456,7 +456,7 @@ let’s consider the following scenarios:
    of the ghost cell filling, we pass in a reference to the ``StateData`` itself.
 
    The main thing you need to be careful of here, is that you
-   need to ensure that the the time you are at is consistent with
+   need to ensure that the time you are at is consistent with
    the ``StateData`` ’s time. Here’s an example from the radiation
    portion of the code ``MGFLDRadSolver.cpp``:
 
@@ -470,7 +470,7 @@ let’s consider the following scenarios:
 
    In this example, ``S_new`` is a pointer to the new-time-level
    ``State_Type`` ``MultiFab``. So this operation will use the
-   ``State_Type`` data to fill its own ghost cells. we fill the
+   ``State_Type`` data to fill its own ghost cells. We fill the
    ``ngrow`` ghost cells of the new-time-level ``State_Type`` data,
    for all the components.
 
@@ -658,4 +658,3 @@ calling the AMReX multigrid solvers to solve the Poisson equation.
 
 .. [2]
    the integer values are defined in ``BC_TYPES.H``
-

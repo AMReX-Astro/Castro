@@ -101,10 +101,8 @@ conditions are true:
 
 .. math::
 
-   \begin{align*}
    \nabla \cdot \ub &< 0 \\
    \frac{|(\nabla p - \rho {\bf g}) \cdot \ub|}{p |\ub_\mathrm{cell}|} &> f_\mathrm{shock}
-   \end{align*}
 
 This requires that there is compression and that the pressure jump (excluding
 the part of the pressure that balances gravity) is large.  The runtime parameter
