@@ -216,9 +216,10 @@ Retry Mechanism
 
 .. index:: castro.use_retry, castro.abundance_failure_tolerance, castro.abundance_failure_rho_cutoff, castro.retry_small_density_cutoff, castro.small_dens
 
-Castro's Strang CTU solver has a retry mechanism that can discard a
-time step on a level and restart with a smaller timestep, subcycling
-within the level to make up the full time step needed for that level.
+Castro's Strang CTU and simplified SDC solvers have a retry mechanism that
+can discard a timestep attempt on a level and restart with a smaller
+timestep, taking retry subcycles to make up the full timestep needed for
+that level. These retry subcycles are distinct from AMR level subcycling.
 It is enabled by setting::
 
    castro.use_retry = 1
@@ -228,7 +229,13 @@ It is enabled by setting::
    The Castro retry mechanism is enabled by default for CTU + Strang
    and Simplified SDC integration.
 
-The number of subcycles to try in the level is controlled via the
+Flux integrals retain contributions from every accepted retry subcycle,
+even if a later attempt fails. Failed attempts contribute no fluxes to the
+full-timestep integral. For simplified SDC, only the final SDC iteration
+of each accepted retry subcycle contributes. This applies both with and
+without AMR level subcycling.
+
+The number of retry subcycles to try in the level is controlled via the
 ``castro.max_subcycles`` parameter.  It is not really suggested to go
 beyond ``16``---any more is usually an indication of a bigger problem.
 

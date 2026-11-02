@@ -180,7 +180,7 @@ Castro::retry_advance_ctu(Real dt, const advance_status& status)
             std::cout << std::endl;
             std::cout << Font::Bold << FGColor::Red;
             std::cout << "  Timestep " << dt << " rejected at level " << level << "." << std::endl;
-            std::cout << "  Performing a retry, with subcycled timesteps of maximum length dt = " << dt_subcycle << std::endl;
+            std::cout << "  Performing a retry, with retry subcycles of maximum length dt = " << dt_subcycle << std::endl;
             std::cout << ResetDisplay;
             std::cout << std::endl;
         }
@@ -193,7 +193,9 @@ Castro::retry_advance_ctu(Real dt, const advance_status& status)
         for (int lev = level; lev <= max_level_to_advance; ++lev) {
             getLevel(lev).save_data_for_retry();
 
-            // Clear the contribution to the fluxes from this step.
+            // Discard the failed retry subcycle's working fluxes. The accepted
+            // totals live separately in subcycle_advance_ctu(), so a failure
+            // after an accepted retry subcycle cannot erase that history.
 
             for (int dir = 0; dir < 3; ++dir) {
                 getLevel(lev).fluxes[dir]->setVal(0.0);
@@ -252,7 +254,7 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 {
     BL_PROFILE("Castro::subcycle_advance_ctu()");
 
-    // Start the subcycle time off with the main dt,
+    // Start the retry subcycle time off with the main dt,
     // unless we already came in here with an estimate
     // that is different from the initial value we assigned,
     // for example from the post-step regrid algorithm.
@@ -273,10 +275,18 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
         max_level_to_advance = parent->finestLevel();
     }
 
-    // Immediate reflux needs the fluxes of each SDC iteration, not the
-    // accumulated fluxes of earlier subcycles. Keep accepted totals separate
-    // and commit only the final iteration of a successful subcycle. A retry
-    // can then discard the working fluxes without losing accepted history.
+    // Keep accepted full-timestep flux totals separate from working fluxes
+    // whenever retries are enabled, for both CTU and simplified SDC. A failed
+    // attempt may already have added fluxes, but retrying resumes from the
+    // last accepted fluid state. Discard only the failed attempt's fluxes;
+    // retain the contributions from all accepted retry subcycles.
+    //
+    // Immediate reflux must use only the current SDC iteration's fluxes.
+    // Keep it on this same bookkeeping path even with retries disabled,
+    // although a single successful attempt could simply leave its final
+    // SDC iteration's fluxes in the working arrays without separate totals.
+    // Commit only a successful retry subcycle's final SDC iteration (or its
+    // single CTU advance).
     //
     // working_fluxes points to the existing level-owned arrays read by
     // FluxRegCrseInit()/FluxRegFineAdd() and updated by Castro::reflux(). No
@@ -286,13 +296,14 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
     Vector<MultiFab*> working_fluxes;
     Vector<std::unique_ptr<MultiFab>> accepted_fluxes;
 
-    if (time_integration_method == SimplifiedSpectralDeferredCorrections &&
-        do_reflux && level < max_level_to_advance) {
+    if (use_retry ||
+        (time_integration_method == SimplifiedSpectralDeferredCorrections &&
+         do_reflux && level < max_level_to_advance)) {
 
         auto save_flux = [&] (MultiFab& flux) {
             working_fluxes.push_back(&flux);
             // total is a separate accumulator for this array's accepted
-            // subcycle fluxes; it survives resets of the working array.
+            // retry subcycle fluxes; it survives resets of the working array.
             auto total = std::make_unique<MultiFab>(flux.boxArray(), flux.DistributionMap(),
                                                   flux.nComp(), flux.nGrow());
             total->setVal(0.0);
@@ -322,7 +333,7 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
         }
     }
 
-    // Subcycle until we've reached the target time.
+    // Take retry subcycles until we've reached the target time.
     // Compare against a slightly smaller number to
     // avoid roundoff concerns.
 
@@ -360,35 +371,35 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
         if (dt_subcycle <= dt_cutoff * time) {
             if (ParallelDescriptor::IOProcessor()) {
                 std::cout << std::endl;
-                std::cout << "  The subcycle mechanism requested subcycled timesteps of maximum length dt = " << dt_subcycle << "," << std::endl
+                std::cout << "  The retry mechanism requested retry subcycles of maximum length dt = " << dt_subcycle << "," << std::endl
                           << "  but this timestep is shorter than the user-defined minimum, " << std::endl
                           << "  castro.dt_cutoff, multiplied by the current time (" << dt_cutoff * time << "). Aborting." << std::endl;
             }
-            amrex::Abort("Error: subcycled timesteps too short.");
+            amrex::Abort("Error: retry subcycles too short.");
         }
 
-        // Check on whether we are going to take too many subcycles.
+        // Check on whether we are going to take too many retry subcycles.
 
         int num_subcycles_remaining = int(round(((time + dt) - subcycle_time) / dt_subcycle));
 
         if (num_subcycles_remaining > max_subcycles) {
             amrex::Print() << std::endl
-                           << "  The subcycle mechanism requested " << num_subcycles_remaining
-                           << " subcycled timesteps, which is larger than the maximum of "
+                           << "  The retry mechanism requested " << num_subcycles_remaining
+                           << " retry subcycles, which is larger than the maximum of "
                            << max_subcycles << "." << std::endl
                            << "  If you would like to override this, increase the parameter castro.max_subcycles." << std::endl;
-            amrex::Abort("Error: too many subcycles.");
+            amrex::Abort("Error: too many retry subcycles.");
         }
 
-        // If we get to this point, we survived the sanity checks. Print out the current subcycle iteration.
+        // If we get to this point, we survived the sanity checks. Print out the current retry subcycle number.
 
         if (verbose && ParallelDescriptor::IOProcessor()) {
             std::cout << std::endl;
             std::cout << Font::Bold << FGColor::Green
-                      << "  Beginning subcycle " << sub_iteration + 1
+                      << "  Beginning retry subcycle " << sub_iteration + 1
                       << " starting at time " << subcycle_time
                       << " with dt = " << dt_subcycle << ResetDisplay << std::endl;
-            std::cout << "  Estimated number of subcycles remaining: "
+            std::cout << "  Estimated number of retry subcycles remaining: "
                       << num_subcycles_remaining << std::endl << std::endl;
         }
 
@@ -448,9 +459,13 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
         for (int n = 0; n < num_sub_iters; ++n) {
 
-            // Hydro will fill these arrays and rebuild the flux registers
-            // for this iteration. Clear all participating levels before any
-            // hydro call so no earlier iteration or subcycle enters reflux.
+            // Clear working fluxes on every participating level before the
+            // advance. With immediate reflux, hydro fills them and rebuilds
+            // the flux registers for this SDC iteration. With AMR subcycling,
+            // hydro stores only the final SDC iteration's fluxes and registers
+            // are populated later, after restoring the accepted totals.
+            // CTU has just one advance per retry subcycle. In each case the
+            // accepted totals remain untouched until the attempt succeeds.
             for (auto* flux : working_fluxes) {
                 flux->setVal(0.0);
             }
@@ -487,7 +502,7 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
         }
 
         if (verbose && ParallelDescriptor::IOProcessor()) {
-            std::cout << Font::Bold << FGColor::Green << "  Subcycle completed" << ResetDisplay << std::endl << std::endl;
+            std::cout << Font::Bold << FGColor::Green << "  Retry subcycle attempt completed" << ResetDisplay << std::endl << std::endl;
         }
 
         // Set sdc_iters to its original value, in case we modified it above.
@@ -518,12 +533,12 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
         }
 
-        // Castro::reflux(..., false) adds the coarse/fine correction back to
-        // the coarse flux arrays as well as applying it to S_new. Thus these
-        // working fluxes already include the final iteration's reflux and
-        // represent the accepted state update. Commit only now: sources or
-        // burning can fail after reflux, in which case continue above discards
-        // this attempt without changing the accepted totals.
+        // All participating levels have accepted this retry subcycle. Commit
+        // its working fluxes only now: a failure in any SDC iteration, or in
+        // CTU, takes continue above without changing the accepted totals.
+        // When immediate reflux is enabled, Castro::reflux(..., false) has
+        // already corrected both S_new and the coarse working fluxes, so the
+        // committed fluxes include the correction to the accepted state.
 
         for (int i = 0; i < static_cast<int>(working_fluxes.size()); ++i) {
             MultiFab::Add(*accepted_fluxes[i], *working_fluxes[i],
@@ -534,10 +549,10 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
         sub_iteration += 1;
 
         // Continually record the last timestep we took on each level advanced
-        // in case we need it later. We only record it if the subcycle
+        // in case we need it later. We only record it if the retry subcycle
         // was completed successfully (i.e. we got to this point).
         // Note: this is different from last_dt_subcycle. This variable
-        // records the actual timestep taken in this subcycle, while
+        // records the actual timestep taken in this retry subcycle, while
         // the other one records the timestep as if it had not been
         // modified by the constraint of matching the final time.
 
@@ -548,18 +563,21 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
     }
 
     if (verbose) {
-        amrex::Print() << "  Subcycling complete" << std::endl << std::endl;
+        amrex::Print() << "  Retry subcycling complete" << std::endl << std::endl;
     }
 
-    // Expose the full accepted integral to callers of the level advance.
-    // mass_fluxes remains the last subcycle's flux for source evaluation.
+    // Expose the full accepted integral to callers of the level advance,
+    // including finalize_advance(), which populates flux registers for AMR
+    // subcycling. mass_fluxes remains the last retry subcycle's flux for
+    // source evaluation; finalize_advance() copies the full density flux
+    // into it when needed for source updates after AMR reflux.
 
     for (int i = 0; i < static_cast<int>(working_fluxes.size()); ++i) {
         MultiFab::Copy(*working_fluxes[i], *accepted_fluxes[i],
                       0, 0, working_fluxes[i]->nComp(), working_fluxes[i]->nGrow());
     }
 
-    // Record the number of subcycles we took for diagnostic purposes.
+    // Record the number of retry subcycles we took for diagnostic purposes.
 
     for (int lev = level; lev <= max_level_to_advance; ++lev) {
         getLevel(lev).num_subcycles_taken = sub_iteration;
@@ -602,9 +620,9 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
     }
 
-    // We want to return the subcycled timestep as a suggestion.
-    // Let's be sure to return the subcycled timestep that was
-    // unmodified by anything we had to do in the last subcycle
+    // We want to return the retry subcycle timestep as a suggestion.
+    // Let's be sure to return the retry subcycle timestep that was
+    // unmodified by anything we had to do in the last retry subcycle
     // to reach the target time.
 
     dt_subcycle = last_dt_subcycle;

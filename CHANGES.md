@@ -3,7 +3,8 @@
 ## Unreleased
 
   * use current-iteration fluxes for simplified-SDC immediate AMR reflux,
-    preserving accepted flux totals across retry subcycles (PR pending)
+    and preserve accepted flux totals across retry subcycles for CTU and
+    simplified SDC with or without AMR level subcycling (PR pending)
 
 ## 26.10
 

@@ -1282,8 +1282,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
         // Store the fluxes from this advance. With immediate multilevel reflux,
         // every SDC iteration needs its own fluxes before sources and burning.
         // The driver clears these working buffers between iterations and saves
-        // only accepted final-iteration fluxes in the full-step totals.
-        // With level subcycling, only the last SDC iteration is stored.
+        // only the final SDC iteration's fluxes from accepted retry subcycles
+        // in the full-step totals.
+        // With AMR level subcycling, only the last SDC iteration is stored.
 
         bool add_fluxes = true;
 
@@ -1340,7 +1341,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
         [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
         {
             // This is a copy, not an add, since we need mass_fluxes to be
-            // only this subcycle's data when we evaluate the gravitational
+            // only this retry subcycle's data when we evaluate the gravitational
             // forces.
 
             mass_fluxes_fab(i,j,k,0) = flux_fab(i,j,k,URHO);
