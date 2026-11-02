@@ -2,6 +2,9 @@
 
 ## 26.11
 
+  * explicitly choose ubuntu-24.04 for floating-point compatibility
+    (#3414)
+
 ## 26.10
 
   * fix StarLib deviates output in ``job_info`` (#3409)
