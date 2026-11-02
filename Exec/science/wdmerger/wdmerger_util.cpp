@@ -567,7 +567,7 @@ void binary_setup ()
 
     establish_hse(problem::mass_P, problem::central_density_P, problem::radius_P,
                   problem::core_comp_P, problem::stellar_temp, problem::initial_model_dx,
-                  problem::envelope_mass_P, problem::envelope_comp_P, 0);
+                  problem::envelope_mass_P, problem::envelope_comp_P, 0, problem::delta);
 
     amrex::Print() << std::endl;
 
@@ -582,7 +582,7 @@ void binary_setup ()
 
         establish_hse(problem::mass_S, problem::central_density_S, problem::radius_S,
                       problem::core_comp_S, problem::stellar_temp, problem::initial_model_dx,
-                      problem::envelope_mass_S, problem::envelope_comp_S, 1);
+                      problem::envelope_mass_S, problem::envelope_comp_S, 1, problem::delta);
 
         amrex::Print() << "Generated initial model for secondary WD of mass " << std::setprecision(3) << problem::mass_S / C::M_solar
                        << " solar masses, central density " << std::setprecision(3) << std::scientific << problem::central_density_S
