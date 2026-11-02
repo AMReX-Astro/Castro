@@ -1279,13 +1279,20 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
             });
         }
 #endif
-        // Store the fluxes from this advance. For simplified SDC integration we
-        // only need to do this on the last iteration.
+        // Store the fluxes from this advance. With immediate multilevel reflux,
+        // every SDC iteration needs its own fluxes before sources and burning.
+        // The driver clears these working buffers between iterations and saves
+        // only the final SDC iteration's fluxes from accepted retry subcycles
+        // in the full-step totals.
+        // With AMR level subcycling, only the last SDC iteration is stored.
 
         bool add_fluxes = true;
 
+        const bool immediate_reflux = do_reflux &&
+            parent->subcyclingMode() == "None" && parent->finestLevel() > 0;
+
         if (time_integration_method == SimplifiedSpectralDeferredCorrections &&
-            sdc_iteration != sdc_iters - 1) {
+            !immediate_reflux && sdc_iteration != sdc_iters - 1) {
             add_fluxes = false;
         }
 
@@ -1334,7 +1341,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
         [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
         {
             // This is a copy, not an add, since we need mass_fluxes to be
-            // only this subcycle's data when we evaluate the gravitational
+            // only this retry subcycle's data when we evaluate the gravitational
             // forces.
 
             mass_fluxes_fab(i,j,k,0) = flux_fab(i,j,k,URHO);
@@ -1459,7 +1466,12 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
   }
 #endif
 
-  // Perform reflux (for non-subcycling advances).
+  // Populate the flux registers for advances without level subcycling.
+  // These calls read the level's stored flux arrays; for simplified SDC the
+  // driver clears them before each iteration and we fill them above. The
+  // actual Castro::reflux(..., false) call occurs in do_advance_ctu(), after
+  // hydro has populated the registers on every participating level and before
+  // new-time sources and burning. Do not use full-step accumulated fluxes here.
 
   if (parent->subcyclingMode() == "None") {
       if (do_reflux == 1) {

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+  * use current-iteration fluxes for simplified-SDC immediate AMR reflux,
+    and preserve accepted flux totals across retry subcycles for CTU and
+    simplified SDC with or without AMR level subcycling (PR pending)
+
 ## 26.11
 
   * explicitly choose ubuntu-24.04 for floating-point compatibility
