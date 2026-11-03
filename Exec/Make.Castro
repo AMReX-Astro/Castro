@@ -155,7 +155,7 @@ endef
 
 comma := ,
 
-all: build_status check_network $(executable)
+all: build_status $(executable)
 	@echo SUCCESS
 	$(call info-green,Be sure to "make clean" before rebuilding with a different integrator$(comma))
 	$(call info-green,network$(comma) or changing any build options in the GNUmakefile.)
@@ -168,6 +168,7 @@ build_status:
 # If we make and then make again with a different network, undefined
 # behavior may result.  One should always do a `make clean` before
 # changing networks.  This tries to check if there is an inconsistency.
+.PHONY: check_network
 check_network:
 	$(CASTRO_HOME)/Util/scripts/check_network.py $(NETWORK_DIR) $(CASTRO_AUTO_SOURCE_DIR)
 	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
@@ -358,6 +359,19 @@ include $(TOP)/Exec/Make.auto_source
 #------------------------------------------------------------------------------
 
 include $(AMREX_HOME)/Tools/GNUMake/Make.rules
+
+# Require a successful network check before any of these targets' recipes run.
+# Attach it to generated headers and objects as well as the executable so that
+# parallel builds cannot generate or compile files before the check finishes.
+# This also covers requests for individual targets instead of "all".
+#
+# The "|" makes check_network an order-only prerequisite: it must succeed, but
+# does not make an otherwise up-to-date target need rebuilding.  Since the check
+# is .PHONY, make runs it once per invocation that needs it, even if a file named
+# check_network exists.  A normal prerequisite would force rebuilding every
+# dependent target on every invocation because the check is phony.
+$(AUTO_BUILD_SOURCES) $(objForExecs) $(executable) \
+  $(srcTempDir)/AMReX_Config.H $(srcTempDir)/AMReX_Version.H: | check_network
 
 clean::
 	$(SILENT) $(RM) extern.F90 prob_params_auto.F90 extern_parameters.H extern_parameters_F.H extern_parameters.cpp
