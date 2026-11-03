@@ -58,6 +58,19 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
                                get_new_data(Simplified_SDC_React_Type) : tmp_SDC_mf;
 #endif
 
+// create ghost cells for sdc_react_source
+#ifdef REACTIONS
+  MultiFab sdc_react_border;
+
+  if (castro::time_integration_method == SimplifiedSpectralDeferredCorrections && do_react) {
+      sdc_react_border.define(grids, dmap, get_new_data(Simplified_SDC_React_Type).nComp(), 3);
+
+      AmrLevel::FillPatch(*this, sdc_react_border, 3, time,
+                          Simplified_SDC_React_Type, 0,
+                          sdc_react_border.nComp());
+  }
+#endif
+
   // we will treat the hydro source as any other source term
 
 #ifdef RADIATION
@@ -272,9 +285,17 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 
       // get the primitive variable hydro sources
 
-      src_q.resize(qbx3, NQSRC);
+      //src_q.resize(qbx3, NQSRC); change 1
+      src_q.resize(qbx3, NQ);
       fab_size += src_q.nBytes();
       Array4<Real> const src_q_arr = src_q.array();
+
+      //change 2 - adding 
+      amrex::ParallelFor(qbx3, NQ,
+        [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
+        {
+            src_q_arr(i,j,k,n) = 0.0_rt;
+        });
 
       Array4<Real> const old_src_arr = old_source.array(mfi);
       Array4<Real> const src_corr_arr = source_corrector.array(mfi);
@@ -284,6 +305,21 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
       {
           hydro::src_to_prim(i, j, k, dt, U_old_arr, q_arr, old_src_arr, src_corr_arr, src_q_arr);
       });
+
+// add reaction source term to the prim source array for tracing - KB
+#ifdef REACTIONS
+      Array4<Real const> const sdc_react_arr =
+          castro::time_integration_method == SimplifiedSpectralDeferredCorrections && do_react ?
+          sdc_react_border.const_array(mfi) : Array4<Real const>{};
+
+      if (castro::time_integration_method == SimplifiedSpectralDeferredCorrections && do_react) {
+          amrex::ParallelFor(qbx3, NQ,
+          [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
+          {
+              src_q_arr(i,j,k,n) += sdc_react_arr(i,j,k,n);
+          });
+      }
+#endif
 
       if (hybrid_riemann == 1) {
         shock(obx, q_arr, old_src_arr, shk_arr);
@@ -942,12 +978,12 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 
       reset_edge_state_thermo(xbx, qr_arr);
 
-#ifdef REACTIONS
+/* #ifdef REACTIONS
       if (castro::time_integration_method == SimplifiedSpectralDeferredCorrections) {
           add_sdc_source_to_states(xbx, 0, dt,
                                    ql_arr, qr_arr, sdc_src_arr);
       }
-#endif
+#endif */
 
 
       cmpflx_plus_godunov(xbx,
@@ -1021,12 +1057,12 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 
       reset_edge_state_thermo(ybx, qr_arr);
 
-#ifdef REACTIONS
+/* #ifdef REACTIONS
       if (castro::time_integration_method == SimplifiedSpectralDeferredCorrections) {
           add_sdc_source_to_states(ybx, 1, dt,
                                    ql_arr, qr_arr, sdc_src_arr);
       }
-#endif
+#endif */
 
 
       // Compute the final F^y
@@ -1102,12 +1138,12 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 
       reset_edge_state_thermo(zbx, qr_arr);
 
-#ifdef REACTIONS
+/* #ifdef REACTIONS
       if (castro::time_integration_method == SimplifiedSpectralDeferredCorrections) {
           add_sdc_source_to_states(zbx, 2, dt,
                                    ql_arr, qr_arr, sdc_src_arr);
       }
-#endif
+#endif */
 
       // compute the final z fluxes F^z
       // [lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1]
