@@ -2,6 +2,9 @@
 
 ## 26.10
 
+  * check network consistency before parallel source generation and compilation
+    (PR pending)
+
   * fix StarLib deviates output in ``job_info`` (#3409)
 
   * fix double-counting of refined zones in perf states w/o subcycling
