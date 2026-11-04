@@ -159,6 +159,16 @@ all: build_status check_network $(executable)
 	@echo SUCCESS
 	$(call info-green,Be sure to "make clean" before rebuilding with a different integrator$(comma))
 	$(call info-green,network$(comma) or changing any build options in the GNUmakefile.)
+	@printf '\nCastro build configuration:\n'
+	@printf '  Executable: %s\n' '$(executable)'
+	@printf '  Dimensions: %s\n' '$(DIM)'
+	@printf '  Network:    %s\n' '$(NETWORK_DIR)'
+	@printf '  Integrator: %s\n' '$(if $(filter TRUE,$(USE_REACT)),$(INTEGRATOR_DIR),disabled)'
+	@printf '  CUDA:       %s\n' '$(if $(filter TRUE,$(USE_CUDA)),TRUE,FALSE)'
+	@printf '  HIP:        %s\n' '$(if $(filter TRUE,$(USE_HIP)),TRUE,FALSE)'
+ifeq ($(USE_HIP),TRUE)
+	@printf '  HIP version: %s\n' '$(hipcc_version)'
+endif
 
 build_status:
 	$(AMREX_HOME)/Tools/C_scripts/describe_sources.py \
@@ -206,7 +216,7 @@ ifeq ($(USE_MHD), TRUE)
 endif
 
 ifeq ($(USE_GRAV), TRUE)
-  Bdirs += Source/gravity Source/scf 
+  Bdirs += Source/gravity Source/scf
   DEFINES += -DGRAVITY
   USE_MLMG = TRUE
 endif
