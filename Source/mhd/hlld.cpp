@@ -4,12 +4,14 @@
 
 using namespace amrex;
 
+template <int dir>
 void
-Castro::hlld(const Box& bx,
-             Array4<Real const> const& qleft,
-             Array4<Real const> const& qright,
-             Array4<Real> const& flx,
-             const int dir) {
+hlld_impl(const Box& bx,
+          Array4<Real const> const& qleft,
+          Array4<Real const> const& qright,
+          Array4<Real> const& flx) {
+
+  static_assert(dir >= 0 && dir < 3, "hlld_impl: dir must be 0, 1 or 2");
 
   // Riemann solve:
 
@@ -21,53 +23,26 @@ Castro::hlld(const Box& bx,
   // `n` here is the normal
   // `p` are the perpendicular
 
-  int QMAGN, QMAGP1, QMAGP2;
-  int QVELN, QVELP1, QVELP2;
-  int UMN, UMP1, UMP2;
-  int UMAGN, UMAGP1, UMAGP2;
+  // Array1D objects below (qL, qR, uL, uR, FL, FR, UsL, UsR, UssL, UssR) of the default forces
+  // ptxas to place the whole object in the local-memory
+  // And every access to it then costs a load or
+  // store. The optimisation proposed is here:
 
-  if (dir == 0) {
-    QMAGN  = QMAGX;
-    QMAGP1 = QMAGY;
-    QMAGP2 = QMAGZ;
-    QVELN  = QU;
-    QVELP1 = QV;
-    QVELP2 = QW;
-    UMN    = UMX;
-    UMP1   = UMY;
-    UMP2   = UMZ;
-    UMAGN  = UMAGX;
-    UMAGP1 = UMAGY;
-    UMAGP2 = UMAGZ;
+  constexpr int QMAGN  = (dir == 0) ? QMAGX : (dir == 1) ? QMAGY : QMAGZ;
+  constexpr int QMAGP1 = (dir == 0) ? QMAGY : (dir == 1) ? QMAGZ : QMAGX;
+  constexpr int QMAGP2 = (dir == 0) ? QMAGZ : (dir == 1) ? QMAGX : QMAGY;
 
-  } else if (dir == 1) {
-    QMAGN  = QMAGY;
-    QMAGP1 = QMAGZ;
-    QMAGP2 = QMAGX;
-    QVELN  = QV;
-    QVELP1 = QW;
-    QVELP2 = QU;
-    UMN    = UMY;
-    UMP1   = UMZ;
-    UMP2   = UMX;
-    UMAGN  = UMAGY;
-    UMAGP1 = UMAGZ;
-    UMAGP2 = UMAGX;
+  constexpr int QVELN  = (dir == 0) ? QU : (dir == 1) ? QV : QW;
+  constexpr int QVELP1 = (dir == 0) ? QV : (dir == 1) ? QW : QU;
+  constexpr int QVELP2 = (dir == 0) ? QW : (dir == 1) ? QU : QV;
 
-  } else {  // dir == 2
-    QMAGN  = QMAGZ;
-    QMAGP1 = QMAGX;
-    QMAGP2 = QMAGY;
-    QVELN  = QW;
-    QVELP1 = QU;
-    QVELP2 = QV;
-    UMN    = UMZ;
-    UMP1   = UMX;
-    UMP2   = UMY;
-    UMAGN  = UMAGZ;
-    UMAGP1 = UMAGX;
-    UMAGP2 = UMAGY;
-  }
+  constexpr int UMN    = (dir == 0) ? UMX : (dir == 1) ? UMY : UMZ;
+  constexpr int UMP1   = (dir == 0) ? UMY : (dir == 1) ? UMZ : UMX;
+  constexpr int UMP2   = (dir == 0) ? UMZ : (dir == 1) ? UMX : UMY;
+
+  constexpr int UMAGN  = (dir == 0) ? UMAGX : (dir == 1) ? UMAGY : UMAGZ;
+  constexpr int UMAGP1 = (dir == 0) ? UMAGY : (dir == 1) ? UMAGZ : UMAGX;
+  constexpr int UMAGP2 = (dir == 0) ? UMAGZ : (dir == 1) ? UMAGX : UMAGY;
 
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
@@ -431,4 +406,24 @@ Castro::hlld(const Box& bx,
 
     flx(i,j,k,UTEMP) = 0.0;
   });
+}
+
+
+// mhd_riemann() receives dir as a runtime int, but every one of its twelve call
+// sites in Castro_mhd.cpp passes a literal 0/1/2.
+// It then selects among three direction indexing
+
+void
+Castro::hlld(const Box& bx,
+             Array4<Real const> const& qleft,
+             Array4<Real const> const& qright,
+             Array4<Real> const& flx,
+             const int dir) {
+
+  switch (dir) {
+    case 0: hlld_impl<0>(bx, qleft, qright, flx); break;
+    case 1: hlld_impl<1>(bx, qleft, qright, flx); break;
+    case 2: hlld_impl<2>(bx, qleft, qright, flx); break;
+    default: amrex::Abort("hlld: dir must be 0, 1 or 2");
+  }
 }
