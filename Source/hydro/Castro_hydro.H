@@ -813,9 +813,6 @@
 #endif
 
 #ifndef MHD
-    static void reset_edge_state_thermo(const amrex::Box& bx,
-                                        amrex::Array4<amrex::Real> const& qedge);
-
     static void edge_state_temp_to_pres(const amrex::Box& bx,
                                  amrex::Array4<amrex::Real> const& qm,
                                  amrex::Array4<amrex::Real> const& qp);
