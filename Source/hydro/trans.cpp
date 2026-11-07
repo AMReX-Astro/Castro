@@ -1,5 +1,6 @@
 #include <Castro.H>
 #include <Castro_util.H>
+#include <edge_state_thermo.H>
 
 #ifdef RADIATION
 #include <Radiation.H>
@@ -110,7 +111,10 @@ Castro::actual_trans_single(const Box& bx,  // NOLINT(readability-convert-member
     bool reset_rhoe = transverse_reset_rhoe;
     bool use_eos = transverse_use_eos;
     Real small_p = small_pres;
+    Real small_t = small_temp;
+#ifdef RADIATION
     Real temp_guess = T_guess;
+#endif
     Real abundance_tol = abundance_failure_tolerance;
 
     int ilo = 0;
@@ -437,8 +441,10 @@ Castro::actual_trans_single(const Box& bx,  // NOLINT(readability-convert-member
             }
 
             // Pretend QREINT has been fixed
-            // We can get pressure update via eos or using p-evolution equation
+            // Pure hydro defers its EOS update to the final repair below.
+            // Radiation needs the intermediate pressure for its bookkeeping.
 
+#ifdef RADIATION
             if (use_eos) {
 
                 // With the EOS route:
@@ -460,7 +466,11 @@ Castro::actual_trans_single(const Box& bx,  // NOLINT(readability-convert-member
                 Real pnewn = eos_state.p;
                 qo_arr(i,j,k,QPRES) = amrex::max(pnewn, small_p);
 
-            } else {
+            } else
+#else
+            if (!use_eos)
+#endif
+            {
 
                 // Add the transverse term to the p evolution eq here.
 #if AMREX_SPACEDIM == 2
@@ -492,6 +502,8 @@ Castro::actual_trans_single(const Box& bx,  // NOLINT(readability-convert-member
             qo_arr(i,j,k,QREITOT) += qo_arr(i,j,k,QRAD + g);
         }
 #endif
+
+        hydro::reset_edge_state_thermo(i, j, k, qo_arr, use_eos, reset_rhoe, small_t, small_p);
 
     });
 
@@ -579,7 +591,10 @@ Castro::actual_trans_final(const Box& bx,  // NOLINT(readability-convert-member-
     bool reset_rhoe = transverse_reset_rhoe;
     bool use_eos = transverse_use_eos;
     Real small_p = small_pres;
+    Real small_t = small_temp;
+#ifdef RADIATION
     Real temp_guess = T_guess;
+#endif
     Real abundance_tol = abundance_failure_tolerance;
 
     amrex::ParallelFor(bx,
@@ -911,8 +926,10 @@ Castro::actual_trans_final(const Box& bx,  // NOLINT(readability-convert-member-
             }
 
             // Pretend QREINT has been fixed
-            // We can get pressure update via eos or using p-evolution equation
+            // Pure hydro defers its EOS update to the final repair below.
+            // Radiation needs the intermediate pressure for its bookkeeping.
 
+#ifdef RADIATION
             if (use_eos) {
 
                 // With the EOS route:
@@ -932,7 +949,11 @@ Castro::actual_trans_final(const Box& bx,  // NOLINT(readability-convert-member-
                 eos(eos_input_re, eos_state);
                 qo_arr(i,j,k,QPRES) = eos_state.p;
 
-            } else {
+            } else
+#else
+            if (!use_eos)
+#endif
+            {
 
                 // add the transverse term to the p evolution eq here
                 Real pnewn = q_arr(i,j,k,QPRES) - pt1new - pt2new;
@@ -945,7 +966,13 @@ Castro::actual_trans_final(const Box& bx,  // NOLINT(readability-convert-member-
             qo_arr(i,j,k,QREINT) = q_arr(i,j,k,QREINT);
         }
 
+#ifdef RADIATION
         qo_arr(i,j,k,QPRES) = amrex::max(qo_arr(i,j,k,QPRES), small_p);
+#else
+        if (!use_eos) {
+            qo_arr(i,j,k,QPRES) = amrex::max(qo_arr(i,j,k,QPRES), small_p);
+        }
+#endif
 
 #ifdef RADIATION
         for (int g = 0; g < NGROUPS; ++g) {
@@ -962,6 +989,8 @@ Castro::actual_trans_final(const Box& bx,  // NOLINT(readability-convert-member-
             qo_arr(i,j,k,QREITOT) += qo_arr(i,j,k,QRAD+g);
         }
 #endif
+
+        hydro::reset_edge_state_thermo(i, j, k, qo_arr, use_eos, reset_rhoe, small_t, small_p);
 
     });
 

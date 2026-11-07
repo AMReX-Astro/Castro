@@ -2,6 +2,9 @@
 
 ## 26.11
 
+  * fuse CTU transverse thermodynamic repairs into the transverse kernels
+    and avoid redundant pure-hydro EOS calls (PR pending)
+
   * explicitly choose ubuntu-24.04 for floating-point compatibility
     (#3414)
 
