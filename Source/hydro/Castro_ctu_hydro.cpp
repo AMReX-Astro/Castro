@@ -10,6 +10,7 @@
 #endif
 
 #include <advection_util.H>
+#include <flux_util.H>
 
 using namespace amrex;
 
@@ -175,9 +176,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
     for (int n = 0; n < AMREX_SPACEDIM; ++n) {
         rad_flux.push_back(FArrayBox(The_Async_Arena()));
     }
-#endif
-#if AMREX_SPACEDIM <= 2
-    FArrayBox pradial(The_Async_Arena());
 #endif
 #if AMREX_SPACEDIM == 3
     FArrayBox qmyx(The_Async_Arena()), qpyx(The_Async_Arena());
@@ -447,13 +445,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
       fab_size += rad_flux[2].nBytes();
       auto const rad_flux2_arr = (rad_flux[2]).array();
 #endif
-#endif
-
-#if AMREX_SPACEDIM <= 2
-      if (!Geom().IsCartesian()) {
-          pradial.resize(xbx, 1);
-      }
-      fab_size += pradial.nBytes();
 #endif
 
 #ifdef REACTIONS
@@ -1126,18 +1117,30 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 
 
 
-      // clean the fluxes
+      // All cleanup operations are local to a face. Preserve their order
+      // while avoiding separate passes over the temporary flux arrays.
+      const auto dx_arr = geom.CellSizeArray();
+      const auto problo_arr = geom.ProbLoArray();
+      const int coord_type = geom.Coord();
+      const Real diff_coeff = difmag;
+      const Real density_floor = small_dens * 1.1_rt;
+      const bool limit_fluxes = limit_fluxes_on_small_dens == 1;
+      Array4<Real const> const vol_arr_cleanup = volume.const_array(mfi);
 
       for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
-
           const Box& nbx = amrex::surroundingNodes(bx, idir);
+          Array4<Real> const flux_arr = flux[idir].array();
+          Array4<Real const> const area_arr = area[idir].const_array(mfi);
+#ifdef RADIATION
+          Array4<Real> const rad_flux_arr = rad_flux[idir].array();
+          Array4<Real const> const Erin_arr = Erborder.const_array(mfi);
+          const int ngroups = Radiation::nGroups;
+#endif
 
-          Array4<Real> const flux_arr = (flux[idir]).array();
-
-          // Zero out shock and temp fluxes -- these are physically meaningless here
           amrex::ParallelFor(nbx,
           [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
           {
+              // These state components have no physical flux.
               flux_arr(i,j,k,UTEMP) = 0.e0;
 #ifdef SHOCK_VAR
               flux_arr(i,j,k,USHK) = 0.e0;
@@ -1146,31 +1149,20 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
               flux_arr(i,j,k,UMUP) = 0.e0;
               flux_arr(i,j,k,UMUN) = 0.e0;
 #endif
-          });
-
-          apply_av(nbx, idir, div_arr, U_old_arr, flux_arr);
-
+              hydro::apply_av(i, j, k, idir, div_arr, U_old_arr, flux_arr,
+                              dx_arr, coord_type, problo_arr, diff_coeff);
 #ifdef RADIATION
-          Array4<Real> const rad_flux_arr = (rad_flux[idir]).array();
-          Array4<Real const> const Erin_arr = Erborder.array(mfi);
-
-          apply_av_rad(nbx, idir, div_arr, Erin_arr, rad_flux_arr);
+              hydro::apply_av_rad(i, j, k, idir, div_arr, Erin_arr, rad_flux_arr,
+                                  dx_arr, diff_coeff, ngroups);
 #endif
-
-          if (limit_fluxes_on_small_dens == 1) {
-              limit_hydro_fluxes_on_small_dens
-                  (nbx, idir,
-                   Sborder.array(mfi),
-                   volume.array(mfi),
-                   flux[idir].array(),
-                   area[idir].array(mfi),
-                   dt);
-          }
-
-          normalize_species_fluxes(nbx, flux_arr);
-
+              if (limit_fluxes) {
+                  hydro::limit_hydro_fluxes_on_small_dens(i, j, k, idir,
+                      U_old_arr, vol_arr_cleanup, flux_arr, area_arr,
+                      dt, density_floor, true);
+              }
+              hydro::normalize_species_fluxes(i, j, k, flux_arr);
+          });
       }
-
 
 
       // conservative update
@@ -1202,7 +1194,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 
 
 #ifdef HYBRID_MOMENTUM
-      auto dx_arr = geom.CellSizeArray();
 
       amrex::ParallelFor(bx,
       [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
@@ -1252,94 +1243,57 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 #endif
 
 
+      // The conservative updates above consume unscaled fluxes. Scale only
+      // the values being stored, and use nodaltilebox() to give each shared
+      // tile face a single writer.
+      const bool add_fluxes =
+          time_integration_method != SimplifiedSpectralDeferredCorrections ||
+          sdc_iteration == sdc_iters - 1;
+
       for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
+          const Box& owned_faces = mfi.nodaltilebox(idir);
+          Array4<Real const> const flux_arr = flux[idir].const_array();
+          Array4<Real const> const area_arr = area[idir].const_array(mfi);
+          Array4<Real> const mass_fluxes_arr = mass_fluxes[idir]->array(mfi);
+          Array4<Real> const fluxes_arr = add_fluxes ? fluxes[idir]->array(mfi) : Array4<Real>{};
 
-        const Box& nbx = amrex::surroundingNodes(bx, idir);
-
-        Array4<Real> const flux_arr = (flux[idir]).array();
-        Array4<Real const> const area_arr = (area[idir]).array(mfi);
-
-        scale_flux(nbx, flux_arr, area_arr, dt);
+          // Earlier simplified-SDC iterations need only the mass flux.
+          amrex::ParallelFor(owned_faces, add_fluxes ? NUM_STATE : 1,
+          [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
+          {
+              const int component = add_fluxes ? n : URHO;
+              const Real scaled_flux = dt * flux_arr(i,j,k,component) * area_arr(i,j,k);
+              if (add_fluxes) {
+                  fluxes_arr(i,j,k,component) += scaled_flux;
+              }
+              if (component == URHO) {
+                  // This subcycle's mass flux is copied on every SDC iteration.
+                  mass_fluxes_arr(i,j,k) = scaled_flux;
+              }
+          });
 
 #ifdef RADIATION
-        Array4<Real> const rad_flux_arr = (rad_flux[idir]).array();
-        scale_rad_flux(nbx, rad_flux_arr, area_arr, dt);
+          if (add_fluxes) {
+              Array4<Real const> const rad_flux_arr = rad_flux[idir].const_array();
+              Array4<Real> const rad_fluxes_arr = rad_fluxes[idir]->array(mfi);
+              amrex::ParallelFor(owned_faces, Radiation::nGroups,
+              [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
+              {
+                  rad_fluxes_arr(i,j,k,n) += dt * rad_flux_arr(i,j,k,n) * area_arr(i,j,k);
+              });
+          }
 #endif
 
 #if AMREX_SPACEDIM <= 2
-        // get the scaled radial pressure -- we need to treat this specially
-
-        if (idir == 0 && !mom_flux_has_p(0, 0, coord)) {
-            Array4<Real> pradial_fab = pradial.array();
-
-            amrex::ParallelFor(nbx,
-            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
-            {
-                pradial_fab(i,j,k) = qex_arr(i,j,k,GDPRES) * dt;
-            });
-        }
+          if (add_fluxes && idir == 0 && !mom_flux_has_p(0, 0, coord)) {
+              Array4<Real> const P_radial_arr = P_radial.array(mfi);
+              amrex::ParallelFor(owned_faces,
+              [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+              {
+                  P_radial_arr(i,j,k) += qex_arr(i,j,k,GDPRES) * dt;
+              });
+          }
 #endif
-        // Store the fluxes from this advance. For simplified SDC integration we
-        // only need to do this on the last iteration.
-
-        bool add_fluxes = true;
-
-        if (time_integration_method == SimplifiedSpectralDeferredCorrections &&
-            sdc_iteration != sdc_iters - 1) {
-            add_fluxes = false;
-        }
-
-        if (add_fluxes) {
-
-            Array4<Real> const flux_fab = (flux[idir]).array();
-            Array4<Real> fluxes_fab = (*fluxes[idir]).array(mfi);
-
-            amrex::ParallelFor(mfi.nodaltilebox(idir), NUM_STATE,
-            [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
-            {
-                fluxes_fab(i,j,k,n) += flux_fab(i,j,k,n);
-            });
-
-#ifdef RADIATION
-            Array4<Real> const rad_flux_fab = (rad_flux[idir]).array();
-            Array4<Real> rad_fluxes_fab = (*rad_fluxes[idir]).array(mfi);
-
-            amrex::ParallelFor(mfi.nodaltilebox(idir), Radiation::nGroups,
-            [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
-            {
-                rad_fluxes_fab(i,j,k,n) += rad_flux_fab(i,j,k,n);
-            });
-#endif
-
-#if AMREX_SPACEDIM <= 2
-            if (idir == 0 && !mom_flux_has_p(0, 0, coord)) {
-                Array4<Real> pradial_fab = pradial.array();
-                Array4<Real> P_radial_fab = P_radial.array(mfi);
-
-                amrex::ParallelFor(mfi.nodaltilebox(0),
-                [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
-                {
-                    P_radial_fab(i,j,k,0) += pradial_fab(i,j,k,0);
-                });
-            }
-
-#endif
-
-        } // add_fluxes
-
-        Array4<Real> const flux_fab = (flux[idir]).array();
-        Array4<Real> mass_fluxes_fab = (*mass_fluxes[idir]).array(mfi);
-
-        amrex::ParallelFor(mfi.nodaltilebox(idir),
-        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
-        {
-            // This is a copy, not an add, since we need mass_fluxes to be
-            // only this subcycle's data when we evaluate the gravitational
-            // forces.
-
-            mass_fluxes_fab(i,j,k,0) = flux_fab(i,j,k,URHO);
-        });
-
       } // idir loop
 
 #ifdef AMREX_USE_GPU
