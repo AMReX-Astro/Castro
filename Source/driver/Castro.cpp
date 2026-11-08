@@ -15,6 +15,8 @@
 #include <format>
 
 #include <AMReX_Utility.H>
+#include <AMReX_MFParallelFor.H>
+#include <state_util.H>
 #include <AMReX_CONSTANTS.H>
 #include <Castro.H>
 #include <global.H>
@@ -3288,13 +3290,19 @@ Castro::enforce_min_density (MultiFab& state_in, int ng)
 
     }
 
-#ifdef AMREX_USE_OMP
-#pragma omp parallel
-#endif
-    for (MFIter mfi(state_in, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
-        const Box& bx = mfi.growntilebox(ng);
-
-        do_enforce_minimum_density(bx, state_in.array(mfi), verbose);
+    auto const& states = state_in.arrays();
+    auto geomdata = geom.data();
+    const int verbose_warnings = verbose;
+    amrex::ParallelFor(state_in, IntVect(ng),
+    [=] AMREX_GPU_DEVICE (int box_no, int i, int j, int k) noexcept
+    {
+        state_util::enforce_minimum_density(i, j, k, states[box_no],
+                                           verbose_warnings, geomdata);
+    });
+    // Preserve MFIter's completion semantics before diagnostics or callers
+    // can inspect the updated state, while respecting explicit NoSync regions.
+    if (!Gpu::inNoSyncRegion()) {
+        Gpu::streamSynchronize();
     }
 
     if (print_update_diagnostics)
@@ -3754,57 +3762,11 @@ Castro::reset_internal_energy(const Box& bx,
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
-
-        auto U_cell = u.cellData(i, j, k);
-
-        const Real rhoInv = 1.0_rt / U_cell[URHO];
-        const Real Up = U_cell[UMX] * rhoInv;
-        const Real Vp = U_cell[UMY] * rhoInv;
-        const Real Wp = U_cell[UMZ] * rhoInv;
-        const Real ke = 0.5_rt * (Up * Up + Vp * Vp + Wp * Wp);
-
-        eos_re_t eos_state;
-
-        eos_state.rho = U_cell[URHO];
-        eos_state.T   = lsmall_temp;
-        for (int n = 0; n < NumSpec; ++n) {
-            eos_state.xn[n] = U_cell[UFS+n] * rhoInv;
-        }
-#if NAUX_NET > 0
-        for (int n = 0; n < NumAux; ++n) {
-            eos_state.aux[n] = U_cell[UFX+n] * rhoInv;
-        }
-#endif
-
-        eos(eos_input_rt, eos_state);
-
-        const Real small_e = eos_state.e;
-
+        state_util::reset_internal_energy(i, j, k,
 #ifdef MHD
-        const Real bx_cell_c = 0.5_rt * (Bx(i,j,k) + Bx(i+1,j,k));
-        const Real by_cell_c = 0.5_rt * (By(i,j,k) + By(i,j+1,k));
-        const Real bz_cell_c = 0.5_rt * (Bz(i,j,k) + Bz(i,j,k+1));
-
-        const Real B_ener = 0.5_rt * (bx_cell_c*bx_cell_c +
-                                      by_cell_c*by_cell_c +
-                                      bz_cell_c*bz_cell_c);
-#else
-        const Real B_ener = 0.0_rt;
+                                           Bx, By, Bz,
 #endif
-
-        // Ensure the internal energy is at least as large as this minimum
-        // from the EOS; the same holds true for the total energy.
-
-        U_cell[UEINT] = amrex::max(U_cell[UEINT], U_cell[URHO] * small_e);
-        U_cell[UEDEN] = amrex::max(U_cell[UEDEN], U_cell[URHO] * (small_e + ke) + B_ener);
-
-        // Apply the dual energy criterion: get e from E if (E - K) > eta * E.
-
-        const Real rho_eint = U_cell[UEDEN] - U_cell[URHO] * ke - B_ener;
-
-        if (rho_eint > ldual_energy_eta2 * U_cell[UEDEN]) {
-            U_cell[UEINT] = rho_eint;
-        }
+                                           u, lsmall_temp, ldual_energy_eta2);
     });
 }
 
@@ -3831,19 +3793,26 @@ Castro::reset_internal_energy(
         MultiFab::Copy(old_state, State, 0, 0, State.nComp(), 0);
     }
 
-    // Ensure (rho e) isn't too small or negative
-#ifdef AMREX_USE_OMP
-#pragma omp parallel
-#endif
-    for (MFIter mfi(State, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-    {
-        const Box& bx = mfi.growntilebox(ng);
-
-        reset_internal_energy(bx,
+    // Ensure (rho e) isn't too small or negative in all local Fabs.
+    auto const& states = State.arrays();
 #ifdef MHD
-                              Bx.array(mfi), By.array(mfi), Bz.array(mfi),
+    auto const& bx_arrays = Bx.const_arrays();
+    auto const& by_arrays = By.const_arrays();
+    auto const& bz_arrays = Bz.const_arrays();
 #endif
-                              State.array(mfi));
+    const Real lsmall_temp = small_temp;
+    const Real ldual_energy_eta2 = dual_energy_eta2;
+    amrex::ParallelFor(State, IntVect(ng),
+    [=] AMREX_GPU_DEVICE (int box_no, int i, int j, int k) noexcept
+    {
+        state_util::reset_internal_energy(i, j, k,
+#ifdef MHD
+                                           bx_arrays[box_no], by_arrays[box_no], bz_arrays[box_no],
+#endif
+                                           states[box_no], lsmall_temp, ldual_energy_eta2);
+    });
+    if (!Gpu::inNoSyncRegion()) {
+        Gpu::streamSynchronize();
     }
 
     if (print_update_diagnostics)
@@ -4048,70 +4017,55 @@ Castro::computeTemp(
   }
 #endif
 
-#ifdef AMREX_USE_OMP
-#pragma omp parallel
+  int num_ghost = ng;
+  MultiFab* temperature_state = &State;
+#ifdef TRUE_SDC
+  if (sdc_order == 4) {
+      // Only one ghost cell of Stemp is at cell centers.
+      num_ghost = 1;
+      temperature_state = &Stemp;
+  }
 #endif
-  for (MFIter mfi(State, TilingIfNotGPU()); mfi.isValid(); ++mfi)
+  auto const& temperature_arrays = temperature_state->arrays();
+  const bool clamp_temp = clamp_ambient_temp == 1;
+  amrex::ParallelFor(*temperature_state, IntVect(num_ghost),
+  [=] AMREX_GPU_DEVICE (int box_no, int i, int j, int k) noexcept
   {
-      int num_ghost = ng;
-#ifdef TRUE_SDC
-      if (sdc_order == 4) {
-          // only one ghost cell is at cell-centers
-          num_ghost = 1;
+      auto const& u = temperature_arrays[box_no];
+      Real rhoInv = 1.0_rt / u(i,j,k,URHO);
+
+      eos_re_t eos_state;
+
+      eos_state.rho = u(i,j,k,URHO);
+      eos_state.T   = u(i,j,k,UTEMP); // Initial guess for the EOS
+      eos_state.e   = u(i,j,k,UEINT) * rhoInv;
+      for (int n = 0; n < NumSpec; ++n) {
+        eos_state.xn[n] = u(i,j,k,UFS+n) * rhoInv;
       }
-#endif
-
-      const Box& bx = mfi.growntilebox(num_ghost);
-
-#ifdef TRUE_SDC
-      FArrayBox& u_fab = (sdc_order == 4) ? Stemp[mfi] : State[mfi];
-#else
-      FArrayBox& u_fab = State[mfi];
-#endif
-
-      Array4<Real> const u = u_fab.array();
-
-      amrex::ParallelFor(bx,
-      [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
-      {
-
-          Real rhoInv = 1.0_rt / u(i,j,k,URHO);
-
-          eos_re_t eos_state;
-
-          eos_state.rho = u(i,j,k,URHO);
-          eos_state.T   = u(i,j,k,UTEMP); // Initial guess for the EOS
-          eos_state.e   = u(i,j,k,UEINT) * rhoInv;
-          for (int n = 0; n < NumSpec; ++n) {
-            eos_state.xn[n] = u(i,j,k,UFS+n) * rhoInv;
-          }
 #if NAUX_NET > 0
-          for (int n = 0; n < NumAux; ++n) {
-            eos_state.aux[n] = u(i,j,k,UFX+n) * rhoInv;
-          }
+      for (int n = 0; n < NumAux; ++n) {
+        eos_state.aux[n] = u(i,j,k,UFX+n) * rhoInv;
+      }
 #endif
 
-          eos(eos_input_re, eos_state);
+      eos(eos_input_re, eos_state);
 
-          u(i,j,k,UTEMP) = eos_state.T;
+      u(i,j,k,UTEMP) = eos_state.T;
 
-      });
-
-      if (clamp_ambient_temp == 1) {
-          amrex::ParallelFor(bx,
-          [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
-          {
-              Real rhoInv = 1.0_rt / u(i,j,k,URHO);
-
-              if (u(i,j,k,URHO) <= castro::ambient_safety_factor * ambient::ambient_state[URHO]) {
-                  u(i,j,k,UTEMP) = ambient::ambient_state[UTEMP];
-                  u(i,j,k,UEINT) = ambient::ambient_state[UEINT] * (u(i,j,k,URHO) * rhoInv);
-                  u(i,j,k,UEDEN) = u(i,j,k,UEINT) + 0.5_rt * rhoInv * (u(i,j,k,UMX) * u(i,j,k,UMX) +
-                                                                       u(i,j,k,UMY) * u(i,j,k,UMY) +
-                                                                       u(i,j,k,UMZ) * u(i,j,k,UMZ));
-              }
-          });
+      if (clamp_temp) {
+          if (u(i,j,k,URHO) <= castro::ambient_safety_factor * ambient::ambient_state[URHO]) {
+              u(i,j,k,UTEMP) = ambient::ambient_state[UTEMP];
+              u(i,j,k,UEINT) = ambient::ambient_state[UEINT] * (u(i,j,k,URHO) * rhoInv);
+              u(i,j,k,UEDEN) = u(i,j,k,UEINT) + 0.5_rt * rhoInv * (u(i,j,k,UMX) * u(i,j,k,UMX) +
+                                                                   u(i,j,k,UMY) * u(i,j,k,UMY) +
+                                                                   u(i,j,k,UMZ) * u(i,j,k,UMZ));
+          }
       }
+  });
+  // Fourth-order averaging reads neighboring temperatures; complete this
+  // launch before its MFIter loop can distribute work across GPU streams.
+  if (!Gpu::inNoSyncRegion()) {
+      Gpu::streamSynchronize();
   }
 
 #ifdef TRUE_SDC
