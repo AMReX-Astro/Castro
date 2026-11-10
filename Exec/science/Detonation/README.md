@@ -52,10 +52,13 @@ Some important inputs files
   problem.
 
   This is usually built with one of the `he-burn` networks, like
-  `ase-iron`.
+  `ase-iron`.  While this has the self-consistent NSE runtime
+  parameters in the inputs, at the default density, it does not
+  get hot enough to enter NSE.
 
-  Note that this uses a very high resolution---much higher than we
-  would use in a multi-d simulation.
+  This uses a resolution of 5 km, comparable to what we would use
+  in a multi-d simulation.
+
 
 * `inputs-det-x.nse` : this produces a nice detonation that gets hot
   enough for the ash to be in NSE.
