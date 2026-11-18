@@ -165,9 +165,13 @@ all: build_status check_network $(executable)
 	@printf '  Network:    %s\n' '$(NETWORK_DIR)'
 	@printf '  Integrator: %s\n' '$(if $(filter TRUE,$(USE_REACT)),$(INTEGRATOR_DIR),disabled)'
 	@printf '  CUDA:       %s\n' '$(if $(filter TRUE,$(USE_CUDA)),TRUE,FALSE)'
+ifeq ($(USE_CUDA),TRUE)
+	@printf '  CUDA Toolkit version: %s\n' '$(nvcc_version)'
+endif
 	@printf '  HIP:        %s\n' '$(if $(filter TRUE,$(USE_HIP)),TRUE,FALSE)'
 ifeq ($(USE_HIP),TRUE)
-	@printf '  ROCm version: %s\n' '$(hipcc_version)'
+	@printf '  ROCm version: %s\n' \
+	  '$(shell cat "$(ROCM_PATH)/.info/version")'
 endif
 
 build_status:
