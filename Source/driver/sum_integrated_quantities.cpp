@@ -118,7 +118,7 @@ Castro::sum_integrated_quantities ()
 
         ReduceOps<ReduceOpMax, ReduceOpMax, ReduceOpMax> reduce_op;
         ReduceData<Real, Real, Real> reduce_data(reduce_op);
-        using ReduceTuple = typename decltype(reduce_data)::Type;
+        using ReduceTuple = decltype(reduce_data)::Type;
 
 #ifdef AMREX_USE_OMP
 #pragma omp parallel
