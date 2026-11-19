@@ -99,43 +99,46 @@ Castro::mol_plm_reconstruct(const Box& bx,
   {
 
 
-   // this is a loop over zones.  For each slope in the zone, fill the
-   // two adjacent edge states (e.g., the right state at i-1/2 and the
-   // left state at i+1/2
+      // this is a loop over zones.  For each slope in the zone, fill the
+      // two adjacent edge states (e.g., the right state at i-1/2 and the
+      // left state at i+1/2
 
-   if (idir == 0) {
+      if (idir == 0) {
 
-     // left state at i+1/2 interface
-     qm(i+1,j,k,n) = q_arr(i,j,k,n) + 0.5_rt*dq(i,j,k,n);
+          // left state at i+1/2 interface
+          qm(i+1,j,k,n) = q_arr(i,j,k,n) + 0.5_rt*dq(i,j,k,n);
 
-     // right state at i-1/2 interface
-     qp(i,j,k,n) = q_arr(i,j,k,n) - 0.5_rt*dq(i,j,k,n);
+          // right state at i-1/2 interface
+          qp(i,j,k,n) = q_arr(i,j,k,n) - 0.5_rt*dq(i,j,k,n);
 
 
 #if AMREX_SPACEDIM >= 2
-   } else if (idir == 1) {
+      } else if (idir == 1) {
 
-     // left state at j+1/2 interface
-     qm(i,j+1,k,n) = q_arr(i,j,k,n) + 0.5_rt*dq(i,j,k,n);
+          // left state at j+1/2 interface
+          qm(i,j+1,k,n) = q_arr(i,j,k,n) + 0.5_rt*dq(i,j,k,n);
 
-     // right state at j-1/2 interface
-     qp(i,j,k,n) = q_arr(i,j,k,n) - 0.5_rt*dq(i,j,k,n);
+          // right state at j-1/2 interface
+          qp(i,j,k,n) = q_arr(i,j,k,n) - 0.5_rt*dq(i,j,k,n);
 #endif
 
 #if AMREX_SPACEDIM == 3
-   } else {
+      } else {
 
-     // left state at k+1/2 interface
-     qm(i,j,k+1,n) = q_arr(i,j,k,n) + 0.5_rt*dq(i,j,k,n);
+          // left state at k+1/2 interface
+          qm(i,j,k+1,n) = q_arr(i,j,k,n) + 0.5_rt*dq(i,j,k,n);
 
-     // right state at k-1/2 interface
-     qp(i,j,k,n) = q_arr(i,j,k,n) - 0.5_rt*dq(i,j,k,n);
+          // right state at k-1/2 interface
+          qp(i,j,k,n) = q_arr(i,j,k,n) - 0.5_rt*dq(i,j,k,n);
 
 #endif
-   }
+      }
 
   });
 
+
+  // normalize species on interfaces
+  enforce_species_sum(bx, qm, qp);
 
   // special care for reflecting BCs
 
@@ -191,6 +194,10 @@ Castro::mol_ppm_reconstruct(const Box& bx,
     }
 
   });
+
+
+  // normalize species on interfaces
+  enforce_species_sum(bx, qm, qp);
 
   // special care for reflecting BCs
 
