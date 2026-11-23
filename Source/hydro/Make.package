@@ -1,5 +1,7 @@
 # sources used with hydro
 
+CEXE_headers += Castro_hydro.H
+
 ifneq ($(USE_MHD),TRUE)
   CEXE_sources += Castro_hydro.cpp
   CEXE_sources += Castro_ctu_hydro.cpp

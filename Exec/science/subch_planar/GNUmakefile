@@ -25,7 +25,7 @@ CASTRO_HOME ?= ../../..
 EOS_DIR     := helmholtz
 
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
-NETWORK_DIR := he-burn/he-burn-22a
+NETWORK_DIR := ase
 
 PROBLEM_DIR ?= ./
 
