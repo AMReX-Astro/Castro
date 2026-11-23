@@ -323,18 +323,6 @@ Blocs += $(foreach dir, $(EXTERN_CORE), $(dir))
 
 
 #------------------------------------------------------------------------------
-# external libraries
-#------------------------------------------------------------------------------
-
-ifeq ($(USE_HDF5), TRUE)
-  INCLUDE_LOCATIONS += $(HDF5_DIR)/include
-  INCLUDE_LOCATIONS += $(HDF5_INCL)
-  LIBRARY_LOCATIONS += $(HDF5_DIR)/lib
-  LIBRARIES += -lhdf5 -lhdf5_fortran -lhdf5 -lz
-endif
-
-
-#------------------------------------------------------------------------------
 # include all of the necessary directories
 #------------------------------------------------------------------------------
 

@@ -4,8 +4,12 @@ CEXE_headers += Problem.H
 CEXE_headers += Problem_Derives.H
 CEXE_headers += Problem_Derive.H
 CEXE_sources += Problem_Derive.cpp
+CEXE_headers += ext_bc_types.H
 CEXE_headers += problem_initialize.H
 CEXE_headers += problem_initialize_state_data.H
+ifeq ($(USE_RAD),TRUE)
+  CEXE_headers += problem_initialize_rad_data.H
+endif
 CEXE_headers += problem_tagging.H
 CEXE_headers += problem_checkpoint.H
 CEXE_headers += problem_restart.H
