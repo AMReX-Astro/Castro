@@ -4,6 +4,10 @@
 Build System Overview
 *********************
 
+Castro requires GNU make 4.3 or newer.  The build uses grouped targets to
+generate parameter sources and headers together, including when a generated
+file is missing or its generator changes.
+
 
 Make Parameters
 ---------------

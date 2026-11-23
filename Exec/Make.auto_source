@@ -5,26 +5,33 @@
 VPATH_LOCATIONS += $(CASTRO_AUTO_SOURCE_DIR)
 INCLUDE_LOCATIONS += $(CASTRO_AUTO_SOURCE_DIR)
 
+# Grouped targets ensure each generator runs once and recreates all its outputs.
+ifeq ($(filter grouped-target,$(.FEATURES)),)
+  $(error Castro requires GNU make 4.3 or newer for grouped targets)
+endif
+
+PARAMETER_SCRIPTS_DIR := $(MICROPHYSICS_HOME)/util/build_scripts
+PARAMETER_SUPPORT := $(PARAMETER_SCRIPTS_DIR)/runtime_parameters.py
+
 
 #------------------------------------------------------------------------------
 # Microphysics runtime parameters
 #------------------------------------------------------------------------------
 
 CEXE_sources += extern_parameters.cpp
-CEXE_headers += extern_parameters.H
-CEXE_headers += extern_type.H
+
+EXTERN_GENERATED := $(addprefix $(CASTRO_AUTO_SOURCE_DIR)/, \
+                     extern_parameters.H extern_parameters.cpp \
+                     extern_type.H extern_job_info_tests.H)
+CEXE_headers += $(notdir $(filter %.H,$(EXTERN_GENERATED)))
 
 # for dependency resolution
-AUTO_BUILD_SOURCES += $(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.H
-AUTO_BUILD_SOURCES += $(CASTRO_AUTO_SOURCE_DIR)/extern_type.H
+AUTO_BUILD_SOURCES += $(EXTERN_GENERATED)
 
 # this is for finding runtime parameters
 EXTERN_PARAMETERS := $(foreach dir, $(INCLUDE_LOCATIONS),$(realpath $(wildcard $(dir)/_parameters)))
 
-$(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.cpp: $(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.H
-$(CASTRO_AUTO_SOURCE_DIR)/extern_type.H: $(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.H
-
-$(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.H: $(EXTERN_PARAMETERS)
+$(EXTERN_GENERATED) &: $(EXTERN_PARAMETERS) $(PARAMETER_SCRIPTS_DIR)/write_probin.py $(PARAMETER_SUPPORT)
 	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
 	$(MICROPHYSICS_HOME)/util/build_scripts/write_probin.py \
            --cxx_prefix $(CASTRO_AUTO_SOURCE_DIR)/extern \
@@ -37,7 +44,10 @@ $(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.H: $(EXTERN_PARAMETERS)
 
 # runtime parameter support for extern/ routines
 CEXE_sources += prob_parameters.cpp
-CEXE_headers += prob_parameters.H
+
+PROB_GENERATED := $(addprefix $(CASTRO_AUTO_SOURCE_DIR)/, \
+                   prob_parameters.H prob_parameters.cpp prob_job_info_tests.H)
+CEXE_headers += $(notdir $(filter %.H,$(PROB_GENERATED)))
 
 # search Bdirs for _prob_params files
 PROB_PARAMETERS := $(foreach dir, $(Bdirs), $(wildcard $(TOP)/$(dir)/_prob_params))
@@ -45,30 +55,29 @@ PROB_PARAMETERS := $(foreach dir, $(Bdirs), $(wildcard $(TOP)/$(dir)/_prob_param
 # any others
 PROB_PARAMETERS += $(wildcard $(PROBLEM_DIR)/_prob_params)
 
-$(CASTRO_AUTO_SOURCE_DIR)/prob_parameters.cpp: $(CASTRO_AUTO_SOURCE_DIR)/prob_parameters.H
-
 # for dependency resolution
-AUTO_BUILD_SOURCES += $(CASTRO_AUTO_SOURCE_DIR)/prob_parameters.H
+AUTO_BUILD_SOURCES += $(PROB_GENERATED)
 
-# Only existing problem parameter files are prerequisites.
-$(CASTRO_AUTO_SOURCE_DIR)/prob_parameters.H: $(wildcard $(PROB_PARAMETERS))
+$(PROB_GENERATED) &: $(PROB_PARAMETERS) $(TOP)/Util/scripts/write_probdata.py $(PARAMETER_SUPPORT)
 	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
 	PYTHONPATH=$(MICROPHYSICS_HOME)/util/build_scripts $(TOP)/Util/scripts/write_probdata.py \
            -p "$(PROB_PARAMETERS)" \
-           --cxx_prefix $(CASTRO_AUTO_SOURCE_DIR)/prob \
+           --cxx_prefix $(CASTRO_AUTO_SOURCE_DIR)/prob
 
 #------------------------------------------------------------------------------
 # Castro C++ parameters
 #------------------------------------------------------------------------------
 
-CEXE_headers += castro_params.H
+CPP_PARAMETERS := $(TOP)/Source/driver/_cpp_parameters
+CPP_PARAMETER_NAMESPACES := $(shell awk '$$1 == "@namespace:" { print $$2 }' $(CPP_PARAMETERS))
+CPP_GENERATED := $(addprefix $(CASTRO_AUTO_SOURCE_DIR)/, \
+                  runtime_params.cpp params_type.H \
+                  $(foreach ns,$(CPP_PARAMETER_NAMESPACES), \
+                    $(ns)_params.H $(ns)_queries.H $(ns)_job_info_tests.H))
+CEXE_headers += $(notdir $(filter %.H,$(CPP_GENERATED)))
 
 # for dependency resolution
-AUTO_BUILD_SOURCES += $(CASTRO_AUTO_SOURCE_DIR)/castro_params.H
-
-CPP_PARAMETERS := $(TOP)/Source/driver/_cpp_parameters
-
-$(CASTRO_AUTO_SOURCE_DIR)/runtime_params.cpp: $(CASTRO_AUTO_SOURCE_DIR)/castro_params.H
+AUTO_BUILD_SOURCES += $(CPP_GENERATED)
 
 STRUCT_USE_CASTRO_CLASS ?= TRUE
 PARSE_ARGS :=
@@ -76,12 +85,12 @@ ifneq ($(STRUCT_USE_CASTRO_CLASS), TRUE)
    PARSE_ARGS += --without-castro-class
 endif
 
-$(CASTRO_AUTO_SOURCE_DIR)/castro_params.H: $(CPP_PARAMETERS)
+$(CPP_GENERATED) &: $(CPP_PARAMETERS) $(TOP)/Source/driver/parse_castro_params.py $(PARAMETER_SUPPORT)
 	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
 	PYTHONPATH=$(MICROPHYSICS_HOME)/util/build_scripts $(TOP)/Source/driver/parse_castro_params.py $(PARSE_ARGS) -o $(CASTRO_AUTO_SOURCE_DIR) $(CPP_PARAMETERS)
 
 # for debugging
-test_cxx_params: $(CASTRO_AUTO_SOURCE_DIR)/castro_params.H
+test_cxx_params: $(CPP_GENERATED)
 
 #------------------------------------------------------------------------------
 # state variable info
