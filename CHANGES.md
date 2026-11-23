@@ -2,6 +2,9 @@
 
 ## 26.11
 
+  * fix recovery and script dependencies for generated parameter files;
+    require GNU make 4.3 or newer for grouped targets (PR pending)
+
   * use AMReX HDF5 configuration without requiring Fortran HDF5 libraries
     (PR pending)
 
