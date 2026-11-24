@@ -88,8 +88,8 @@ Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _density)
      radial_grav_old.resize(MAX_LEV);
      radial_grav_new.resize(MAX_LEV);
      radial_mass.resize(MAX_LEV);
-     radial_vol.resize(MAX_LEV);
 #ifdef GR_GRAV
+     radial_vol.resize(MAX_LEV);
      radial_pres.resize(MAX_LEV);
 #endif
 
@@ -317,8 +317,8 @@ Gravity::install_level (int                   level,
            radial_grav_old[level].resize(n1d);
            radial_grav_new[level].resize(n1d);
            radial_mass[level].resize(n1d);
-           radial_vol[level].resize(n1d);
 #ifdef GR_GRAV
+           radial_vol[level].resize(n1d);
            radial_pres[level].resize(n1d);
 #endif
         }
@@ -527,9 +527,9 @@ Gravity::gravity_sync (int crse_level, int fine_level, const Vector<MultiFab*>& 
 
     for (int lev = crse_level; lev <= fine_level; ++lev) {
         g_rhs[lev - crse_level] = std::make_unique<MultiFab>(LevelData[lev]->boxArray(), LevelData[lev]->DistributionMap(), 1, 0);
-        MultiFab::Copy(*g_rhs[lev - crse_level], *dphi[lev - crse_level], 0, 0, 1, 0);
-        g_rhs[lev - crse_level]->mult(1.0 / Ggravity);
-        MultiFab::Add(*g_rhs[lev - crse_level], *drho[lev - crse_level], 0, 0, 1, 0);
+        MultiFab::LinComb(*g_rhs[lev - crse_level],
+                          1.0_rt / Ggravity, *dphi[lev - crse_level], 0,
+                          1.0_rt, *drho[lev - crse_level], 0, 0, 1, 0);
     }
 
     // Construct the boundary conditions for the Poisson solve.
@@ -1441,8 +1441,8 @@ void
 Gravity::compute_radial_mass(const Box& bx,
                              Array4<Real const> const& u,
                              RealVector& radial_mass_local,
-                             RealVector& radial_vol_local,
 #ifdef GR_GRAV
+                             RealVector& radial_vol_local,
                              RealVector& radial_pres_local,
 #endif
                              int n1d, int level) const
@@ -1496,8 +1496,8 @@ Gravity::compute_radial_mass(const Box& bx,
     Real dz_frac = dx[2] / fac;
 
     Real* const radial_mass_ptr = radial_mass_local.dataPtr();
-    Real* const radial_vol_ptr = radial_vol_local.dataPtr();
 #ifdef GR_GRAV
+    Real* const radial_vol_ptr = radial_vol_local.dataPtr();
     Real* const radial_pres_ptr = radial_pres_local.dataPtr();
 #endif
 
@@ -1596,8 +1596,8 @@ Gravity::compute_radial_mass(const Box& bx,
 
                         if (index <= n1d - 1) {
                             Gpu::Atomic::Add(&radial_mass_ptr[index], vol_frac * u(i,j,k,URHO));
-                            Gpu::Atomic::Add(&radial_vol_ptr[index], vol_frac);
 #ifdef GR_GRAV
+                            Gpu::Atomic::Add(&radial_vol_ptr[index], vol_frac);
                             Gpu::Atomic::Add(&radial_pres_ptr[index], vol_frac * eos_state.p);
 #endif
                         }
@@ -3124,8 +3124,8 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
 
 #ifdef GR_GRAV
         Real* const lev_pres = radial_pres[lev].dataPtr();
-#endif
         Real* const lev_vol = radial_vol[lev].dataPtr();
+#endif
         Real* const lev_mass = radial_mass[lev].dataPtr();
 
         amrex::ParallelFor(n1d,
@@ -3133,24 +3133,24 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
         {
 #ifdef GR_GRAV
             lev_pres[i] = 0.;
-#endif
             lev_vol[i] = 0.;
+#endif
             lev_mass[i] = 0.;
         });
 
 #ifdef _OPENMP
         int nthreads = omp_get_max_threads();
+        Vector< RealVector > priv_radial_mass(nthreads);
 #ifdef GR_GRAV
+        Vector< RealVector > priv_radial_vol (nthreads);
         Vector< RealVector > priv_radial_pres(nthreads);
 #endif
-        Vector< RealVector > priv_radial_mass(nthreads);
-        Vector< RealVector > priv_radial_vol (nthreads);
         for (int i=0; i<nthreads; i++) {
+            priv_radial_mass[i].resize(n1d,0.0);
 #ifdef GR_GRAV
+            priv_radial_vol [i].resize(n1d,0.0);
             priv_radial_pres[i].resize(n1d,0.0);
 #endif
-            priv_radial_mass[i].resize(n1d,0.0);
-            priv_radial_vol [i].resize(n1d,0.0);
         }
 #pragma omp parallel
 #endif
@@ -3167,14 +3167,14 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
                                     fab.array(),
 #ifdef _OPENMP
                                     priv_radial_mass[tid],
-                                    priv_radial_vol[tid],
 #ifdef GR_GRAV
+                                    priv_radial_vol[tid],
                                     priv_radial_pres[tid],
 #endif
 #else
                                     radial_mass[lev],
-                                    radial_vol[lev],
 #ifdef GR_GRAV
+                                    radial_vol[lev],
                                     radial_pres[lev],
 #endif
 #endif
@@ -3186,11 +3186,11 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
 #pragma omp for
             for (int i=0; i<n1d; i++) {
                 for (int it=0; it<nthreads; it++) {
+                    radial_mass[lev][i] += priv_radial_mass[it][i];
 #ifdef GR_GRAV
+                    radial_vol [lev][i] += priv_radial_vol [it][i];
                     radial_pres[lev][i] += priv_radial_pres[it][i];
 #endif
-                    radial_mass[lev][i] += priv_radial_mass[it][i];
-                    radial_vol [lev][i] += priv_radial_vol [it][i];
                 }
             }
 #endif
@@ -3198,22 +3198,22 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
 
         if (!ParallelDescriptor::UseGpuAwareMpi()) {
             Gpu::prefetchToHost(radial_mass[lev].begin(), radial_mass[lev].end());
-            Gpu::prefetchToHost(radial_vol[lev].begin(), radial_vol[lev].end());
 #ifdef GR_GRAV
+            Gpu::prefetchToHost(radial_vol[lev].begin(), radial_vol[lev].end());
             Gpu::prefetchToHost(radial_pres[lev].begin(), radial_pres[lev].end());
 #endif
         }
 
         ParallelDescriptor::ReduceRealSum(radial_mass[lev].dataPtr() ,n1d);
-        ParallelDescriptor::ReduceRealSum(radial_vol[lev].dataPtr()  ,n1d);
 #ifdef GR_GRAV
+        ParallelDescriptor::ReduceRealSum(radial_vol[lev].dataPtr()  ,n1d);
         ParallelDescriptor::ReduceRealSum(radial_pres[lev].dataPtr()  ,n1d);
 #endif
 
         if (!ParallelDescriptor::UseGpuAwareMpi()) {
             Gpu::prefetchToDevice(radial_mass[lev].begin(), radial_mass[lev].end());
-            Gpu::prefetchToDevice(radial_vol[lev].begin(), radial_vol[lev].end());
 #ifdef GR_GRAV
+            Gpu::prefetchToDevice(radial_vol[lev].begin(), radial_vol[lev].end());
             Gpu::prefetchToDevice(radial_pres[lev].begin(), radial_pres[lev].end());
 #endif
         }
@@ -3299,6 +3299,8 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
     const Real* dx = geom.CellSize();
     Real dr        = dx[0] / static_cast<Real>(gravity::drdxfac);
 
+#ifdef GR_GRAV
+    // Volume and density are only needed for the TOV correction.
     RealVector radial_vol_summed(n1d,0);
     RealVector radial_den_summed(n1d,0);
 
@@ -3346,7 +3348,6 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
         }
     });
 
-#ifdef GR_GRAV
     RealVector radial_pres_summed(n1d,0);
 
     Real* const pres_summed = radial_pres_summed.dataPtr();

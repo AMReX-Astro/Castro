@@ -364,8 +364,8 @@ public:
   void compute_radial_mass(const amrex::Box& bx,
                            amrex::Array4<amrex::Real const> const& u,
                            RealVector& radial_mass,
-                           RealVector& radial_vol,
 #ifdef GR_GRAV
+                           RealVector& radial_vol,
                            RealVector& radial_pres,
 #endif
                            int n1d, int level) const;
@@ -463,8 +463,8 @@ public:
   amrex::Vector< RealVector > radial_grav_old;
   amrex::Vector< RealVector > radial_grav_new;
   amrex::Vector< RealVector > radial_mass;
-  amrex::Vector< RealVector > radial_vol;
 #ifdef GR_GRAV
+  amrex::Vector< RealVector > radial_vol;
   amrex::Vector< RealVector > radial_pres;
 #endif
   static int   stencil_type;
